@@ -1,0 +1,21 @@
+node_modules/
+dist/
+coverage/
+.vite/
+
+*.local
+*.log
+.DS_Store
+Thumbs.db
+
+# Local agent/session metadata.
+/.agents/
+/.codex/
+
+# Never commit personal or downloaded game saves.
+/saves/
+/fixtures/private/
+/slot_*.mp
+/slot_*.json
+/meta_*.mp
+/meta_*.json
