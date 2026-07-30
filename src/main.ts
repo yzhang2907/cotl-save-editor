@@ -18,9 +18,9 @@ import type {
 const MAX_SAVE_BYTES = 64 * 1024 * 1024;
 
 const formatLabels: Record<SaveFormat, string> = {
-  "plain-json": "Legacy plaintext JSON",
-  "encrypted-json": "Legacy encrypted JSON",
-  "encrypted-messagepack": "Current encrypted MessagePack",
+  "plain-json": "Legacy plaintext JSON (.json)",
+  "encrypted-json": "Legacy encrypted JSON (.json)",
+  "encrypted-messagepack": "Encrypted MessagePack (.mp)",
 };
 
 const app = document.querySelector<HTMLDivElement>("#app");
@@ -96,7 +96,7 @@ app.innerHTML = `
           <p class="section-label">First things first</p>
           <h2 id="reader-title">Bring forth your save</h2>
           <p>
-            Choose a current <code>slot_#.mp</code> file, or an older
+            Choose a <code>slot_#.mp</code> save, or an older
             <code>slot_#.json</code> save.
           </p>
         </div>
@@ -159,24 +159,92 @@ function makeDetail(label: string, value: string): HTMLDivElement {
   return detail;
 }
 
-function summarizeValue(value: unknown): unknown {
-  if (typeof value === "bigint") {
-    return value.toString();
+function gameVersionLabel(
+  data: SaveRecord,
+  messagePack?: MessagePackSource,
+): string {
+  if (
+    (typeof data.Version === "string" && data.Version.trim()) ||
+    typeof data.Version === "number"
+  ) {
+    return String(data.Version);
   }
-  if (Array.isArray(value)) {
-    return `[Array with ${value.length} entries]`;
-  }
-  if (value !== null && typeof value === "object") {
-    return `{Object with ${Object.keys(value).length} fields}`;
-  }
-  return value;
+  return messagePack?.schema === "slot"
+    ? "Not stored in this slot file"
+    : "Not recorded";
 }
 
-function previewData(data: SaveRecord): string {
-  const entries = Object.entries(data)
-    .slice(0, 16)
-    .map(([key, value]) => [key, summarizeValue(value)]);
-  return JSON.stringify(Object.fromEntries(entries), null, 2);
+function serializeSaveData(data: SaveRecord): string {
+  return JSON.stringify(
+    data,
+    (_key, value: unknown) => {
+      if (typeof value === "bigint") {
+        return `${value}n`;
+      }
+      if (value instanceof Uint8Array) {
+        return Array.from(value);
+      }
+      if (value instanceof Map) {
+        return Object.fromEntries(value);
+      }
+      if (value instanceof Set) {
+        return Array.from(value);
+      }
+      return value;
+    },
+    2,
+  );
+}
+
+function renderAdvancedDiagnostics(data: SaveRecord): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "advanced-diagnostics";
+  section.append(
+    textElement("h3", "", "Advanced diagnostics"),
+    textElement(
+      "p",
+      "",
+      "Use this complete decoded record for troubleshooting. Large saves may take a moment to display.",
+    ),
+  );
+
+  const preview = document.createElement("details");
+  preview.className = "preview";
+  const summary = document.createElement("summary");
+  summary.textContent = "Technical save preview";
+  const code = document.createElement("pre");
+  code.textContent = "Open this section to prepare the complete save record.";
+  let rendered = false;
+  preview.addEventListener("toggle", () => {
+    if (!preview.open || rendered) {
+      return;
+    }
+    rendered = true;
+    code.textContent = "Preparing the complete save record…";
+    window.requestAnimationFrame(() => {
+      try {
+        code.textContent = serializeSaveData(data);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown error.";
+        code.textContent = `The technical preview could not be prepared: ${message}`;
+      }
+    });
+  });
+  preview.append(summary, code);
+  section.append(preview);
+  return section;
+}
+
+function textElement<K extends keyof HTMLElementTagNameMap>(
+  tagName: K,
+  className: string,
+  text: string,
+): HTMLElementTagNameMap[K] {
+  const element = document.createElement(tagName);
+  element.className = className;
+  element.textContent = text;
+  return element;
 }
 
 function roundTripFileName(fileName: string): string {
@@ -240,21 +308,23 @@ function renderWriteCheck(
 function renderWarnings(
   report: SaveCompatibilityReport,
   additionalWarnings: string[],
-): HTMLElement {
+): HTMLElement | null {
+  const allWarnings = [...additionalWarnings, ...report.warnings];
+  if (allWarnings.length === 0) {
+    return null;
+  }
+
   const section = document.createElement("section");
   section.className = "warnings";
   const heading = document.createElement("h3");
-  const allWarnings = [...additionalWarnings, ...report.warnings];
-  heading.textContent = allWarnings.length
-    ? "Things to check"
-    : "No trouble found";
+  heading.textContent =
+    allWarnings.length === 1
+      ? "Compatibility note"
+      : "Compatibility notes";
   section.append(heading);
 
   const list = document.createElement("ul");
-  const warnings = allWarnings.length
-    ? allWarnings
-    : ["The save opened without any schema warnings."];
-  for (const warning of warnings) {
+  for (const warning of allWarnings) {
     const item = document.createElement("li");
     item.textContent = warning;
     list.append(item);
@@ -287,8 +357,8 @@ function renderReport(
   const badge = document.createElement("span");
   badge.className = report.canEditDoctrines ? "badge safe" : "badge caution";
   badge.textContent = report.canEditDoctrines
-    ? "Doctrine fields found"
-    : "Needs review";
+    ? "Save decoded"
+    : "Check notes";
   heading.append(step, titleGroup, badge);
 
   const details = document.createElement("dl");
@@ -302,6 +372,7 @@ function renderReport(
         ? new Date(file.lastModified).toLocaleString()
         : "Unavailable",
     ),
+    makeDetail("Game version", gameVersionLabel(data, messagePack)),
     makeDetail("Top-level fields", String(report.fieldCount)),
     makeDetail(
       "Doctrine unlocks",
@@ -319,30 +390,25 @@ function renderReport(
     ),
   );
 
-  const preview = document.createElement("details");
-  preview.className = "preview";
-  const summary = document.createElement("summary");
-  summary.textContent = "Show decoded fields";
-  const code = document.createElement("pre");
-  code.textContent = previewData(data);
-  preview.append(summary, code);
-
-  const sections: (Node | string)[] = [
-    heading,
-    details,
-    renderWarnings(report, sourceWarnings(file.name, format)),
-  ];
+  const sections: (Node | string)[] = [heading, details];
+  const warnings = renderWarnings(
+    report,
+    sourceWarnings(file.name, format),
+  );
+  if (warnings) {
+    sections.push(warnings);
+  }
   if (
     messagePack?.schema === "slot" ||
     Array.isArray(data.Followers) ||
     Array.isArray(data.DoctrineUnlockedUpgrades)
   ) {
-    sections.push(renderCultOverview(buildCultOverview(data)));
+    sections.push(renderCultOverview(buildCultOverview(data), data));
   }
   if (messagePack) {
     sections.push(renderWriteCheck(file, messagePack));
   }
-  sections.push(preview);
+  sections.push(renderAdvancedDiagnostics(data));
   reportElement.append(...sections);
 }
 
@@ -367,12 +433,7 @@ async function inspectFile(file: File): Promise<void> {
       report,
       decoded.messagePack,
     );
-    setStatus(
-      report.canEditDoctrines
-        ? "Save opened. Its doctrine fields are where expected."
-        : "Save opened, but its doctrine fields need a closer look.",
-      "ready",
-    );
+    setStatus("Save opened successfully.", "ready");
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error.";
     setStatus(message, "error");

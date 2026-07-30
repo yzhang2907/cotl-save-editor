@@ -1,9 +1,21 @@
+import {
+  assessDoctrineEditing,
+  planDoctrineChange,
+  type DoctrineChangePlan,
+  type DoctrineFieldChange,
+} from "../save/doctrine-editor";
 import type {
   CultOverview,
   DoctrinePairOverview,
   FollowerOverview,
   ResourceOverview,
 } from "../save/overview";
+import resourceIconDefinitions from "../save/resource-icons.json";
+import type { SaveRecord } from "../save/types";
+
+const RESOURCE_ICON_IDS = new Set(
+  resourceIconDefinitions.map((definition) => definition.id),
+);
 
 function textElement<K extends keyof HTMLElementTagNameMap>(
   tagName: K,
@@ -49,11 +61,9 @@ function statCard(
 function detailsPanel(
   title: string,
   count: string,
-  open = false,
 ): { body: HTMLDivElement; details: HTMLDetailsElement } {
   const details = document.createElement("details");
   details.className = "overview-panel";
-  details.open = open;
   const summary = document.createElement("summary");
   summary.append(
     textElement("strong", "", title),
@@ -105,11 +115,24 @@ function resourceRow(resource: ResourceOverview): HTMLDivElement {
   row.className = resource.known
     ? "resource-row"
     : "resource-row unknown";
+  const identity = document.createElement("div");
+  identity.className = "resource-identity";
   const name = document.createElement("div");
   name.append(
     textElement("strong", "", resource.name),
     textElement("small", "", `Item ${resource.id}`),
   );
+  if (RESOURCE_ICON_IDS.has(resource.id)) {
+    const icon = document.createElement("img");
+    icon.className = "resource-icon";
+    icon.src = `/resource-icons/${resource.id}.webp`;
+    icon.alt = "";
+    icon.loading = "lazy";
+    icon.width = 52;
+    icon.height = 52;
+    identity.append(icon);
+  }
+  identity.append(name);
   const quantity = document.createElement("div");
   quantity.className = "resource-quantity";
   quantity.append(textElement("strong", "", displayNumber(resource.quantity)));
@@ -122,16 +145,21 @@ function resourceRow(resource: ResourceOverview): HTMLDivElement {
       ),
     );
   }
-  row.append(name, quantity);
+  row.append(identity, quantity);
   return row;
 }
 
-function doctrinePair(pair: DoctrinePairOverview): HTMLDivElement {
+function doctrinePair(
+  pair: DoctrinePairOverview,
+  data: SaveRecord,
+  showPreview: (plan: DoctrineChangePlan) => void,
+): HTMLDivElement {
   const row = document.createElement("div");
   row.className = `doctrine-pair ${pair.state}`;
   row.append(textElement("span", "doctrine-rank", String(pair.rank)));
 
   const description = document.createElement("div");
+  let previewButton: HTMLButtonElement | null = null;
   if (pair.state === "selected") {
     const selected = pair.selected[0];
     if (!selected) {
@@ -150,6 +178,22 @@ function doctrinePair(pair: DoctrinePairOverview): HTMLDivElement {
           : `Doctrine ID ${selected.doctrineId}`,
       ),
     );
+    if (opposing) {
+      const plan = planDoctrineChange(data, opposing.doctrineId);
+      previewButton = document.createElement("button");
+      previewButton.className = "doctrine-preview-button";
+      previewButton.type = "button";
+      previewButton.textContent =
+        plan.state === "ready"
+          ? `Preview ${opposing.name}`
+          : "Preview blocked";
+      previewButton.disabled = plan.state !== "ready";
+      if (plan.blockers.length > 0) {
+        previewButton.title = plan.blockers.join(" ");
+      }
+      previewButton.addEventListener("click", () => showPreview(plan));
+      row.classList.add("editable");
+    }
   } else if (pair.state === "conflict") {
     description.append(
       textElement("strong", "", "Both choices are present"),
@@ -173,7 +217,208 @@ function doctrinePair(pair: DoctrinePairOverview): HTMLDivElement {
   }
 
   row.append(description);
+  if (previewButton) {
+    row.append(previewButton);
+  }
   return row;
+}
+
+function idList(ids: number[]): string {
+  return ids.length > 0 ? ids.join(", ") : "none";
+}
+
+function storageFieldLabel(change: DoctrineFieldChange): string {
+  if (change.field === "DoctrineUnlockedUpgrades") {
+    return "Doctrine choice";
+  }
+  if (change.field === "UnlockedUpgrades") {
+    return "Linked unlock";
+  }
+  return "Cult trait";
+}
+
+function doctrineValueName(
+  plan: DoctrineChangePlan,
+  direction: "added" | "removed",
+): string {
+  const choice = direction === "removed" ? plan.from : plan.to;
+  if (choice === null) {
+    return "Unknown value";
+  }
+  return choice.name;
+}
+
+function deltaItem(
+  name: string,
+  id: number,
+  direction: "added" | "removed",
+  change: DoctrineFieldChange,
+): HTMLSpanElement {
+  const item = document.createElement("span");
+  item.className = `doctrine-change-item ${direction}`;
+  item.append(
+    textElement("strong", "", name),
+    textElement(
+      "small",
+      "",
+      `${storageFieldLabel(change)} · ID ${id}`,
+    ),
+  );
+  return item;
+}
+
+function changeColumn(
+  title: string,
+  direction: "added" | "removed",
+  plan: DoctrineChangePlan,
+): HTMLElement {
+  const column = document.createElement("section");
+  column.className = `doctrine-change-column ${direction}`;
+  column.append(textElement("h5", "", title));
+
+  const list = document.createElement("div");
+  list.className = "doctrine-change-list";
+  for (const change of plan.changes) {
+    const ids =
+      direction === "removed" ? change.removed : change.added;
+    for (const id of ids) {
+      list.append(
+        deltaItem(
+          doctrineValueName(plan, direction),
+          id,
+          direction,
+          change,
+        ),
+      );
+    }
+  }
+  column.append(list);
+  return column;
+}
+
+function completeArrayValues(plan: DoctrineChangePlan): HTMLDetailsElement {
+  const complete = document.createElement("details");
+  complete.className = "doctrine-array-details";
+  const summary = document.createElement("summary");
+  summary.textContent = "Show complete array values";
+  const arrays = document.createElement("div");
+  arrays.className = "doctrine-array-comparison";
+  for (const change of plan.changes) {
+    const field = document.createElement("section");
+    field.title = change.field;
+    field.append(textElement("h6", "", storageFieldLabel(change)));
+    const values = document.createElement("div");
+    values.className = "doctrine-array-values";
+    const before = document.createElement("div");
+    before.append(
+      textElement("span", "", "Before"),
+      textElement("code", "", `[${idList(change.before)}]`),
+    );
+    const after = document.createElement("div");
+    after.append(
+      textElement("span", "", "After"),
+      textElement("code", "", `[${idList(change.after)}]`),
+    );
+    values.append(before, after);
+    field.append(values);
+    arrays.append(field);
+  }
+  complete.append(summary, arrays);
+  return complete;
+}
+
+function emptyDoctrinePreview(): HTMLDivElement {
+  const empty = document.createElement("div");
+  empty.className = "doctrine-preview-empty";
+  empty.append(
+    textElement("span", "", "↟"),
+    textElement("strong", "", "Choose a declared doctrine"),
+    textElement(
+      "p",
+      "",
+      "Use a Preview button above to inspect one replacement. The opened save will stay unchanged.",
+    ),
+  );
+  return empty;
+}
+
+function renderDoctrinePlan(
+  plan: DoctrineChangePlan,
+  container: HTMLDivElement,
+): void {
+  container.replaceChildren();
+  if (
+    plan.state !== "ready" ||
+    plan.from === null ||
+    plan.to === null
+  ) {
+    const warning = document.createElement("div");
+    warning.className = "doctrine-plan-blocked";
+    warning.append(
+      textElement("strong", "", "This preview is blocked"),
+    );
+    const list = document.createElement("ul");
+    for (const blocker of plan.blockers) {
+      list.append(textElement("li", "", blocker));
+    }
+    warning.append(list);
+    container.append(warning);
+    return;
+  }
+
+  const heading = document.createElement("header");
+  const title = document.createElement("div");
+  title.append(
+    textElement(
+      "p",
+      "section-label",
+      `${plan.categoryName} · Rank ${plan.rank}`,
+    ),
+    textElement("h4", "", `${plan.from.name} → ${plan.to.name}`),
+  );
+  heading.append(
+    title,
+    textElement("span", "preview-only-badge", "Preview only"),
+  );
+
+  const explanation = textElement(
+    "p",
+    "doctrine-plan-copy",
+    "These are the exact array changes required for this replacement. No save data has been changed.",
+  );
+  const changes = document.createElement("div");
+  changes.className = "doctrine-change-columns";
+  changes.append(
+    changeColumn("You lose", "removed", plan),
+    changeColumn("You gain", "added", plan),
+  );
+
+  const unchangedFields = plan.changes
+    .filter((change) => !change.changed)
+    .map(storageFieldLabel);
+  const unchanged =
+    unchangedFields.length === 0
+      ? null
+      : textElement(
+          "p",
+          "doctrine-unchanged-note",
+          `Unchanged: ${unchangedFields.join(", ").toLowerCase()}.`,
+        );
+
+  const clear = document.createElement("button");
+  clear.className = "clear-doctrine-preview";
+  clear.type = "button";
+  clear.textContent = "Clear preview";
+  clear.addEventListener("click", () => {
+    container.replaceChildren(emptyDoctrinePreview());
+  });
+
+  container.append(heading, explanation, changes);
+  if (unchanged) {
+    container.append(unchanged);
+  }
+  container.append(completeArrayValues(plan), clear);
+  container.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function renderFollowers(overview: CultOverview): HTMLDetailsElement | null {
@@ -183,7 +428,6 @@ function renderFollowers(overview: CultOverview): HTMLDetailsElement | null {
   const panel = detailsPanel(
     "Followers",
     `${overview.followerCount} living`,
-    true,
   );
   if (overview.followers.length === 0) {
     panel.body.append(
@@ -232,7 +476,10 @@ function renderResources(overview: CultOverview): HTMLDetailsElement | null {
   return panel.details;
 }
 
-function renderDoctrines(overview: CultOverview): HTMLDetailsElement {
+function renderDoctrines(
+  overview: CultOverview,
+  data: SaveRecord,
+): HTMLDetailsElement {
   const totalChoices = overview.doctrine.categories.reduce(
     (total, category) => total + category.pairs.length,
     0,
@@ -240,16 +487,16 @@ function renderDoctrines(overview: CultOverview): HTMLDetailsElement {
   const panel = detailsPanel(
     "Doctrines",
     `${overview.doctrine.selectedChoiceCount} of ${totalChoices} choices`,
-    true,
   );
   panel.body.append(
     textElement(
       "p",
       "catalog-note",
-      `Read-only catalog for game ${overview.doctrine.catalogVersion}.`,
+      `Catalog for game ${overview.doctrine.catalogVersion}. Previewing a replacement does not change the opened save.`,
     ),
   );
 
+  const assessment = assessDoctrineEditing(data);
   if (overview.doctrine.unknownIds.length > 0) {
     panel.body.append(
       textElement(
@@ -259,6 +506,27 @@ function renderDoctrines(overview: CultOverview): HTMLDetailsElement {
       ),
     );
   }
+  if (assessment.blockers.length > 0) {
+    const warning = document.createElement("div");
+    warning.className = "catalog-warning doctrine-edit-blockers";
+    warning.append(
+      textElement("strong", "", "Doctrine previews are blocked."),
+    );
+    const list = document.createElement("ul");
+    for (const blocker of assessment.blockers) {
+      list.append(textElement("li", "", blocker));
+    }
+    warning.append(list);
+    panel.body.append(warning);
+  }
+
+  const preview = document.createElement("div");
+  preview.className = "doctrine-change-preview";
+  preview.setAttribute("aria-live", "polite");
+  preview.append(emptyDoctrinePreview());
+  const showPreview = (plan: DoctrineChangePlan): void => {
+    renderDoctrinePlan(plan, preview);
+  };
 
   const categories = document.createElement("div");
   categories.className = "doctrine-grid";
@@ -274,7 +542,12 @@ function renderDoctrines(overview: CultOverview): HTMLDetailsElement {
         `${category.selectedCount}/${category.pairs.length}`,
       ),
     );
-    card.append(heading, ...category.pairs.map(doctrinePair));
+    card.append(
+      heading,
+      ...category.pairs.map((pair) =>
+        doctrinePair(pair, data, showPreview),
+      ),
+    );
     categories.append(card);
   }
   panel.body.append(categories);
@@ -292,6 +565,13 @@ function renderDoctrines(overview: CultOverview): HTMLDetailsElement {
     }
     panel.body.append(specials);
   }
+  const previewSection = document.createElement("section");
+  previewSection.className = "doctrine-preview-section";
+  previewSection.append(
+    textElement("h4", "overview-subheading", "Change preview"),
+    preview,
+  );
+  panel.body.append(previewSection);
   return panel.details;
 }
 
@@ -342,7 +622,10 @@ function renderRituals(overview: CultOverview): HTMLDetailsElement {
   return panel.details;
 }
 
-export function renderCultOverview(overview: CultOverview): HTMLElement {
+export function renderCultOverview(
+  overview: CultOverview,
+  data: SaveRecord,
+): HTMLElement {
   const section = document.createElement("section");
   section.className = "cult-overview";
   section.setAttribute("aria-labelledby", "cult-overview-title");
@@ -351,24 +634,24 @@ export function renderCultOverview(overview: CultOverview): HTMLElement {
   heading.className = "overview-heading";
   const copy = document.createElement("div");
   copy.append(
-    textElement("p", "section-label", "Read-only record"),
+    textElement("p", "section-label", "Local save record"),
     textElement("h3", "", "Inside the cult"),
     textElement(
       "p",
       "",
-      "These values are extracted from the opened save. Nothing here can be changed yet.",
+      "Inspect the cult and preview doctrine replacements below. Nothing is changed or exported.",
     ),
   );
   const title = copy.querySelector("h3");
   if (title) {
     title.id = "cult-overview-title";
   }
-  heading.append(copy, textElement("span", "read-only-seal", "Look, don't touch"));
+  heading.append(copy, textElement("span", "read-only-seal", "Preview only"));
 
   const stats = document.createElement("div");
   stats.className = "overview-stats";
   stats.append(
-    statCard("Cult", overview.identity.name ?? "Unnamed"),
+    statCard("Cult name", overview.identity.name ?? "Unnamed"),
     statCard(
       "Day",
       overview.identity.day === null
@@ -382,13 +665,10 @@ export function renderCultOverview(overview: CultOverview): HTMLElement {
         : displayNumber(overview.followerCount),
     ),
     statCard(
-      "Base",
+      "Structures",
       overview.structureCount === null
         ? "Unknown"
-        : `${displayNumber(overview.structureCount)} structures`,
-      overview.structureTypeCount === null
-        ? undefined
-        : `${overview.structureTypeCount} structure types`,
+        : displayNumber(overview.structureCount),
     ),
   );
   if (overview.identity.playTimeSeconds !== null) {
@@ -410,7 +690,7 @@ export function renderCultOverview(overview: CultOverview): HTMLElement {
   if (resourcePanel) {
     panels.append(resourcePanel);
   }
-  panels.append(renderDoctrines(overview), renderRituals(overview));
+  panels.append(renderDoctrines(overview, data), renderRituals(overview));
 
   section.append(heading, stats, panels);
   return section;

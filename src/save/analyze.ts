@@ -29,8 +29,9 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
   const warnings: string[] = [];
 
   if (unknownTopLevelKeys.length > 0) {
+    const noun = unknownTopLevelKeys.length === 1 ? "field" : "fields";
     warnings.push(
-      `${unknownTopLevelKeys.length} positional fields are not recognized by the current schema map.`,
+      `This editor does not have a name for ${unknownTopLevelKeys.length} save ${noun} yet. The data remains visible in Advanced diagnostics and is preserved by an unchanged rebuild.`,
     );
   }
   if (doctrineUnlockCount === null) {
@@ -47,8 +48,7 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
     canEditDoctrines:
       doctrineUnlockCount !== null &&
       unlockedUpgradeCount !== null &&
-      cultTraitsField !== null &&
-      unknownTopLevelKeys.length === 0,
+      cultTraitsField !== null,
     doctrineFields: {
       cultTraitsField,
       cultTraitsCount,

@@ -1,4 +1,4 @@
-# Road map
+# Work list
 
 ## 1. Read and inspect saves — Done
 
@@ -38,11 +38,12 @@ The writer keeps its empty array unchanged.
 
 ## 5. Edit doctrines
 
-- [ ] Show the selected choice in each category.
-- [ ] Show the valid replacement choices.
+- [x] Show the selected choice in each category.
+- [x] Show the valid replacement choices.
+- [x] Preview one replacement without changing the opened save.
 - [ ] Update all fields that store the choice.
-- [ ] Reject conflicting or incomplete selections.
-- [ ] Show the old and new values before export.
+- [x] Reject conflicting or incomplete selections.
+- [x] Show the old and new values before export.
 
 ## 6. Export safely
 

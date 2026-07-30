@@ -6,6 +6,7 @@ import {
   RITUAL_NAMES,
 } from "../src/save/catalogs";
 import { buildCultOverview } from "../src/save/overview";
+import resourceIconDefinitions from "../src/save/resource-icons.json";
 import type { SaveRecord } from "../src/save/types";
 
 const overviewSave: SaveRecord = {
@@ -138,6 +139,34 @@ describe("buildCultOverview", () => {
 });
 
 describe("save catalogs", () => {
+  it("uses explicit item IDs for resource icons", () => {
+    const iconsById = new Map(
+      resourceIconDefinitions.map((definition) => [
+        definition.id,
+        definition.sprite,
+      ]),
+    );
+
+    expect(new Set(iconsById.keys()).size).toBe(
+      resourceIconDefinitions.length,
+    );
+    expect(iconsById.get(1)).toBe("Wood");
+    expect(iconsById.get(2)).toBe("Stone");
+    expect(iconsById.get(6)).toBe("Food");
+    expect(iconsById.get(9)).toBe("VileBones");
+    expect(iconsById.get(20)).toBe("GoldCoin");
+    expect(iconsById.get(29)).toBe("Mushroom");
+    expect(iconsById.get(55)).toBe("Flower_Red");
+    expect(iconsById.get(62)).toBe("MeatLarge");
+    expect(iconsById.get(83)).toBe("GoldNugget");
+    expect(iconsById.get(122)).toBe("Necklace_9");
+    expect(iconsById.get(124)).toBe("Necklace_11");
+    expect(iconsById.get(125)).toBe("Necklace_10");
+    expect(iconsById.get(126)).toBe("Necklace_8");
+    expect(iconsById.get(127)).toBe("Necklace_6");
+    expect(iconsById.get(133)).toBe("Cotton");
+  });
+
   it("defines four opposed choices for every doctrine category", () => {
     const doctrineIds = DOCTRINE_CATEGORIES.flatMap((category) => {
       expect(category.pairs).toHaveLength(4);

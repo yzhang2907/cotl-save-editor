@@ -187,11 +187,14 @@ describe("analyzeSave", () => {
     expect(report.doctrineFields.cultTraitsField).toBe("CultTrait");
   });
 
-  it("blocks editing when an MP schema has unknown positional fields", () => {
+  it("keeps unknown positions visible without hiding doctrine controls", () => {
     const report = analyzeSave({ ...sampleSave, "1395": true });
 
-    expect(report.canEditDoctrines).toBe(false);
+    expect(report.canEditDoctrines).toBe(true);
     expect(report.unknownTopLevelKeys).toEqual(["1395"]);
+    expect(report.warnings).toEqual([
+      expect.stringContaining("does not have a name for 1 save field yet"),
+    ]);
   });
 });
 

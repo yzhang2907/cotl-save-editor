@@ -4,6 +4,10 @@ import { describe, expect, it } from "vitest";
 
 import { analyzeSave } from "../src/save/analyze";
 import { decodeSave } from "../src/save/decode";
+import {
+  assessDoctrineEditing,
+  planDoctrineChange,
+} from "../src/save/doctrine-editor";
 import { encodeVerifiedMessagePackSave } from "../src/save/encode";
 import { buildCultOverview } from "../src/save/overview";
 
@@ -47,6 +51,39 @@ describeSaveCopy("real save copy", () => {
         (category) => category.selectedCount > 0,
       ),
     ).toBe(true);
+
+    const doctrineAssessment = assessDoctrineEditing(decoded.data);
+    expect(doctrineAssessment.blockers).toEqual([]);
+    const doctrinePlans = overview.doctrine.categories.flatMap((category) =>
+      category.pairs.flatMap((pair) => {
+        if (pair.selected.length !== 1) {
+          return [];
+        }
+        const selected = pair.selected[0];
+        const replacement = pair.choices.find(
+          (choice) => choice.doctrineId !== selected?.doctrineId,
+        );
+        return replacement === undefined
+          ? []
+          : [planDoctrineChange(decoded.data, replacement.doctrineId)];
+      }),
+    );
+    expect(doctrinePlans).toHaveLength(
+      overview.doctrine.selectedChoiceCount,
+    );
+    expect(
+      doctrinePlans.flatMap((plan) =>
+        plan.state === "ready"
+          ? []
+          : [
+              {
+                blockers: plan.blockers,
+                category: plan.categoryName,
+                rank: plan.rank,
+              },
+            ],
+      ),
+    ).toEqual([]);
 
     const rewritten = await encodeVerifiedMessagePackSave(
       decoded.messagePack,

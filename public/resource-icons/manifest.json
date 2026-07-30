@@ -1,0 +1,688 @@
+[
+  {
+    "height": 90,
+    "id": 1,
+    "itemType": "LOG",
+    "sprite": "Wood",
+    "width": 116
+  },
+  {
+    "height": 82,
+    "id": 2,
+    "itemType": "STONE",
+    "sprite": "Stone",
+    "width": 116
+  },
+  {
+    "height": 56,
+    "id": 6,
+    "itemType": "MEAT",
+    "sprite": "Food",
+    "width": 104
+  },
+  {
+    "height": 96,
+    "id": 8,
+    "itemType": "SEED",
+    "sprite": "Seed",
+    "width": 79
+  },
+  {
+    "height": 94,
+    "id": 9,
+    "itemType": "BONE",
+    "sprite": "VileBones",
+    "width": 113
+  },
+  {
+    "height": 86,
+    "id": 20,
+    "itemType": "BLACK_GOLD",
+    "sprite": "GoldCoin",
+    "width": 110
+  },
+  {
+    "height": 108,
+    "id": 21,
+    "itemType": "BERRY",
+    "sprite": "Berries",
+    "width": 111
+  },
+  {
+    "height": 105,
+    "id": 22,
+    "itemType": "MONSTER_HEART",
+    "sprite": "MonsterHeart",
+    "width": 121
+  },
+  {
+    "height": 64,
+    "id": 28,
+    "itemType": "FISH",
+    "sprite": "Fish",
+    "width": 118
+  },
+  {
+    "height": 76,
+    "id": 29,
+    "itemType": "MUSHROOM_SMALL",
+    "sprite": "Mushroom",
+    "width": 62
+  },
+  {
+    "height": 37,
+    "id": 33,
+    "itemType": "FISH_SMALL",
+    "sprite": "Fish Small",
+    "width": 76
+  },
+  {
+    "height": 101,
+    "id": 34,
+    "itemType": "FISH_BIG",
+    "sprite": "Fish Big",
+    "width": 155
+  },
+  {
+    "height": 89,
+    "id": 35,
+    "itemType": "GRASS",
+    "sprite": "Grass",
+    "width": 86
+  },
+  {
+    "height": 100,
+    "id": 39,
+    "itemType": "POOP",
+    "sprite": "Poop",
+    "width": 119
+  },
+  {
+    "height": 96,
+    "id": 43,
+    "itemType": "GIFT_SMALL",
+    "sprite": "GiftSmall",
+    "width": 110
+  },
+  {
+    "height": 98,
+    "id": 44,
+    "itemType": "GIFT_MEDIUM",
+    "sprite": "GiftMedium",
+    "width": 121
+  },
+  {
+    "height": 68,
+    "id": 45,
+    "itemType": "Necklace_1",
+    "sprite": "Necklace_1",
+    "width": 72
+  },
+  {
+    "height": 84,
+    "id": 46,
+    "itemType": "Necklace_2",
+    "sprite": "Necklace_2",
+    "width": 68
+  },
+  {
+    "height": 81,
+    "id": 47,
+    "itemType": "Necklace_3",
+    "sprite": "Necklace_3",
+    "width": 70
+  },
+  {
+    "height": 76,
+    "id": 48,
+    "itemType": "Necklace_4",
+    "sprite": "Necklace_4",
+    "width": 72
+  },
+  {
+    "height": 74,
+    "id": 49,
+    "itemType": "Necklace_5",
+    "sprite": "Necklace_5",
+    "width": 72
+  },
+  {
+    "height": 105,
+    "id": 50,
+    "itemType": "PUMPKIN",
+    "sprite": "Pumpkin",
+    "width": 122
+  },
+  {
+    "height": 104,
+    "id": 51,
+    "itemType": "SEED_PUMPKIN",
+    "sprite": "Seed Pumpkin",
+    "width": 91
+  },
+  {
+    "height": 82,
+    "id": 55,
+    "itemType": "FLOWER_RED",
+    "sprite": "Flower_Red",
+    "width": 91
+  },
+  {
+    "height": 105,
+    "id": 62,
+    "itemType": "FOLLOWER_MEAT",
+    "sprite": "MeatLarge",
+    "width": 138
+  },
+  {
+    "height": 73,
+    "id": 70,
+    "itemType": "SEED_MUSHROOM",
+    "sprite": "SeedMushroom",
+    "width": 96
+  },
+  {
+    "height": 70,
+    "id": 72,
+    "itemType": "SEED_FLOWER_RED",
+    "sprite": "SeedRedFlower",
+    "width": 97
+  },
+  {
+    "height": 74,
+    "id": 81,
+    "itemType": "LOG_REFINED",
+    "sprite": "LogRefined",
+    "width": 134
+  },
+  {
+    "height": 99,
+    "id": 82,
+    "itemType": "STONE_REFINED",
+    "sprite": "StoneRefined",
+    "width": 117
+  },
+  {
+    "height": 68,
+    "id": 83,
+    "itemType": "GOLD_NUGGET",
+    "sprite": "GoldNugget",
+    "width": 96
+  },
+  {
+    "height": 87,
+    "id": 86,
+    "itemType": "GOLD_REFINED",
+    "sprite": "GoldRefined",
+    "width": 129
+  },
+  {
+    "height": 90,
+    "id": 89,
+    "itemType": "CRYSTAL",
+    "sprite": "Crystal",
+    "width": 126
+  },
+  {
+    "height": 80,
+    "id": 90,
+    "itemType": "SPIDER_WEB",
+    "sprite": "SpiderWeb",
+    "width": 143
+  },
+  {
+    "height": 96,
+    "id": 91,
+    "itemType": "FISH_CRAB",
+    "sprite": "Fish_Crab",
+    "width": 106
+  },
+  {
+    "height": 149,
+    "id": 92,
+    "itemType": "FISH_LOBSTER",
+    "sprite": "Fish_Lobster",
+    "width": 144
+  },
+  {
+    "height": 139,
+    "id": 93,
+    "itemType": "FISH_OCTOPUS",
+    "sprite": "Fish_Octopus",
+    "width": 136
+  },
+  {
+    "height": 113,
+    "id": 94,
+    "itemType": "FISH_SQUID",
+    "sprite": "Fish_Squid",
+    "width": 84
+  },
+  {
+    "height": 97,
+    "id": 95,
+    "itemType": "FISH_SWORDFISH",
+    "sprite": "Fish_Swordfish",
+    "width": 196
+  },
+  {
+    "height": 98,
+    "id": 96,
+    "itemType": "FISH_BLOWFISH",
+    "sprite": "Fish_Blowfish",
+    "width": 113
+  },
+  {
+    "height": 115,
+    "id": 97,
+    "itemType": "BEETROOT",
+    "sprite": "Beetroot",
+    "width": 90
+  },
+  {
+    "height": 82,
+    "id": 98,
+    "itemType": "SEED_BEETROOT",
+    "sprite": "Seed Beetroot",
+    "width": 101
+  },
+  {
+    "height": 101,
+    "id": 101,
+    "itemType": "BEHOLDER_EYE",
+    "sprite": "BeholderEye",
+    "width": 123
+  },
+  {
+    "height": 100,
+    "id": 102,
+    "itemType": "CAULIFLOWER",
+    "sprite": "Cauliflower",
+    "width": 129
+  },
+  {
+    "height": 84,
+    "id": 103,
+    "itemType": "SEED_CAULIFLOWER",
+    "sprite": "Seed Cauliflower",
+    "width": 92
+  },
+  {
+    "height": 77,
+    "id": 105,
+    "itemType": "MEAT_MORSEL",
+    "sprite": "Meat_Morsel",
+    "width": 115
+  },
+  {
+    "height": 114,
+    "id": 117,
+    "itemType": "SHELL",
+    "sprite": "Shell",
+    "width": 129
+  },
+  {
+    "height": 175,
+    "id": 119,
+    "itemType": "GOD_TEAR",
+    "sprite": "GodTear",
+    "width": 124
+  },
+  {
+    "height": 144,
+    "id": 121,
+    "itemType": "CRYSTAL_DOCTRINE_STONE",
+    "sprite": "CrystalDoctrineStone",
+    "width": 121
+  },
+  {
+    "height": 68,
+    "id": 122,
+    "itemType": "Necklace_Loyalty",
+    "sprite": "Necklace_9",
+    "width": 72
+  },
+  {
+    "height": 74,
+    "id": 123,
+    "itemType": "Necklace_Demonic",
+    "sprite": "Necklace_7",
+    "width": 70
+  },
+  {
+    "height": 84,
+    "id": 124,
+    "itemType": "Necklace_Dark",
+    "sprite": "Necklace_11",
+    "width": 70
+  },
+  {
+    "height": 91,
+    "id": 125,
+    "itemType": "Necklace_Light",
+    "sprite": "Necklace_10",
+    "width": 80
+  },
+  {
+    "height": 83,
+    "id": 126,
+    "itemType": "Necklace_Missionary",
+    "sprite": "Necklace_8",
+    "width": 66
+  },
+  {
+    "height": 69,
+    "id": 127,
+    "itemType": "Necklace_Gold_Skull",
+    "sprite": "Necklace_6",
+    "width": 72
+  },
+  {
+    "height": 114,
+    "id": 129,
+    "itemType": "WEBBER_SKULL",
+    "sprite": "WebberSkull",
+    "width": 179
+  },
+  {
+    "height": 118,
+    "id": 130,
+    "itemType": "SNOW_CHUNK",
+    "sprite": "SnowChunk",
+    "width": 119
+  },
+  {
+    "height": 78,
+    "id": 131,
+    "itemType": "CHARCOAL",
+    "sprite": "Charcoal",
+    "width": 116
+  },
+  {
+    "height": 113,
+    "id": 132,
+    "itemType": "SILK_THREAD",
+    "sprite": "Silk",
+    "width": 127
+  },
+  {
+    "height": 122,
+    "id": 133,
+    "itemType": "COTTON",
+    "sprite": "Cotton",
+    "width": 118
+  },
+  {
+    "height": 73,
+    "id": 136,
+    "itemType": "FISH_PIKE",
+    "sprite": "Fish_Pike",
+    "width": 185
+  },
+  {
+    "height": 71,
+    "id": 137,
+    "itemType": "FISH_CATFISH",
+    "sprite": "Fish_Catfish",
+    "width": 126
+  },
+  {
+    "height": 125,
+    "id": 139,
+    "itemType": "LIGHTNING_SHARD",
+    "sprite": "LightningShard",
+    "width": 135
+  },
+  {
+    "height": 84,
+    "id": 140,
+    "itemType": "SEED_COTTON",
+    "sprite": "SeedCotton",
+    "width": 126
+  },
+  {
+    "height": 217,
+    "id": 141,
+    "itemType": "LORE_STONE",
+    "sprite": "LoreStone",
+    "width": 168
+  },
+  {
+    "height": 100,
+    "id": 142,
+    "itemType": "POOP_GOLD",
+    "sprite": "Poop_Gold",
+    "width": 115
+  },
+  {
+    "height": 100,
+    "id": 143,
+    "itemType": "POOP_RAINBOW",
+    "sprite": "Poop_Rainbow",
+    "width": 115
+  },
+  {
+    "height": 100,
+    "id": 144,
+    "itemType": "POOP_GLOW",
+    "sprite": "Poop_Glow",
+    "width": 119
+  },
+  {
+    "height": 136,
+    "id": 150,
+    "itemType": "HOPS",
+    "sprite": "Hops",
+    "width": 107
+  },
+  {
+    "height": 123,
+    "id": 151,
+    "itemType": "GRAPES",
+    "sprite": "Grapes",
+    "width": 138
+  },
+  {
+    "height": 133,
+    "id": 152,
+    "itemType": "SEED_HOPS",
+    "sprite": "SeedHops",
+    "width": 91
+  },
+  {
+    "height": 86,
+    "id": 153,
+    "itemType": "SEED_GRAPES",
+    "sprite": "SeedGrapes",
+    "width": 110
+  },
+  {
+    "height": 170,
+    "id": 154,
+    "itemType": "PLEASURE_POINT",
+    "sprite": "Sin",
+    "width": 116
+  },
+  {
+    "height": 87,
+    "id": 159,
+    "itemType": "YOLK",
+    "sprite": "Yolk",
+    "width": 135
+  },
+  {
+    "height": 131,
+    "id": 160,
+    "itemType": "SEED_SOZO",
+    "sprite": "SeedSozo",
+    "width": 136
+  },
+  {
+    "height": 68,
+    "id": 163,
+    "itemType": "Necklace_Bell",
+    "sprite": "Necklace_12",
+    "width": 68
+  },
+  {
+    "height": 98,
+    "id": 165,
+    "itemType": "WOOL",
+    "sprite": "Wool",
+    "width": 148
+  },
+  {
+    "height": 128,
+    "id": 166,
+    "itemType": "SEED_SNOW_FRUIT",
+    "sprite": "SnowFruit Seed",
+    "width": 90
+  },
+  {
+    "height": 145,
+    "id": 167,
+    "itemType": "SNOW_FRUIT",
+    "sprite": "SnowFruit",
+    "width": 125
+  },
+  {
+    "height": 118,
+    "id": 168,
+    "itemType": "CHILLI",
+    "sprite": "Chilli",
+    "width": 128
+  },
+  {
+    "height": 100,
+    "id": 169,
+    "itemType": "SEED_CHILLI",
+    "sprite": "Seed Chilli",
+    "width": 114
+  },
+  {
+    "height": 119,
+    "id": 170,
+    "itemType": "ANIMAL_GOAT",
+    "sprite": "Ranch_Goat",
+    "width": 157
+  },
+  {
+    "height": 138,
+    "id": 173,
+    "itemType": "ELECTRIFIED_MAGMA",
+    "sprite": "ElectrifiedMagma",
+    "width": 110
+  },
+  {
+    "height": 119,
+    "id": 176,
+    "itemType": "ANIMAL_TURTLE",
+    "sprite": "Ranch_Turtle",
+    "width": 149
+  },
+  {
+    "height": 134,
+    "id": 177,
+    "itemType": "ANIMAL_CRAB",
+    "sprite": "Ranch_Crab",
+    "width": 156
+  },
+  {
+    "height": 117,
+    "id": 178,
+    "itemType": "ANIMAL_SPIDER",
+    "sprite": "Ranch_Spider",
+    "width": 182
+  },
+  {
+    "height": 114,
+    "id": 179,
+    "itemType": "ANIMAL_SNAIL",
+    "sprite": "Ranch_Snail",
+    "width": 138
+  },
+  {
+    "height": 89,
+    "id": 180,
+    "itemType": "Necklace_Deaths_Door",
+    "sprite": "Necklace_13",
+    "width": 93
+  },
+  {
+    "height": 83,
+    "id": 181,
+    "itemType": "Necklace_Winter",
+    "sprite": "Necklace_14",
+    "width": 68
+  },
+  {
+    "height": 85,
+    "id": 182,
+    "itemType": "Necklace_Frozen",
+    "sprite": "Necklace_15",
+    "width": 68
+  },
+  {
+    "height": 91,
+    "id": 183,
+    "itemType": "Necklace_Weird",
+    "sprite": "Necklace_16",
+    "width": 67
+  },
+  {
+    "height": 78,
+    "id": 184,
+    "itemType": "Necklace_Targeted",
+    "sprite": "Necklace_17",
+    "width": 68
+  },
+  {
+    "height": 110,
+    "id": 186,
+    "itemType": "SOOT",
+    "sprite": "Soot",
+    "width": 109
+  },
+  {
+    "height": 99,
+    "id": 187,
+    "itemType": "POOP_ROTSTONE",
+    "sprite": "Poop_Rot",
+    "width": 115
+  },
+  {
+    "height": 113,
+    "id": 188,
+    "itemType": "ANIMAL_COW",
+    "sprite": "Ranch_Cow",
+    "width": 160
+  },
+  {
+    "height": 112,
+    "id": 189,
+    "itemType": "ANIMAL_LLAMA",
+    "sprite": "Ranch_Llama",
+    "width": 142
+  },
+  {
+    "height": 161,
+    "id": 194,
+    "itemType": "FORGE_FLAME",
+    "sprite": "SacredFlame",
+    "width": 148
+  },
+  {
+    "height": 96,
+    "id": 197,
+    "itemType": "MILK",
+    "sprite": "Milk",
+    "width": 90
+  },
+  {
+    "height": 148,
+    "id": 208,
+    "itemType": "FISHING_ROD",
+    "sprite": "FishingRod",
+    "width": 99
+  }
+]
