@@ -11,6 +11,9 @@ inside the browser and is never uploaded.
 - MessagePack decoding and LZ4 block decompression;
 - raw-byte preservation for current MessagePack saves;
 - LZ4 and AES rebuilding for unchanged test copies;
+- a read-only cult overview with follower, resource, and base data;
+- named doctrine, ritual, and sermon unlocks for game `1.5.25.1049`;
+- raw ID warnings for values that the current catalog does not know;
 - doctrine-field and unknown-schema diagnostics;
 - support for both `CultTraits` and the legacy `CultTrait` field;
 - deterministic tests covering every recognized save envelope; and
@@ -42,10 +45,18 @@ Run all checks:
 pnpm check
 ```
 
-Run the optional round-trip check against a copied save:
+Run the optional check against a copied save:
 
 ```sh
 COTL_SAVE_COPY=/path/to/copied/slot_0.mp \
+  pnpm exec vitest run tests/real-save-roundtrip.test.ts
+```
+
+Compare that save with an accepted unchanged rebuild:
+
+```sh
+COTL_SAVE_COPY=/path/to/copied/slot_0.mp \
+COTL_REBUILT_SAVE_COPY=/path/to/copied/slot_1.mp \
   pnpm exec vitest run tests/real-save-roundtrip.test.ts
 ```
 
@@ -68,6 +79,9 @@ encoding can change number-based map keys into text and make a save invalid.
 The positional field map is provided by
 [`lamb-mp-decoder`](https://github.com/matthewmmorrow/lamb-mp-decoder).
 The package is MIT licensed.
+
+Doctrine, ritual, and item names use a versioned local catalog. Unknown IDs
+stay visible so that a game update cannot silently assign the wrong name.
 
 ## Safety
 

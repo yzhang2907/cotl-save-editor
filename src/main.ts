@@ -5,7 +5,9 @@ import "@fontsource/nunito/latin-900.css";
 import "./styles.css";
 
 import { analyzeSave } from "./save/analyze";
+import { buildCultOverview } from "./save/overview";
 import { sourceWarnings } from "./save/source";
+import { renderCultOverview } from "./ui/cult-overview";
 import type {
   MessagePackSource,
   SaveCompatibilityReport,
@@ -330,6 +332,13 @@ function renderReport(
     details,
     renderWarnings(report, sourceWarnings(file.name, format)),
   ];
+  if (
+    messagePack?.schema === "slot" ||
+    Array.isArray(data.Followers) ||
+    Array.isArray(data.DoctrineUnlockedUpgrades)
+  ) {
+    sections.push(renderCultOverview(buildCultOverview(data)));
+  }
   if (messagePack) {
     sections.push(renderWriteCheck(file, messagePack));
   }
