@@ -65,7 +65,7 @@ body {
   top: var(--field-split);
   bottom: 0;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='104' viewBox='0 0 104 104'%3E%3Cpath d='M52 12 73 81 16 39h72L31 81Z' fill='none' stroke='%23766d79' stroke-opacity='.3' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='104' viewBox='0 0 104 104'%3E%3Cpath d='M52 92 31 23 88 65H16L73 23Z' fill='none' stroke='%23766d79' stroke-opacity='.3' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
       0 0 / 104px 104px,
     radial-gradient(ellipse at center, transparent 42%, rgb(0 0 0 / 14%) 100%),
     var(--night);
@@ -728,6 +728,65 @@ h2 {
   line-height: 1.65;
 }
 
+.write-check {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding: 1.2rem 1.35rem;
+  border: 3px solid #4d4650;
+  border-radius: 13px 9px 15px 8px;
+  background: var(--night-raised);
+}
+
+.write-check h3 {
+  margin-bottom: 0.25rem;
+  color: var(--bone);
+  font-size: 1.45rem;
+}
+
+.write-check p {
+  margin-bottom: 0;
+  color: var(--bone-muted);
+  font-size: 0.88rem;
+}
+
+.write-check .section-label {
+  margin-bottom: 0.2rem;
+  font-size: 0.68rem;
+}
+
+.write-check button {
+  flex: 0 0 auto;
+  padding: 0.8rem 1rem;
+  border: 3px solid var(--bone);
+  border-radius: 10px 7px 12px 8px;
+  background: var(--red);
+  box-shadow: 4px 5px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  transform: rotate(1deg);
+}
+
+.write-check button:hover {
+  transform: rotate(-1deg) translateY(-1px);
+}
+
+.write-check button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.write-check button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+  transform: none;
+}
+
 .preview {
   margin-top: 1.5rem;
 }
@@ -867,6 +926,15 @@ footer {
 
   .report-heading {
     flex-wrap: wrap;
+  }
+
+  .write-check {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .write-check button {
+    width: 100%;
   }
 }
 

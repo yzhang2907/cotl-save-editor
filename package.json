@@ -20,6 +20,7 @@
     "lamb-mp-decoder": "^1.0.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "typescript": "^7.0.2",
     "vite": "^7.0.0",
     "vitest": "^4.1.10"

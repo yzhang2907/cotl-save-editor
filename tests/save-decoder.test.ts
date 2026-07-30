@@ -8,6 +8,7 @@ import {
   encryptPayload,
 } from "../src/save/encryption";
 import { decodeSave, SaveDecodeError } from "../src/save/decode";
+import { encodeVerifiedMessagePackSave } from "../src/save/encode";
 import { sourceWarnings } from "../src/save/source";
 import type { SaveRecord } from "../src/save/types";
 
@@ -38,11 +39,12 @@ function concatenate(parts: Uint8Array[]): Uint8Array {
 }
 
 function makePositionalSave(): unknown[] {
-  const positionalSave = Array.from<unknown>({ length: 411 }).fill(null);
+  const positionalSave = Array.from<unknown>({ length: 1396 }).fill(null);
   positionalSave[405] = [110];
   positionalSave[406] = [32];
   positionalSave[408] = [9];
   positionalSave[410] = "The Test Flock";
+  positionalSave[1395] = [];
   return positionalSave;
 }
 
@@ -75,9 +77,10 @@ describe("decodeSave", () => {
     expect(result.data.UnlockedUpgrades).toEqual([110]);
     expect(result.data.DoctrineUnlockedUpgrades).toEqual([32]);
     expect(result.data.CultTraits).toEqual([9]);
+    expect(result.data["1395"]).toEqual([]);
   });
 
-  it("reads an encrypted multi-block LZ4 MessagePack slot", async () => {
+  it("round-trips an encrypted multi-block LZ4 MessagePack slot", async () => {
     const innerMessage = encode(makePositionalSave());
     const midpoint = Math.floor(innerMessage.byteLength / 2);
     const blocks = [
@@ -110,6 +113,27 @@ describe("decodeSave", () => {
     expect(result.format).toBe("encrypted-messagepack");
     expect(result.data.CultName).toBe("The Test Flock");
     expect(result.data.DoctrineUnlockedUpgrades).toEqual([32]);
+    expect(result.data["1395"]).toEqual([]);
+
+    if (!result.messagePack) {
+      throw new Error("Expected raw MessagePack source data.");
+    }
+    expect(result.messagePack.compression?.blockSizes).toEqual(
+      blocks.map((block) => block.byteLength),
+    );
+    expect(result.messagePack.rawPayload).toEqual(innerMessage);
+
+    const rewritten = await encodeVerifiedMessagePackSave(result.messagePack, {
+      key: testKey,
+      iv: testIv,
+    });
+    const roundTrip = await decodeSave(exactBuffer(rewritten));
+
+    expect(roundTrip.data).toEqual(result.data);
+    expect(roundTrip.messagePack?.rawData).toEqual(
+      result.messagePack.rawData,
+    );
+    expect(roundTrip.messagePack?.rawPayload).toEqual(innerMessage);
   });
 
   it("propagates malformed encrypted data as a decode error", async () => {

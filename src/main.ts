@@ -7,6 +7,7 @@ import "./styles.css";
 import { analyzeSave } from "./save/analyze";
 import { sourceWarnings } from "./save/source";
 import type {
+  MessagePackSource,
   SaveCompatibilityReport,
   SaveFormat,
   SaveRecord,
@@ -157,6 +158,9 @@ function makeDetail(label: string, value: string): HTMLDivElement {
 }
 
 function summarizeValue(value: unknown): unknown {
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
   if (Array.isArray(value)) {
     return `[Array with ${value.length} entries]`;
   }
@@ -171,6 +175,64 @@ function previewData(data: SaveRecord): string {
     .slice(0, 16)
     .map(([key, value]) => [key, summarizeValue(value)]);
   return JSON.stringify(Object.fromEntries(entries), null, 2);
+}
+
+function roundTripFileName(fileName: string): string {
+  return /\.mp$/i.test(fileName)
+    ? fileName.replace(/\.mp$/i, ".roundtrip.mp")
+    : `${fileName}.roundtrip.mp`;
+}
+
+function renderWriteCheck(
+  file: File,
+  source: MessagePackSource,
+): HTMLElement {
+  const section = document.createElement("section");
+  section.className = "write-check";
+
+  const copy = document.createElement("div");
+  const label = document.createElement("p");
+  label.className = "section-label";
+  label.textContent = "Compatibility check";
+  const heading = document.createElement("h3");
+  heading.textContent = "Download an unchanged rebuild";
+  const description = document.createElement("p");
+  description.textContent =
+    "This keeps the original game-data bytes and only rebuilds their compression and encryption. It cannot replace the file you opened.";
+  copy.append(label, heading, description);
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = "Download unchanged rebuild";
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    setStatus("Rebuilding the save locally…", "loading");
+
+    try {
+      const { encodeVerifiedMessagePackSave } = await import("./save/encode");
+      const encoded = await encodeVerifiedMessagePackSave(source);
+      const outputName = roundTripFileName(file.name);
+      const url = URL.createObjectURL(
+        new Blob([encoded.slice().buffer], {
+          type: "application/octet-stream",
+        }),
+      );
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = outputName;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      setStatus(`Downloaded ${outputName}. The original file was not changed.`, "ready");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unknown error.";
+      setStatus(`The test copy could not be created: ${message}`, "error");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  section.append(copy, button);
+  return section;
 }
 
 function renderWarnings(
@@ -204,6 +266,7 @@ function renderReport(
   format: SaveFormat,
   data: SaveRecord,
   report: SaveCompatibilityReport,
+  messagePack?: MessagePackSource,
 ): void {
   reportElement.replaceChildren();
   reportElement.hidden = false;
@@ -262,12 +325,16 @@ function renderReport(
   code.textContent = previewData(data);
   preview.append(summary, code);
 
-  reportElement.append(
+  const sections: (Node | string)[] = [
     heading,
     details,
     renderWarnings(report, sourceWarnings(file.name, format)),
-    preview,
-  );
+  ];
+  if (messagePack) {
+    sections.push(renderWriteCheck(file, messagePack));
+  }
+  sections.push(preview);
+  reportElement.append(...sections);
 }
 
 async function inspectFile(file: File): Promise<void> {
@@ -284,7 +351,13 @@ async function inspectFile(file: File): Promise<void> {
     const { decodeSave } = await import("./save/decode");
     const decoded = await decodeSave(await file.arrayBuffer());
     const report = analyzeSave(decoded.data);
-    renderReport(file, decoded.format, decoded.data, report);
+    renderReport(
+      file,
+      decoded.format,
+      decoded.data,
+      report,
+      decoded.messagePack,
+    );
     setStatus(
       report.canEditDoctrines
         ? "Save opened. Its doctrine fields are where expected."

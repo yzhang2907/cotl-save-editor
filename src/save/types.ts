@@ -8,6 +8,20 @@ export type SaveFormat =
 export interface DecodedSave {
   data: SaveRecord;
   format: SaveFormat;
+  messagePack?: MessagePackSource;
+}
+
+export type MessagePackSchema = "slot" | "meta";
+
+export interface MessagePackCompression {
+  blockSizes: number[];
+}
+
+export interface MessagePackSource {
+  compression: MessagePackCompression | null;
+  rawData: unknown[];
+  rawPayload: Uint8Array;
+  schema: MessagePackSchema;
 }
 
 export interface DoctrineFieldReport {

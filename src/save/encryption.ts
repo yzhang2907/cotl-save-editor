@@ -2,6 +2,11 @@ const ENCRYPTED_MARKER = 0x45;
 const AES_BLOCK_BYTES = 16;
 const ENCRYPTED_HEADER_BYTES = 1 + AES_BLOCK_BYTES * 2;
 
+export interface EncryptionOptions {
+  iv?: Uint8Array;
+  key?: Uint8Array;
+}
+
 function copyBuffer(bytes: ArrayBuffer | ArrayBufferView): ArrayBuffer {
   if (bytes instanceof ArrayBuffer) {
     return bytes.slice(0);
@@ -49,7 +54,7 @@ export async function decryptAesCbc(
 
 export async function encryptPayload(
   payload: Uint8Array,
-  options: { key?: Uint8Array; iv?: Uint8Array } = {},
+  options: EncryptionOptions = {},
 ): Promise<Uint8Array> {
   const key = new Uint8Array(
     options.key
@@ -85,6 +90,18 @@ export async function encryptPayload(
     iv,
     new Uint8Array(encrypted),
   ]);
+}
+
+export async function decryptPayload(payload: Uint8Array): Promise<ArrayBuffer> {
+  if (!hasEncryptedHeader(payload)) {
+    throw new Error("The encrypted save header is missing or incomplete.");
+  }
+
+  return decryptAesCbc(
+    payload.slice(1, 17).buffer,
+    payload.slice(17, 33).buffer,
+    payload.slice(33).buffer,
+  );
 }
 
 export async function encodeLegacyJson(data: unknown): Promise<Uint8Array> {
