@@ -5,24 +5,12 @@ inside the browser and is never uploaded.
 
 ## Capabilities
 
-- local drag-and-drop for legacy `.json` and current `.mp` saves;
-- detection of plaintext JSON, encrypted JSON, and encrypted MessagePack;
-- AES-128-CBC decryption through the browser Web Crypto API;
-- MessagePack decoding and LZ4 block decompression;
-- raw-byte preservation for current MessagePack saves;
-- LZ4 and AES rebuilding for unchanged test copies;
-- a read-only cult overview with follower, resource, and base data;
-- named doctrine, ritual, and sermon unlocks for game `1.5.25.1049`;
-- doctrine replacements and missing-tier unlocks with browser-only staging;
-- raw ID warnings for values that the current catalog does not know;
-- doctrine-field and unknown-schema diagnostics;
-- support for both `CultTraits` and the legacy `CultTrait` field;
-- support for valid dual doctrines unlocked with Forgotten Commandment Stones;
-- position-only MessagePack doctrine writing with full raw-position checks;
-- verified edited downloads with backup, game-closed, and DLC confirmations;
-- an extensible DLC registry that gates content on each save’s activation flag;
-- deterministic tests covering every recognized save envelope; and
-- a separate encrypted legacy JSON writer.
+- private, local loading of legacy `.json` and current `.mp` saves;
+- an overview of followers, resources, base data, and progression unlocks;
+- doctrine replacements and missing-tier unlocks staged entirely in the browser;
+- support for legacy saves, dual doctrines, and DLC-gated content;
+- warnings for unknown or inconsistent save data; and
+- verified edited downloads with clear backup and game-safety checks.
 
 The current interface inspects saves, applies doctrine replacements or
 missing-tier unlocks to a browser-only working copy, builds and reopens an
