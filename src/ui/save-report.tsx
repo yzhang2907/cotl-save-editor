@@ -17,8 +17,11 @@ import type {
 import type { ToastKind } from "./action-toast";
 import { AdvancedDiagnostics } from "./advanced-diagnostics";
 import { CompatibilityNotes } from "./compatibility-notes";
+import { SAVE_REPORT_TITLE } from "./copy";
 import { CultOverview } from "./cult-overview";
+import { EditedSaveDownload } from "./edited-save-download";
 import { SaveMetadata } from "./save-metadata";
+import { StepHeader } from "./step-header";
 import { UnchangedRebuild } from "./unchanged-rebuild";
 
 interface SaveReportProps {
@@ -44,6 +47,8 @@ export function SaveReport({
   const overview = buildCultOverview(workspace.data);
   const originalDoctrine = buildCultOverview(workspace.original).doctrine;
   const pendingDoctrineChanges = listPendingDoctrineChanges(workspace);
+  const showEditedSaveDownload =
+    decoded.messagePack?.schema === "slot";
 
   function applyDoctrine(plan: DoctrineChangePlan): boolean {
     try {
@@ -78,58 +83,80 @@ export function SaveReport({
     setWorkspace(resetDoctrineChanges(workspace));
   }
 
-  return (
-    <section id="report" className="report">
-      <div className="report-heading">
-        <p className="step">II</p>
-        <div>
-          <h2>The save opens</h2>
-          <p>{file.name}</p>
-        </div>
-        <span className={report.canEditDoctrines ? "badge safe" : "badge caution"}>
-          {report.canEditDoctrines ? "Save decoded" : "Check notes"}
-        </span>
-      </div>
-
-      <SaveMetadata
-        data={decoded.data}
-        file={file}
-        format={decoded.format}
-        messagePack={decoded.messagePack}
-        report={report}
-      />
-
-      <CompatibilityNotes
-        fileName={file.name}
-        format={decoded.format}
-        report={report}
-      />
-
-      {showCultOverview ? (
-        <CultOverview
-          data={workspace.data}
-          doctrineChanges={pendingDoctrineChanges}
-          onApplyDoctrine={applyDoctrine}
-          onDiscardDoctrine={discardDoctrine}
-          originalDoctrine={originalDoctrine}
-          onResetDoctrines={resetDoctrines}
-          overview={overview}
+  const advancedDiagnostics = (
+    <AdvancedDiagnostics
+      data={workspace.data}
+      key={workspace.history.length}
+    >
+      {decoded.messagePack ? (
+        <UnchangedRebuild
+          file={file}
+          onNotice={onNotice}
+          pendingChangeCount={pendingDoctrineChanges.length}
+          source={decoded.messagePack}
         />
       ) : null}
+    </AdvancedDiagnostics>
+  );
 
-      <AdvancedDiagnostics
-        data={workspace.data}
-        key={workspace.history.length}
-      >
-        {decoded.messagePack ? (
-          <UnchangedRebuild
-            file={file}
-            onNotice={onNotice}
-            pendingChangeCount={pendingDoctrineChanges.length}
-            source={decoded.messagePack}
+  return (
+    <>
+      <section id="report" className="report">
+        <StepHeader
+          aside={
+            <span
+              className={
+                report.canEditDoctrines ? "badge safe" : "badge caution"
+              }
+            >
+              {report.canEditDoctrines ? "Save decoded" : "Check notes"}
+            </span>
+          }
+          description={file.name}
+          eyebrow="Save inspection"
+          step="II"
+          title={SAVE_REPORT_TITLE}
+        />
+
+        <SaveMetadata
+          file={file}
+          format={decoded.format}
+          report={report}
+        />
+
+        <CompatibilityNotes
+          fileName={file.name}
+          format={decoded.format}
+          report={report}
+        />
+
+        {showCultOverview ? (
+          <CultOverview
+            data={workspace.data}
+            doctrineChanges={pendingDoctrineChanges}
+            onApplyDoctrine={applyDoctrine}
+            onDiscardDoctrine={discardDoctrine}
+            originalDoctrine={originalDoctrine}
+            onResetDoctrines={resetDoctrines}
+            overview={overview}
           />
         ) : null}
-      </AdvancedDiagnostics>
-    </section>
+
+        {showEditedSaveDownload ? null : advancedDiagnostics}
+      </section>
+
+      {showEditedSaveDownload && decoded.messagePack ? (
+        <EditedSaveDownload
+          changes={pendingDoctrineChanges}
+          fileName={file.name}
+          onNotice={onNotice}
+          original={workspace.original}
+          source={decoded.messagePack}
+          working={workspace.data}
+        >
+          {advancedDiagnostics}
+        </EditedSaveDownload>
+      ) : null}
+    </>
   );
 }

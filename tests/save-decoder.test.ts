@@ -4,48 +4,37 @@ import { describe, expect, it } from "vitest";
 
 import { analyzeSave } from "../src/save/analyze";
 import {
-  encodeLegacyJson,
   encryptPayload,
 } from "../src/save/encryption";
 import { decodeSave, SaveDecodeError } from "../src/save/decode";
 import { encodeVerifiedMessagePackSave } from "../src/save/encode";
+import { encodeLegacyJsonSave } from "../src/save/legacy-json";
+import { MESSAGEPACK_LZ4_EXTENSION } from "../src/save/messagepack";
 import { sourceWarnings } from "../src/save/source";
 import type { SaveRecord } from "../src/save/types";
+import {
+  BELIEF_IN_SACRIFICE,
+  RITUAL_OF_RESURRECTION,
+} from "./doctrine-fixtures";
+import {
+  concatenateBytes,
+  exactBuffer,
+  positionalSlotSave,
+  TEST_AES_IV,
+  TEST_AES_KEY,
+  TEST_CULT_NAME,
+  UNKNOWN_SLOT_POSITION,
+} from "./save-fixtures";
 
 const sampleSave: SaveRecord = {
-  CultName: "The Test Flock",
-  UnlockedUpgrades: [110],
-  DoctrineUnlockedUpgrades: [32],
-  CultTraits: [9],
+  CultName: TEST_CULT_NAME,
+  UnlockedUpgrades: RITUAL_OF_RESURRECTION.upgradeIds,
+  DoctrineUnlockedUpgrades: [RITUAL_OF_RESURRECTION.doctrineId],
+  CultTraits: BELIEF_IN_SACRIFICE.cultTraitIds,
 };
 
-const testKey = Uint8Array.from({ length: 16 }, (_, index) => index);
-const testIv = Uint8Array.from({ length: 16 }, (_, index) => 15 - index);
-
-function exactBuffer(bytes: Uint8Array): ArrayBuffer {
-  return bytes.slice().buffer as ArrayBuffer;
-}
-
-function concatenate(parts: Uint8Array[]): Uint8Array {
-  const result = new Uint8Array(
-    parts.reduce((total, part) => total + part.byteLength, 0),
-  );
-  let offset = 0;
-  for (const part of parts) {
-    result.set(part, offset);
-    offset += part.byteLength;
-  }
-  return result;
-}
-
 function makePositionalSave(): unknown[] {
-  const positionalSave = Array.from<unknown>({ length: 1396 }).fill(null);
-  positionalSave[405] = [110];
-  positionalSave[406] = [32];
-  positionalSave[408] = [9];
-  positionalSave[410] = "The Test Flock";
-  positionalSave[1395] = [];
-  return positionalSave;
+  return positionalSlotSave(sampleSave);
 }
 
 describe("decodeSave", () => {
@@ -58,7 +47,7 @@ describe("decodeSave", () => {
   });
 
   it("reads legacy encrypted JSON", async () => {
-    const bytes = await encodeLegacyJson(sampleSave);
+    const bytes = await encodeLegacyJsonSave(sampleSave);
     const result = await decodeSave(exactBuffer(bytes));
 
     expect(result.format).toBe("encrypted-json");
@@ -67,17 +56,23 @@ describe("decodeSave", () => {
 
   it("reads an encrypted uncompressed MessagePack slot", async () => {
     const encrypted = await encryptPayload(encode(makePositionalSave()), {
-      key: testKey,
-      iv: testIv,
+      key: TEST_AES_KEY,
+      iv: TEST_AES_IV,
     });
     const result = await decodeSave(exactBuffer(encrypted));
 
     expect(result.format).toBe("encrypted-messagepack");
-    expect(result.data.CultName).toBe("The Test Flock");
-    expect(result.data.UnlockedUpgrades).toEqual([110]);
-    expect(result.data.DoctrineUnlockedUpgrades).toEqual([32]);
-    expect(result.data.CultTraits).toEqual([9]);
-    expect(result.data["1395"]).toEqual([]);
+    expect(result.data.CultName).toBe(TEST_CULT_NAME);
+    expect(result.data.UnlockedUpgrades).toEqual(
+      RITUAL_OF_RESURRECTION.upgradeIds,
+    );
+    expect(result.data.DoctrineUnlockedUpgrades).toEqual([
+      RITUAL_OF_RESURRECTION.doctrineId,
+    ]);
+    expect(result.data.CultTraits).toEqual(
+      BELIEF_IN_SACRIFICE.cultTraitIds,
+    );
+    expect(result.data[String(UNKNOWN_SLOT_POSITION)]).toEqual([]);
   });
 
   it("round-trips an encrypted multi-block LZ4 MessagePack slot", async () => {
@@ -96,24 +91,26 @@ describe("decodeSave", () => {
         ).compressBlock(block),
       ),
     );
-    const lengthHeader = concatenate(
+    const lengthHeader = concatenateBytes(
       blocks.map((block) => encode(block.byteLength)),
     );
     const outerMessage = encode([
-      new ExtData(98, lengthHeader),
+      new ExtData(MESSAGEPACK_LZ4_EXTENSION, lengthHeader),
       ...compressed,
     ]);
     const encrypted = await encryptPayload(outerMessage, {
-      key: testKey,
-      iv: testIv,
+      key: TEST_AES_KEY,
+      iv: TEST_AES_IV,
     });
 
     const result = await decodeSave(exactBuffer(encrypted));
 
     expect(result.format).toBe("encrypted-messagepack");
-    expect(result.data.CultName).toBe("The Test Flock");
-    expect(result.data.DoctrineUnlockedUpgrades).toEqual([32]);
-    expect(result.data["1395"]).toEqual([]);
+    expect(result.data.CultName).toBe(TEST_CULT_NAME);
+    expect(result.data.DoctrineUnlockedUpgrades).toEqual([
+      RITUAL_OF_RESURRECTION.doctrineId,
+    ]);
+    expect(result.data[String(UNKNOWN_SLOT_POSITION)]).toEqual([]);
 
     if (!result.messagePack) {
       throw new Error("Expected raw MessagePack source data.");
@@ -124,8 +121,8 @@ describe("decodeSave", () => {
     expect(result.messagePack.rawPayload).toEqual(innerMessage);
 
     const rewritten = await encodeVerifiedMessagePackSave(result.messagePack, {
-      key: testKey,
-      iv: testIv,
+      key: TEST_AES_KEY,
+      iv: TEST_AES_IV,
     });
     const roundTrip = await decodeSave(exactBuffer(rewritten));
 
@@ -140,8 +137,8 @@ describe("decodeSave", () => {
     const encrypted = await encryptPayload(
       Uint8Array.of(0xc1, 0xc1, 0xc1),
       {
-        key: testKey,
-        iv: testIv,
+        key: TEST_AES_KEY,
+        iv: TEST_AES_IV,
       },
     );
 
@@ -194,7 +191,7 @@ describe("analyzeSave", () => {
     const report = analyzeSave({
       ...sampleSave,
       CultTraits: undefined,
-      CultTrait: [9],
+      CultTrait: BELIEF_IN_SACRIFICE.cultTraitIds,
     });
 
     expect(report.canEditDoctrines).toBe(true);
@@ -202,10 +199,11 @@ describe("analyzeSave", () => {
   });
 
   it("keeps unknown positions visible without hiding doctrine controls", () => {
-    const report = analyzeSave({ ...sampleSave, "1395": true });
+    const unknownKey = String(UNKNOWN_SLOT_POSITION);
+    const report = analyzeSave({ ...sampleSave, [unknownKey]: true });
 
     expect(report.canEditDoctrines).toBe(true);
-    expect(report.unknownTopLevelKeys).toEqual(["1395"]);
+    expect(report.unknownTopLevelKeys).toEqual([unknownKey]);
     expect(report.warnings).toEqual([
       "This save contains one game-data entry that the editor cannot identify. It will be left unchanged.",
     ]);

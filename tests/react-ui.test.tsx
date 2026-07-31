@@ -10,6 +10,8 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { analyzeSave } from "../src/save/analyze";
+import { dlcDefinition } from "../src/save/dlc";
 import type { DoctrineChangePlan } from "../src/save/doctrine-editor";
 import {
   applyDoctrineChange,
@@ -17,15 +19,71 @@ import {
   discardDoctrineChange,
   listPendingDoctrineChanges,
   resetDoctrineChanges,
+  type PendingDoctrineChange,
 } from "../src/save/doctrine-workspace";
 import { buildCultOverview } from "../src/save/overview";
 import type { SaveRecord } from "../src/save/types";
-import { ActionToast } from "../src/ui/action-toast";
+import {
+  ActionToast,
+  TOAST_DISMISS_AFTER_MS,
+} from "../src/ui/action-toast";
+import { AdvancedDiagnostics } from "../src/ui/advanced-diagnostics";
 import { CultOverview } from "../src/ui/cult-overview";
+import { EditedSaveDownload } from "../src/ui/edited-save-download";
 import { SaveReader } from "../src/ui/save-reader";
+import { SaveReport } from "../src/ui/save-report";
+import { UnchangedRebuild } from "../src/ui/unchanged-rebuild";
+import {
+  ADVANCED_DIAGNOSTICS_TITLE,
+  EDITED_SAVE_REVIEW_LABEL,
+  EDITED_SAVE_STEP_TITLE,
+  NO_DOCTRINE_CHANGES_LABEL,
+  NO_EDITED_SAVE_CHANGES_LABEL,
+  READ_ONLY_LABEL,
+  SAVE_REPORT_TITLE,
+  TECHNICAL_SAVE_PREVIEW_LABEL,
+  UNCHANGED_REBUILD_DISCLOSURE_LABEL,
+  UNCHANGED_REBUILD_DOWNLOAD_LABEL,
+  doctrineChangeCountLabel,
+} from "../src/ui/copy";
+import {
+  BELIEF_IN_AFTERLIFE,
+  FAITHFUL,
+  FUNERAL,
+  FURNACE_FOLLOWERS,
+  INDUSTRIOUS,
+  FEASTING_RITUAL,
+  RITUAL_OF_RESURRECTION,
+  WORK_CATEGORY,
+  WORK_FIRST_PAIR,
+  doctrineCategory,
+  doctrineSaveFromChoices,
+} from "./doctrine-fixtures";
+import { EMPTY_SLOT_MESSAGEPACK_SOURCE } from "./save-fixtures";
+
+const { currentSaveWriter, verifiedSaveBytes } = vi.hoisted(() => {
+  const bytes = Uint8Array.of(1, 2, 3, 4);
+  return {
+    currentSaveWriter: vi.fn(async () => bytes),
+    verifiedSaveBytes: bytes,
+  };
+});
+const localFileDownload = vi.hoisted(() => vi.fn());
+const TEMPORARY_NOTICE_ID = 7;
+const READY_NOTICE_ID = 9;
+const LOADING_NOTICE_ID = 8;
+const FAILED_RAW_POSITION = 42;
+
+vi.mock("../src/save/current-save", () => ({
+  encodeVerifiedModifiedCurrentSave: currentSaveWriter,
+}));
+vi.mock("../src/ui/local-download", () => ({
+  downloadLocalFile: localFileDownload,
+}));
 
 afterEach(() => {
   cleanup();
+  vi.clearAllMocks();
   vi.useRealTimers();
 });
 
@@ -36,16 +94,18 @@ describe("ActionToast", () => {
 
     render(
       <ActionToast
-        id={7}
+        id={TEMPORARY_NOTICE_ID}
         kind="info"
         message="Change staged."
         onDismiss={onDismiss}
       />,
     );
 
-    act(() => vi.advanceTimersByTime(3_500));
+    act(() =>
+      vi.advanceTimersByTime(TOAST_DISMISS_AFTER_MS.info ?? 0),
+    );
 
-    expect(onDismiss).toHaveBeenCalledWith(7);
+    expect(onDismiss).toHaveBeenCalledWith(TEMPORARY_NOTICE_ID);
   });
 
   it("dismisses a successful file notice after 3.5 seconds", () => {
@@ -54,18 +114,19 @@ describe("ActionToast", () => {
 
     render(
       <ActionToast
-        id={9}
+        id={READY_NOTICE_ID}
         kind="ready"
         message="Opened slot_0.mp."
         onDismiss={onDismiss}
       />,
     );
 
-    act(() => vi.advanceTimersByTime(3_499));
+    const readyDelay = TOAST_DISMISS_AFTER_MS.ready ?? 0;
+    act(() => vi.advanceTimersByTime(readyDelay - 1));
     expect(onDismiss).not.toHaveBeenCalled();
 
     act(() => vi.advanceTimersByTime(1));
-    expect(onDismiss).toHaveBeenCalledWith(9);
+    expect(onDismiss).toHaveBeenCalledWith(READY_NOTICE_ID);
   });
 
   it("keeps loading notices until the operation replaces them", () => {
@@ -74,14 +135,19 @@ describe("ActionToast", () => {
 
     render(
       <ActionToast
-        id={8}
+        id={LOADING_NOTICE_ID}
         kind="loading"
         message="Rebuilding…"
         onDismiss={onDismiss}
       />,
     );
 
-    act(() => vi.advanceTimersByTime(30_000));
+    const longestDismissDelay = Math.max(
+      ...Object.values(TOAST_DISMISS_AFTER_MS).filter(
+        (delay): delay is number => delay !== undefined,
+      ),
+    );
+    act(() => vi.advanceTimersByTime(longestDismissDelay * 2));
 
     expect(onDismiss).not.toHaveBeenCalled();
   });
@@ -105,17 +171,324 @@ describe("SaveReader", () => {
   });
 });
 
+describe("step headers", () => {
+  it("reuses the same header structure for every top-level step", () => {
+    const data: SaveRecord = {
+      CultTraits: FAITHFUL.cultTraitIds,
+      DoctrineUnlockedUpgrades: [FAITHFUL.doctrineId],
+      UnlockedUpgrades: [],
+    };
+    const { container } = render(
+      <>
+        <SaveReader onFile={() => undefined} />
+        <SaveReport
+          decoded={{
+            data,
+            format: "encrypted-messagepack",
+            messagePack: EMPTY_SLOT_MESSAGEPACK_SOURCE,
+          }}
+          file={new File(["save"], "slot_0.mp")}
+          onNotice={() => undefined}
+          report={analyzeSave(data)}
+        />
+      </>,
+    );
+    const markers = [
+      ...container.querySelectorAll<HTMLElement>(
+        ".step-header > .step",
+      ),
+    ];
+
+    expect(container.querySelectorAll(".step-header")).toHaveLength(3);
+    expect(markers.map((marker) => marker.tagName)).toEqual([
+      "SPAN",
+      "SPAN",
+      "SPAN",
+    ]);
+    expect(markers.map((marker) => marker.textContent?.trim())).toEqual([
+      "I",
+      "II",
+      "III",
+    ]);
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: SAVE_REPORT_TITLE,
+      }),
+    ).toBeTruthy();
+    const downloadCard = screen
+      .getByRole("heading", {
+        level: 2,
+        name: EDITED_SAVE_STEP_TITLE,
+      })
+      .closest(".report");
+    expect(downloadCard?.classList).toContain("modified-save-check");
+    const noChangesButton = screen.getByRole("button", {
+      name: NO_EDITED_SAVE_CHANGES_LABEL,
+    });
+    expect(noChangesButton.hasAttribute("disabled")).toBe(true);
+  });
+});
+
+describe("EditedSaveDownload", () => {
+  const workReplacementLabel = `${FAITHFUL.name} → ${INDUSTRIOUS.name}`;
+  const replacement: PendingDoctrineChange = {
+    categoryName: WORK_CATEGORY.name,
+    fromDoctrineId: FAITHFUL.doctrineId,
+    fromName: FAITHFUL.name,
+    operation: "replace",
+    rank: WORK_FIRST_PAIR.rank,
+    requiredDlc: null,
+    toDoctrineId: INDUSTRIOUS.doctrineId,
+    toName: INDUSTRIOUS.name,
+  };
+
+  function saveData() {
+    const original: SaveRecord = {
+      CultTraits: FAITHFUL.cultTraitIds,
+      DoctrineUnlockedUpgrades: [FAITHFUL.doctrineId],
+      UnlockedUpgrades: [],
+    };
+    const working: SaveRecord = {
+      ...original,
+      CultTraits: INDUSTRIOUS.cultTraitIds,
+      DoctrineUnlockedUpgrades: [INDUSTRIOUS.doctrineId],
+    };
+    const source = EMPTY_SLOT_MESSAGEPACK_SOURCE;
+    return { original, source, working };
+  }
+
+  it("reviews, verifies, and downloads in one guarded action", async () => {
+    const user = userEvent.setup();
+    const onNotice = vi.fn();
+    const { original, source, working } = saveData();
+
+    const { container } = render(
+      <EditedSaveDownload
+        changes={[replacement]}
+        fileName="slot_0.mp"
+        onNotice={onNotice}
+        original={original}
+        source={source}
+        working={working}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: EDITED_SAVE_STEP_TITLE,
+      }),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(".modified-save-check .step")?.textContent,
+    ).toBe("III");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.queryByText("Final changes")).toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(screen.getByText("Final changes")).toBeTruthy();
+    expect(screen.getByText(workReplacementLabel)).toBeTruthy();
+    const download = screen.getByRole("button", {
+      name: "Verify and download slot_0.edited.mp",
+    });
+    expect(download.hasAttribute("disabled")).toBe(true);
+    expect(localFileDownload).not.toHaveBeenCalled();
+
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /backed up the entire Cult of the Lamb save folder/,
+      }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /game is completely closed/,
+      }),
+    );
+    expect(download.hasAttribute("disabled")).toBe(false);
+
+    await user.click(download);
+    expect(currentSaveWriter).toHaveBeenCalledWith(
+      source,
+      original,
+      working,
+    );
+    expect(localFileDownload).toHaveBeenCalledWith(
+      verifiedSaveBytes,
+      "slot_0.edited.mp",
+    );
+    expect(onNotice).toHaveBeenLastCalledWith(
+      "Downloaded slot_0.edited.mp.",
+      "ready",
+    );
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(container.querySelector(".edited-save-status")).toBeNull();
+  });
+
+  it("shows recovery guidance and never enables a failed file", async () => {
+    const user = userEvent.setup();
+    const { original, source, working } = saveData();
+    currentSaveWriter.mockRejectedValueOnce(
+      new Error(`raw position ${FAILED_RAW_POSITION} changed`),
+    );
+
+    render(
+      <EditedSaveDownload
+        changes={[replacement]}
+        fileName="slot_0.mp"
+        onNotice={() => undefined}
+        original={original}
+        source={source}
+        working={working}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /backed up the entire Cult of the Lamb save folder/,
+      }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /game is completely closed/,
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: "Verify and download slot_0.edited.mp",
+      }),
+    );
+
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      `raw position ${FAILED_RAW_POSITION} changed`,
+    );
+    const recovery = screen
+      .getByText("If the edited save does not work")
+      .closest("details");
+    expect(recovery?.hasAttribute("open")).toBe(true);
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect(localFileDownload).not.toHaveBeenCalled();
+  });
+
+  it("requires Woolhaven installation confirmation for DLC changes", async () => {
+    const user = userEvent.setup();
+    const { original, source, working } = saveData();
+    const woolhaven: PendingDoctrineChange = {
+      ...replacement,
+      categoryName: doctrineCategory("winter").name,
+      fromDoctrineId: null,
+      fromName: null,
+      operation: "unlock",
+      requiredDlc: "woolhaven",
+      toDoctrineId: FURNACE_FOLLOWERS.doctrineId,
+      toName: FURNACE_FOLLOWERS.name,
+    };
+
+    render(
+      <EditedSaveDownload
+        changes={[woolhaven]}
+        fileName="slot_4.MP"
+        onNotice={() => undefined}
+        original={original}
+        source={source}
+        working={working}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /backed up the entire Cult of the Lamb save folder/,
+      }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /game is completely closed/,
+      }),
+    );
+    const download = screen.getByRole("button", {
+      name: "Verify and download slot_4.edited.mp",
+    });
+    expect(
+      screen.getByText("slot_4.edited.mp", { selector: "code" }),
+    ).toBeTruthy();
+    expect(screen.getByText("slot_4.MP", { selector: "code" })).toBeTruthy();
+    expect(download.hasAttribute("disabled")).toBe(true);
+
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: new RegExp(
+          `${dlcDefinition("woolhaven").displayName} is installed`,
+        ),
+      }),
+    );
+    expect(download.hasAttribute("disabled")).toBe(false);
+  });
+});
+
+describe("AdvancedDiagnostics", () => {
+  it("keeps secondary tools in low-emphasis disclosures", async () => {
+    const user = userEvent.setup();
+    const source = EMPTY_SLOT_MESSAGEPACK_SOURCE;
+
+    render(
+      <AdvancedDiagnostics data={{}}>
+        <UnchangedRebuild
+          file={new File(["save"], "slot_2.mp")}
+          onNotice={() => undefined}
+          pendingChangeCount={0}
+          source={source}
+        />
+      </AdvancedDiagnostics>,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: ADVANCED_DIAGNOSTICS_TITLE,
+      }),
+    ).toBeTruthy();
+
+    const preview = screen
+      .getByText(TECHNICAL_SAVE_PREVIEW_LABEL)
+      .closest("details") as HTMLDetailsElement;
+    const rebuild = screen
+      .getByText(UNCHANGED_REBUILD_DISCLOSURE_LABEL)
+      .closest("details") as HTMLDetailsElement;
+    expect(preview.open).toBe(false);
+    expect(rebuild.open).toBe(false);
+    expect(
+      rebuild.querySelector("button")?.textContent,
+    ).toBe(UNCHANGED_REBUILD_DOWNLOAD_LABEL);
+
+    await user.click(
+      screen.getByText(UNCHANGED_REBUILD_DISCLOSURE_LABEL),
+    );
+    expect(rebuild.open).toBe(true);
+  });
+});
+
 describe("CultOverview", () => {
-  const save: SaveRecord = {
+  const workReplacementLabel = `${FAITHFUL.name} → ${INDUSTRIOUS.name}`;
+  const sustenanceUnlockLabel = `Unlock ${FEASTING_RITUAL.name}`;
+  const afterlifeReplacementLabel =
+    `${FUNERAL.name} → ${RITUAL_OF_RESURRECTION.name}`;
+  const save: SaveRecord = doctrineSaveFromChoices(
+    [FAITHFUL, BELIEF_IN_AFTERLIFE, FUNERAL],
+    {
     BaseStructures: [],
     CultName: "Test Cult",
-    CultTraits: [11, 3],
-    DoctrineUnlockedUpgrades: [10, 33],
     Followers: [],
     UnlockedSermonsAndRituals: [],
-    UnlockedUpgrades: [111, 60],
     items: [],
-  };
+    },
+  );
 
   function CultOverviewHarness() {
     const [workspace, setWorkspace] = useState(() =>
@@ -154,54 +527,132 @@ describe("CultOverview", () => {
 
     expect(sections).toHaveLength(4);
     expect(sections.every((section) => !section.open)).toBe(true);
+    const readOnlySections = sections.filter((section) =>
+      section.classList.contains("read-only"),
+    );
+    expect(readOnlySections).toHaveLength(3);
+    expect(
+      readOnlySections.every((section) =>
+        section
+          .querySelector("summary strong")
+          ?.textContent?.includes(`(${READ_ONLY_LABEL})`),
+      ),
+    ).toBe(true);
+    expect(screen.getByText(NO_DOCTRINE_CHANGES_LABEL)).toBeTruthy();
   });
 
   it("changes a doctrine directly and marks the new choice", async () => {
     const user = userEvent.setup();
-    render(<CultOverviewHarness />);
+    const { container } = render(<CultOverviewHarness />);
 
     await user.click(screen.getByText("Doctrines"));
     const industrious = screen.getByRole("button", {
-      name: /Industrious/,
+      name: new RegExp(INDUSTRIOUS.name),
     });
     await user.click(industrious);
 
     expect(industrious.getAttribute("aria-pressed")).toBe("true");
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
     expect(screen.getByText("Changed")).toBeTruthy();
     expect(screen.getByText("Pending doctrine changes")).toBeTruthy();
-    expect(screen.getByText("Faithful → Industrious")).toBeTruthy();
+    expect(screen.getByText(workReplacementLabel)).toBeTruthy();
     expect(screen.queryByText(/Catalog for game/)).toBeNull();
   });
 
-  it("stages several net changes and discards one by name", async () => {
+  it("unlocks a missing tier and labels it as an unlock", async () => {
     const user = userEvent.setup();
     render(<CultOverviewHarness />);
 
     await user.click(screen.getByText("Doctrines"));
+    const feast = screen.getByRole("button", {
+      name: new RegExp(FEASTING_RITUAL.name),
+    });
+    expect(feast.hasAttribute("disabled")).toBe(false);
+    await user.click(feast);
+
+    expect(feast.getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByText("Unlocked")).toBeTruthy();
+    expect(screen.getByText(sustenanceUnlockLabel)).toBeTruthy();
+    expect(
+      screen.getByRole("button", {
+        name: `Discard ${sustenanceUnlockLabel}`,
+      }),
+    ).toBeTruthy();
+
+    await user.click(feast);
+    expect(feast.getAttribute("aria-pressed")).toBe("false");
+    expect(screen.queryByText("Pending doctrine changes")).toBeNull();
+    expect(screen.queryByText("Unlocked")).toBeNull();
+  });
+
+  it("marks only the immediate next missing rank as unlockable", async () => {
+    const user = userEvent.setup();
+    render(<CultOverviewHarness />);
+
+    await user.click(screen.getByText("Doctrines"));
+    const nextChoice = screen.getByRole("button", { name: /Inspire/ });
+    const laterChoice = screen.getByRole("button", {
+      name: /Glory of Construction/,
+    });
+    const gatedChoice = screen.getByRole("button", {
+      name: /Furnace Followers/,
+    });
+
+    expect(nextChoice.closest(".doctrine-pair")?.classList).toContain(
+      "unlockable",
+    );
+    expect(nextChoice.hasAttribute("disabled")).toBe(false);
+    expect(laterChoice.closest(".doctrine-pair")?.classList).toContain(
+      "locked",
+    );
+    expect(laterChoice.hasAttribute("disabled")).toBe(true);
+    expect(gatedChoice.closest(".doctrine-pair")?.classList).toContain(
+      "locked",
+    );
+    expect(gatedChoice.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("stages several net changes and discards one by name", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<CultOverviewHarness />);
+
+    await user.click(screen.getByText("Doctrines"));
     await user.click(
-      screen.getByRole("button", { name: /Industrious/ }),
+      screen.getByRole("button", {
+        name: new RegExp(INDUSTRIOUS.name),
+      }),
     );
     await user.click(
-      screen.getByRole("button", { name: /Ritual of Resurrection/ }),
+      screen.getByRole("button", {
+        name: new RegExp(RITUAL_OF_RESURRECTION.name),
+      }),
     );
 
     expect(screen.getByText("Pending doctrine changes")).toBeTruthy();
-    expect(screen.getByText("2 changes")).toBeTruthy();
-    expect(screen.getByText("Faithful → Industrious")).toBeTruthy();
     expect(
-      screen.getByText("Funeral → Ritual of Resurrection"),
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(2));
+    expect(screen.getByText(workReplacementLabel)).toBeTruthy();
+    expect(
+      screen.getByText(afterlifeReplacementLabel),
     ).toBeTruthy();
 
     await user.click(
       screen.getByRole("button", {
-        name: "Discard Funeral → Ritual of Resurrection",
+        name: `Discard ${afterlifeReplacementLabel}`,
       }),
     );
 
-    expect(screen.getByText("1 change")).toBeTruthy();
-    expect(screen.queryByText("Funeral → Ritual of Resurrection")).toBeNull();
     expect(
-      screen.getByRole("button", { name: /Funeral/ }).getAttribute(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
+    expect(screen.queryByText(afterlifeReplacementLabel)).toBeNull();
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(FUNERAL.name),
+      }).getAttribute(
         "aria-pressed",
       ),
     ).toBe("true");

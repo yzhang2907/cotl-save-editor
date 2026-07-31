@@ -1,9 +1,12 @@
 import {
   planDoctrineChange,
+  planDoctrineRemoval,
   type DoctrineChangePlan,
   type DoctrineFieldChange,
+  type DoctrineOperation,
   type DoctrineStorageField,
 } from "./doctrine-editor";
+import type { DlcKey } from "./dlc";
 import type { SaveRecord } from "./types";
 
 const EDITABLE_FIELDS = new Set<DoctrineStorageField>([
@@ -16,11 +19,13 @@ const EDITABLE_FIELDS = new Set<DoctrineStorageField>([
 export interface AppliedDoctrineChange {
   categoryName: string;
   changes: DoctrineFieldChange[];
-  fromDoctrineId: number;
-  fromName: string;
+  fromDoctrineId: number | null;
+  fromName: string | null;
+  operation: DoctrineOperation;
   rank: number;
-  toDoctrineId: number;
-  toName: string;
+  requiredDlc: DlcKey | null;
+  toDoctrineId: number | null;
+  toName: string | null;
 }
 
 export type PendingDoctrineChange = Omit<
@@ -35,8 +40,8 @@ export interface DoctrineWorkspace {
 }
 
 export class DoctrineWorkspaceError extends Error {
-  constructor(message: string) {
-    super(message);
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
     this.name = "DoctrineWorkspaceError";
   }
 }
@@ -84,23 +89,41 @@ function freshPlan(
 ): DoctrineChangePlan {
   if (
     selection.state !== "ready" ||
-    selection.from === null ||
-    selection.to === null
+    selection.operation === null ||
+    (selection.operation === "remove"
+      ? selection.from === null
+      : selection.to === null)
   ) {
     throw new DoctrineWorkspaceError(
       "Only a valid doctrine selection can be applied.",
     );
   }
 
-  const current = planDoctrineChange(data, selection.to.doctrineId);
+  let current: DoctrineChangePlan;
+  if (selection.operation === "remove") {
+    if (selection.from === null) {
+      throw new DoctrineWorkspaceError(
+        "A doctrine removal must identify its current choice.",
+      );
+    }
+    current = planDoctrineRemoval(data, selection.from.doctrineId);
+  } else {
+    if (selection.to === null) {
+      throw new DoctrineWorkspaceError(
+        "A doctrine selection must identify its new choice.",
+      );
+    }
+    current = planDoctrineChange(data, selection.to.doctrineId);
+  }
   if (
     current.state !== "ready" ||
-    current.from === null ||
-    current.to === null ||
+    current.operation === null ||
     current.categoryKey !== selection.categoryKey ||
     current.rank !== selection.rank ||
-    current.from.doctrineId !== selection.from.doctrineId ||
-    current.to.doctrineId !== selection.to.doctrineId ||
+    current.requiredDlc !== selection.requiredDlc ||
+    current.operation !== selection.operation ||
+    current.from?.doctrineId !== selection.from?.doctrineId ||
+    current.to?.doctrineId !== selection.to?.doctrineId ||
     !changesMatch(current.changes, selection.changes)
   ) {
     throw new DoctrineWorkspaceError(
@@ -192,13 +215,13 @@ function hasDoctrineChanges(
 
 function appliedChange(plan: DoctrineChangePlan): AppliedDoctrineChange {
   if (
-    plan.from === null ||
-    plan.to === null ||
+    plan.operation === null ||
     plan.categoryName === null ||
-    plan.rank === null
+    plan.rank === null ||
+    (plan.operation === "remove" ? plan.from === null : plan.to === null)
   ) {
     throw new DoctrineWorkspaceError(
-      "The doctrine selection does not identify a complete replacement.",
+      "The doctrine selection does not identify a complete change.",
     );
   }
   return {
@@ -210,11 +233,13 @@ function appliedChange(plan: DoctrineChangePlan): AppliedDoctrineChange {
       before: change.before.slice(),
       removed: change.removed.slice(),
     })),
-    fromDoctrineId: plan.from.doctrineId,
-    fromName: plan.from.name,
+    fromDoctrineId: plan.from?.doctrineId ?? null,
+    fromName: plan.from?.name ?? null,
+    operation: plan.operation,
     rank: plan.rank,
-    toDoctrineId: plan.to.doctrineId,
-    toName: plan.to.name,
+    requiredDlc: plan.requiredDlc,
+    toDoctrineId: plan.to?.doctrineId ?? null,
+    toName: plan.to?.name ?? null,
   };
 }
 
@@ -263,12 +288,22 @@ export function listPendingDoctrineChanges(
           categoryName: change.categoryName,
           fromDoctrineId: change.fromDoctrineId,
           fromName: change.fromName,
+          operation: change.operation,
           rank: change.rank,
+          requiredDlc: change.requiredDlc,
           toDoctrineId: change.toDoctrineId,
           toName: change.toName,
         };
 
-    if (netChange.fromDoctrineId === netChange.toDoctrineId) {
+    netChange.operation =
+      netChange.fromDoctrineId === null
+        ? "unlock"
+        : netChange.toDoctrineId === null
+          ? "remove"
+          : "replace";
+    if (
+      netChange.fromDoctrineId === netChange.toDoctrineId
+    ) {
       pending.delete(key);
     } else {
       pending.set(key, netChange);
@@ -297,10 +332,43 @@ export function discardDoctrineChange(
     );
   }
 
-  return applyDoctrineChange(
-    workspace,
-    planDoctrineChange(workspace.data, pending.fromDoctrineId),
-  );
+  let rebuilt = createDoctrineWorkspace(workspace.original);
+  for (const retained of listPendingDoctrineChanges(workspace)) {
+    if (
+      retained.categoryName === pending.categoryName &&
+      retained.rank === pending.rank
+    ) {
+      continue;
+    }
+    let plan: DoctrineChangePlan;
+    if (retained.operation === "remove") {
+      if (retained.fromDoctrineId === null) {
+        throw new DoctrineWorkspaceError(
+          "A pending doctrine removal has no current choice.",
+        );
+      }
+      plan = planDoctrineRemoval(
+        rebuilt.data,
+        retained.fromDoctrineId,
+      );
+    } else {
+      if (retained.toDoctrineId === null) {
+        throw new DoctrineWorkspaceError(
+          "A pending doctrine selection has no new choice.",
+        );
+      }
+      plan = planDoctrineChange(rebuilt.data, retained.toDoctrineId);
+    }
+    try {
+      rebuilt = applyDoctrineChange(rebuilt, plan);
+    } catch (error) {
+      throw new DoctrineWorkspaceError(
+        "That change is required by another pending doctrine unlock. Discard the later rank first.",
+        { cause: error },
+      );
+    }
+  }
+  return rebuilt;
 }
 
 export function resetDoctrineChanges(

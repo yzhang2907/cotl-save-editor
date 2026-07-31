@@ -1,15 +1,11 @@
 import type {
-  MessagePackSource,
   SaveCompatibilityReport,
   SaveFormat,
-  SaveRecord,
 } from "../save/types";
 
 interface SaveMetadataProps {
-  data: SaveRecord;
   file: File;
   format: SaveFormat;
-  messagePack?: MessagePackSource;
   report: SaveCompatibilityReport;
 }
 
@@ -18,21 +14,6 @@ const formatLabels: Record<SaveFormat, string> = {
   "encrypted-json": "Legacy encrypted JSON (.json)",
   "encrypted-messagepack": "Encrypted MessagePack (.mp)",
 };
-
-function gameVersionLabel(
-  data: SaveRecord,
-  messagePack?: MessagePackSource,
-): string {
-  if (
-    (typeof data.Version === "string" && data.Version.trim()) ||
-    typeof data.Version === "number"
-  ) {
-    return String(data.Version);
-  }
-  return messagePack?.schema === "slot"
-    ? "Not stored in this slot file"
-    : "Not recorded";
-}
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
@@ -44,10 +25,8 @@ function Detail({ label, value }: { label: string; value: string }) {
 }
 
 export function SaveMetadata({
-  data,
   file,
   format,
-  messagePack,
   report,
 }: SaveMetadataProps) {
   return (
@@ -62,11 +41,6 @@ export function SaveMetadata({
             : "Unavailable"
         }
       />
-      <Detail
-        label="Game version"
-        value={gameVersionLabel(data, messagePack)}
-      />
-      <Detail label="Top-level fields" value={String(report.fieldCount)} />
       <Detail
         label="Doctrine unlocks"
         value={
@@ -84,7 +58,7 @@ export function SaveMetadata({
         value={
           report.doctrineFields.cultTraitsCount === null
             ? "Not found"
-            : `${report.doctrineFields.cultTraitsCount} (${report.doctrineFields.cultTraitsField})`
+            : String(report.doctrineFields.cultTraitsCount)
         }
       />
     </dl>

@@ -59,7 +59,6 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
       doctrineUnlockCount,
       unlockedUpgradeCount,
     },
-    fieldCount: keys.length,
     unknownTopLevelKeys,
     warnings,
   };

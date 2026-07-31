@@ -31,7 +31,6 @@ describeSaveCopy("real save copy", () => {
     }
     expect(decoded.messagePack.schema).toBe("slot");
     const report = analyzeSave(decoded.data);
-    expect(report.fieldCount).toBeGreaterThan(1_000);
     expect(report.doctrineFields.doctrineUnlockCount).not.toBeNull();
     expect(report.doctrineFields.unlockedUpgradeCount).not.toBeNull();
     expect(report.doctrineFields.cultTraitsCount).not.toBeNull();
@@ -69,7 +68,12 @@ describeSaveCopy("real save copy", () => {
       }),
     );
     expect(doctrinePlans).toHaveLength(
-      overview.doctrine.selectedChoiceCount,
+      overview.doctrine.categories.reduce(
+        (total, category) =>
+          total +
+          category.pairs.filter((pair) => pair.selected.length === 1).length,
+        0,
+      ),
     );
     expect(
       doctrinePlans.flatMap((plan) =>

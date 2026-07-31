@@ -13,17 +13,25 @@ inside the browser and is never uploaded.
 - LZ4 and AES rebuilding for unchanged test copies;
 - a read-only cult overview with follower, resource, and base data;
 - named doctrine, ritual, and sermon unlocks for game `1.5.25.1049`;
-- direct doctrine choices with browser-only staging and discard controls;
+- doctrine replacements and missing-tier unlocks with browser-only staging;
 - raw ID warnings for values that the current catalog does not know;
 - doctrine-field and unknown-schema diagnostics;
 - support for both `CultTraits` and the legacy `CultTrait` field;
+- support for valid dual doctrines unlocked with Forgotten Commandment Stones;
+- position-only MessagePack doctrine writing with full raw-position checks;
+- verified edited downloads with backup, game-closed, and DLC confirmations;
+- an extensible DLC registry that gates content on each save’s activation flag;
 - deterministic tests covering every recognized save envelope; and
-- an encrypted legacy JSON encoder.
+- a separate encrypted legacy JSON writer.
 
-The current interface inspects saves, applies doctrine replacements to a
-browser-only working copy, and can download an unchanged `.mp` test copy.
-Modified save export is not enabled. The editor rejects unknown or
-inconsistent doctrine data.
+The current interface inspects saves, applies doctrine replacements or
+missing-tier unlocks to a browser-only working copy, builds and reopens an
+edited `.mp` save in memory, and downloads it with an `.edited.mp` suffix only
+after verification and explicit safety confirmations. An unlock adds its
+doctrine ID and every catalog-mapped trait or ritual grant as one checked
+operation. The editor rejects unknown or inconsistent doctrine data.
+DLC ownership cannot be detected in the browser. DLC-specific changes are
+available only after that save has activated the required DLC in the game.
 
 Current game versions use `slot_#.mp`. An older campaign directory may still
 contain a legacy `slot_#.json` that is no longer current, so the app warns
@@ -78,7 +86,8 @@ Legacy encrypted saves use this envelope:
 Current `.mp` saves encrypt a MessagePack payload. That payload may contain
 MessagePack-CSharp LZ4-compressed blocks and positional keys that must be
 mapped back to save field names. Unchanged test exports keep the decoded
-MessagePack bytes exactly as the game wrote them. Generic MessagePack
+MessagePack bytes exactly as the game wrote them. Edited saves copy those
+bytes and replace only approved top-level positions. Generic MessagePack
 encoding can change number-based map keys into text and make a save invalid.
 
 The positional field map is provided by
@@ -92,3 +101,7 @@ stay visible so that a game update cannot silently assign the wrong name.
 
 Real saves and private fixtures are ignored by Git. Keep a backup of the
 entire Cult of the Lamb `saves` directory before using any save editor.
+Close the game before installing an edited file. The browser never writes to
+the active save directory: it downloads a separately named file that must be
+installed manually. Steam Cloud can overwrite either the edited file or a
+restored backup.

@@ -16,7 +16,9 @@ interface ActionToastProps {
   onDismiss: (id: number) => void;
 }
 
-const DISMISS_AFTER_MS: Partial<Record<ToastKind, number>> = {
+export const TOAST_DISMISS_AFTER_MS: Partial<
+  Record<ToastKind, number>
+> = {
   error: 8_000,
   info: 3_500,
   ready: 3_500,
@@ -29,7 +31,7 @@ export function ActionToast({
   onDismiss,
 }: ActionToastProps) {
   useEffect(() => {
-    const delay = DISMISS_AFTER_MS[kind];
+    const delay = TOAST_DISMISS_AFTER_MS[kind];
     if (delay === undefined) {
       return;
     }

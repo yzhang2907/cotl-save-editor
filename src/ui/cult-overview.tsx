@@ -2,6 +2,7 @@ import type { CultOverview as CultOverviewData } from "../save/overview";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
 import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import type { SaveRecord } from "../save/types";
+import { doctrineChangeCountLabel } from "./copy";
 import { DoctrinePanel } from "./doctrine-panel";
 import { FollowersSection } from "./followers-section";
 import {
@@ -48,22 +49,31 @@ export function CultOverview({
   overview,
 }: CultOverviewProps) {
   const doctrineChoiceCount = overview.doctrine.categories.reduce(
-    (total, category) => total + category.pairs.length,
+    (total, category) =>
+      total +
+      category.pairs.reduce(
+        (choiceTotal, pair) => choiceTotal + pair.choices.length,
+        0,
+      ),
     0,
   );
+  const changeCount = doctrineChanges.length;
 
   return (
     <section className="cult-overview" aria-labelledby="cult-overview-title">
       <header className="overview-heading">
         <div>
-          <p className="section-label">Local save record</p>
           <h3 id="cult-overview-title">Inside the cult</h3>
           <p>
             Inspect the cult and apply doctrine replacements to a browser-only
             working copy. Nothing is exported.
           </p>
         </div>
-        <span className="read-only-seal">Working copy</span>
+        <span
+          className={`change-count-seal${changeCount === 0 ? "" : " is-dirty"}`}
+        >
+          {doctrineChangeCountLabel(changeCount)}
+        </span>
       </header>
 
       <div className="overview-stats">
@@ -97,9 +107,6 @@ export function CultOverview({
             label="Play time"
             value={displayDuration(overview.identity.playTimeSeconds)}
           />
-        )}
-        {overview.identity.version === null ? null : (
-          <Stat label="Game version" value={overview.identity.version} />
         )}
       </div>
 

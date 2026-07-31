@@ -34,7 +34,6 @@ export interface DoctrineFieldReport {
 export interface SaveCompatibilityReport {
   canEditDoctrines: boolean;
   doctrineFields: DoctrineFieldReport;
-  fieldCount: number;
   unknownTopLevelKeys: string[];
   warnings: string[];
 }

@@ -1,3 +1,5 @@
+import type { DlcKey } from "./dlc";
+
 export type DoctrineSide = "left" | "right";
 
 export interface DoctrineChoiceDefinition {
@@ -24,6 +26,7 @@ export interface DoctrineCategoryDefinition {
     | "winter";
   name: string;
   pairs: DoctrinePairDefinition[];
+  requiredDlc?: DlcKey;
 }
 
 function choice(
@@ -278,6 +281,7 @@ export const DOCTRINE_CATEGORIES: DoctrineCategoryDefinition[] = [
   {
     key: "winter",
     name: "Woolhaven",
+    requiredDlc: "woolhaven",
     pairs: [
       pair(
         1,

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from "react";
 import {
   assessDoctrineEditing,
   planDoctrineChange,
+  planDoctrineRemoval,
   type DoctrineChangePlan,
 } from "../save/doctrine-editor";
 import type {
@@ -41,12 +42,27 @@ function DoctrinePair({
   pair,
 }: DoctrinePairProps) {
   const changed = selectedIds(pair) !== selectedIds(originalPair);
+  const choicePlans = pair.choices.map((choice) => ({
+    choice,
+    removalPlan: planDoctrineRemoval(data, choice.doctrineId),
+    selectionPlan: planDoctrineChange(data, choice.doctrineId),
+  }));
+  const isUnlockable =
+    pair.state === "missing" &&
+    choicePlans.some(
+      ({ selectionPlan }) => selectionPlan.state === "ready",
+    );
 
   return (
     <div
       className={[
         "doctrine-pair",
         pair.state,
+        pair.state === "missing"
+          ? isUnlockable
+            ? "unlockable"
+            : "locked"
+          : "",
         changed ? "changed" : "",
       ]
         .filter(Boolean)
@@ -58,32 +74,42 @@ function DoctrinePair({
         role="group"
         aria-label={`Rank ${pair.rank} doctrine`}
       >
-        {pair.choices.map((choice) => {
+        {choicePlans.map(({ choice, removalPlan, selectionPlan }) => {
           const isSelected = pair.selected.some(
             (selected) => selected.doctrineId === choice.doctrineId,
           );
           const isOriginal = originalPair?.selected.some(
             (selected) => selected.doctrineId === choice.doctrineId,
           ) ?? false;
-          const plan = planDoctrineChange(data, choice.doctrineId);
-          const canSelect =
-            !isSelected &&
-            pair.state === "selected" &&
-            plan.state === "ready";
+          const activePlan = isSelected ? removalPlan : selectionPlan;
+          const canActivate = activePlan.state === "ready";
+          const isUnlock =
+            isSelected && originalPair?.state === "missing";
           const stateLabel = isSelected
-            ? changed
-              ? "Changed"
-              : null
+            ? isUnlock
+              ? "Unlocked"
+              : changed
+                ? "Changed"
+                : removalPlan.state === "ready"
+                  ? "Remove"
+                  : null
             : changed && isOriginal
               ? "Original"
-              : null;
+              : pair.state === "missing" &&
+                  selectionPlan.state === "ready"
+                ? "Unlock"
+                : null;
           const title =
-            pair.state === "conflict"
-              ? "This rank contains both choices."
-              : pair.state === "missing"
-                ? "This rank has no selected choice."
-                : plan.blockers.length > 0
-                  ? plan.blockers.join(" ")
+            isSelected
+              ? removalPlan.state === "ready"
+                ? `Remove ${choice.name} and its linked grants.`
+                : removalPlan.blockers.join(" ")
+              : pair.state === "complete"
+                ? "Both choices were legitimately unlocked with Forgotten Commandment Stones."
+                : selectionPlan.blockers.length > 0
+                  ? selectionPlan.blockers.join(" ")
+                : pair.state === "missing"
+                  ? `Unlock ${choice.name} and its linked grants.`
                   : undefined;
 
           return (
@@ -97,12 +123,12 @@ function DoctrinePair({
               ]
                 .filter(Boolean)
                 .join(" ")}
-              disabled={!canSelect}
+              disabled={!canActivate}
               data-doctrine-id={choice.doctrineId}
               key={choice.doctrineId}
               onClick={(event) =>
                 onChange(
-                  plan,
+                  activePlan,
                   choice.doctrineId,
                   event.currentTarget.getBoundingClientRect().top,
                 )
@@ -223,7 +249,11 @@ export function DoctrinePanel({
               <header>
                 <h4>{category.name}</h4>
                 <span>
-                  {category.selectedCount}/{category.pairs.length}
+                  {category.selectedCount}/
+                  {category.pairs.reduce(
+                    (total, pair) => total + pair.choices.length,
+                    0,
+                  )}
                 </span>
               </header>
               {category.pairs.map((pair) => (

@@ -15,7 +15,6 @@ export interface CultIdentityOverview {
   difficultyCode: number | null;
   name: string | null;
   playTimeSeconds: number | null;
-  version: string | null;
 }
 
 export interface FollowerOverview {
@@ -42,7 +41,7 @@ export interface DoctrinePairOverview {
   choices: [DoctrineChoiceDefinition, DoctrineChoiceDefinition];
   rank: number;
   selected: DoctrineChoiceDefinition[];
-  state: "conflict" | "missing" | "selected";
+  state: "complete" | "missing" | "selected";
 }
 
 export interface DoctrineCategoryOverview {
@@ -222,14 +221,17 @@ function buildDoctrine(data: SaveRecord): DoctrineOverview {
             ? "missing"
             : selected.length === 1
               ? "selected"
-              : "conflict",
+              : "complete",
       } satisfies DoctrinePairOverview;
     });
     return {
       key: category.key,
       name: category.name,
       pairs,
-      selectedCount: pairs.filter((entry) => entry.state === "selected").length,
+      selectedCount: pairs.reduce(
+        (total, entry) => total + entry.selected.length,
+        0,
+      ),
     };
   });
 
@@ -304,7 +306,6 @@ export function buildCultOverview(data: SaveRecord): CultOverview {
       difficultyCode: integer(data.Difficulty),
       name: stringValue(data.CultName),
       playTimeSeconds: finiteNumber(data.PlayTime),
-      version: stringValue(data.Version),
     },
     itemTypeCount: Array.isArray(data.items) ? resources.length : null,
     resources,

@@ -1,3 +1,9 @@
+import {
+  AlchemicalMark,
+  DoubleBarInvertedCross,
+} from "./alchemical-mark";
+import { HERO_TAGLINE } from "./copy";
+
 export function Topbar() {
   return (
     <header className="topbar">
@@ -15,7 +21,6 @@ export function Topbar() {
         </svg>
       </div>
       <span>Unofficial fan-made save tool</span>
-      <span className="topbar-local">Your save stays in this tab</span>
     </header>
   );
 }
@@ -25,23 +30,28 @@ export function Hero() {
     <header className="hero">
       <div className="hero-copy">
         <p className="eyebrow">
-          <span>✦</span> Cult of the Lamb <span>✦</span>
+          <DoubleBarInvertedCross />
+          Cult of the Lamb
+          <DoubleBarInvertedCross />
         </p>
         <h1>
           <span>Save</span> Editor
         </h1>
-        <p className="hook">Picked the wrong doctrine?</p>
-        <p className="lede">
-          Start by opening your save. This version can apply doctrine changes
-          to a browser-only working copy; edited download is not enabled yet.
-        </p>
+        <p className="hook">{HERO_TAGLINE}</p>
       </div>
 
       <div className="save-emblem" aria-hidden="true">
-        <span className="spark spark-one">✦</span>
-        <span className="spark spark-two">×</span>
-        <span className="spark spark-three">✦</span>
-        <svg viewBox="0 0 280 260" role="presentation">
+        <AlchemicalMark
+          className="alchemy-mark-one"
+          kind="black-sulfur"
+        />
+        <AlchemicalMark className="alchemy-mark-two" kind="salt" />
+        <AlchemicalMark className="alchemy-mark-three" kind="sulfur" />
+        <svg
+          className="save-disk-art"
+          viewBox="0 0 280 260"
+          role="presentation"
+        >
           <path className="disk-body" d="M48 25h137l45 44v165H48V25Z" />
           <path className="disk-corner" d="M185 26v43h43" />
           <path className="disk-label" d="M77 25h103v76H77V25Z" />

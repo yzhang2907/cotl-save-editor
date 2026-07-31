@@ -32,7 +32,11 @@ export function FollowersSection({
   followers,
 }: FollowersSectionProps) {
   return (
-    <OverviewSection title="Followers" count={`${count} living`}>
+    <OverviewSection
+      count={`${count} living`}
+      readOnly
+      title="Followers"
+    >
       {followers.length === 0 ? (
         <p className="empty-overview">No living follower records were found.</p>
       ) : (

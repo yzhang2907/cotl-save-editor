@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { analyzeSave } from "./save/analyze";
+import { MAX_SAVE_BYTES, MAX_SAVE_MEBIBYTES } from "./save/limits";
 import type { DecodedSave } from "./save/types";
 import {
   ActionToast,
@@ -10,7 +11,6 @@ import { Hero, PageFooter, Topbar } from "./ui/page-chrome";
 import { SaveReport } from "./ui/save-report";
 import { SaveReader } from "./ui/save-reader";
 
-const MAX_SAVE_BYTES = 64 * 1024 * 1024;
 const FILE_LOADING_DELAY_MS = 400;
 
 interface OpenedSave {
@@ -52,7 +52,7 @@ export function App() {
 
       if (file.size > MAX_SAVE_BYTES) {
         showToast(
-          "That file is larger than the 64 MiB safety limit.",
+          `That file is larger than the ${MAX_SAVE_MEBIBYTES} MiB safety limit.`,
           "error",
         );
         return;

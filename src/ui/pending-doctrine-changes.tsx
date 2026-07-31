@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 
 import type { PendingDoctrineChange } from "../save/doctrine-workspace";
+import { doctrineChangeLabel } from "./doctrine-change-label";
 
 interface PendingDoctrineChangesProps {
   changes: PendingDoctrineChange[];
@@ -39,11 +40,9 @@ export function PendingDoctrineChanges({
             <span>
               {change.categoryName} · Rank {change.rank}
             </span>
-            <strong>
-              {change.fromName} → {change.toName}
-            </strong>
+            <strong>{doctrineChangeLabel(change)}</strong>
             <button
-              aria-label={`Discard ${change.fromName} → ${change.toName}`}
+              aria-label={`Discard ${doctrineChangeLabel(change)}`}
               className="pending-doctrine-remove"
               onClick={() => onDiscard(change)}
               title="Discard this change"
@@ -54,7 +53,7 @@ export function PendingDoctrineChanges({
           </li>
         ))}
       </ol>
-      <p>Modified download is not enabled yet.</p>
+      <p>Review and download the verified edited file below.</p>
       <div className="pending-doctrine-actions">
         <button type="button" onClick={onReset}>
           Discard all

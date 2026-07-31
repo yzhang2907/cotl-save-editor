@@ -35,7 +35,9 @@ An unchanged rebuild keeps its empty array.
 - [x] Record the ritual upgrade IDs.
 - [x] Check the map against an upgraded campaign.
 - [x] Calculate the exact values that each replacement removes and adds.
-- [x] Reject unknown, conflicting, duplicate, or incomplete doctrine data.
+- [x] Reject unknown, duplicate, or incomplete doctrine data.
+- [x] Accept opposing doctrines unlocked with Forgotten Commandment Stones.
+- [x] Gate DLC-specific doctrines through an extensible DLC registry.
 
 ## 5. Replace the browser UI with React — Done
 
@@ -58,6 +60,8 @@ An unchanged rebuild keeps its empty array.
 - [x] Keep the original decoded save unchanged.
 - [x] Create a separate working copy for edits.
 - [x] Update the doctrine choice, cult trait, and linked unlock together.
+- [x] Unlock a missing doctrine tier and its linked grants together.
+- [x] Require earlier ranks before unlocking a later rank.
 - [x] Refuse a selection if its source values changed before it was applied.
 - [x] Calculate each new selection from the current working copy.
 - [x] Let the user stage changes to several ranks and mark each change.
@@ -68,31 +72,32 @@ An unchanged rebuild keeps its empty array.
 - [x] Test modern `CultTraits` and legacy `CultTrait` saves.
 - [x] Test one change, several changes, reset, and blocked changes.
 
-## 7. Write a modified current save
+## 7. Write a modified current save — Ready for review
 
-- [ ] Map each editable field to its raw MessagePack position.
-- [ ] Copy the raw MessagePack data before any replacement.
-- [ ] Replace only the positions for approved doctrine changes.
-- [ ] Keep every other raw value, value type, and unknown position unchanged.
-- [ ] Encode the modified MessagePack data.
-- [ ] Compress and encrypt the new payload.
-- [ ] Open the new file in the browser before download.
-- [ ] Confirm that each approved field contains its planned value.
-- [ ] Confirm that every other raw position matches the source.
-- [ ] Stop the export if any comparison fails.
-- [ ] Keep the current `.mp` writer separate from the legacy JSON writer.
+- [x] Map each editable field to its raw MessagePack position.
+- [x] Copy the raw MessagePack data before any replacement.
+- [x] Replace only the positions for approved doctrine changes.
+- [x] Keep every other raw value, value type, and unknown position unchanged.
+- [x] Encode the modified MessagePack data.
+- [x] Compress and encrypt the new payload.
+- [x] Open the new file in the browser before download.
+- [x] Confirm that each approved field contains its planned value.
+- [x] Confirm that every other raw position matches the source.
+- [x] Stop the export if any comparison fails.
+- [x] Keep the current `.mp` writer separate from the legacy JSON writer.
 
-## 8. Download an edited save safely
+## 8. Download an edited save safely — Ready for review
 
-- [ ] Show the final change list before download.
-- [ ] Require confirmation that a backup exists.
-- [ ] Tell the user to close the game before replacing a save.
-- [ ] Warn that Steam Cloud can restore or overwrite a local save.
-- [ ] Add `.edited` to the download name.
-- [ ] Never use the source file name for an edited download.
-- [ ] Download only after the browser verification passes.
-- [ ] Show recovery steps when verification or game loading fails.
-- [ ] Never write to the game's active save directory.
+- [x] Show the final change list before download.
+- [x] Require confirmation that a backup exists.
+- [x] Tell the user to close the game before replacing a save.
+- [x] Require confirmation for every DLC needed by the staged changes.
+- [x] Warn that Steam Cloud can restore or overwrite a local save.
+- [x] Add `.edited` to the download name.
+- [x] Never use the source file name for an edited download.
+- [x] Download only after the browser verification passes.
+- [x] Show recovery steps when verification or game loading fails.
+- [x] Never write to the game's active save directory.
 
 ## 9. Check edited files in the game
 

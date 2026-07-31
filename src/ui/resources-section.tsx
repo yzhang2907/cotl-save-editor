@@ -46,7 +46,11 @@ export function ResourcesSection({
   resources,
 }: ResourcesSectionProps) {
   return (
-    <OverviewSection title="Resources" count={`${count} item types`}>
+    <OverviewSection
+      count={`${count} item types`}
+      readOnly
+      title="Resources"
+    >
       {resources.length === 0 ? (
         <p className="empty-overview">No inventory records were found.</p>
       ) : (

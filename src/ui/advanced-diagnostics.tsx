@@ -5,6 +5,10 @@ import {
 } from "react";
 
 import type { SaveRecord } from "../save/types";
+import {
+  ADVANCED_DIAGNOSTICS_TITLE,
+  TECHNICAL_SAVE_PREVIEW_LABEL,
+} from "./copy";
 
 function serializeSaveData(data: SaveRecord): string {
   return JSON.stringify(
@@ -57,13 +61,16 @@ export function AdvancedDiagnostics({
 
   return (
     <section className="advanced-diagnostics">
-      <h3>Advanced diagnostics</h3>
+      <h3>{ADVANCED_DIAGNOSTICS_TITLE}</h3>
       <p>
         Use this complete decoded record for troubleshooting. Large saves may
         take a moment to display.
       </p>
-      <details className="preview" onToggle={prepareRecord}>
-        <summary>Technical save preview</summary>
+      <details
+        className="diagnostic-disclosure preview"
+        onToggle={prepareRecord}
+      >
+        <summary>{TECHNICAL_SAVE_PREVIEW_LABEL}</summary>
         <pre>
           {record ??
             "Open this section to prepare the complete save record."}

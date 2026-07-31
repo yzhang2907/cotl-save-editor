@@ -1,5 +1,8 @@
 const ENCRYPTED_MARKER = 0x45;
-const AES_BLOCK_BYTES = 16;
+export const AES_BLOCK_BYTES = 16;
+const ENCRYPTED_KEY_START = 1;
+const ENCRYPTED_IV_START = ENCRYPTED_KEY_START + AES_BLOCK_BYTES;
+const ENCRYPTED_PAYLOAD_START = ENCRYPTED_IV_START + AES_BLOCK_BYTES;
 const ENCRYPTED_HEADER_BYTES = 1 + AES_BLOCK_BYTES * 2;
 
 export interface EncryptionOptions {
@@ -59,12 +62,12 @@ export async function encryptPayload(
   const key = new Uint8Array(
     options.key
       ? copyBuffer(options.key)
-      : crypto.getRandomValues(new Uint8Array(16)).buffer,
+      : crypto.getRandomValues(new Uint8Array(AES_BLOCK_BYTES)).buffer,
   );
   const iv = new Uint8Array(
     options.iv
       ? copyBuffer(options.iv)
-      : crypto.getRandomValues(new Uint8Array(16)).buffer,
+      : crypto.getRandomValues(new Uint8Array(AES_BLOCK_BYTES)).buffer,
   );
 
   if (key.byteLength !== AES_BLOCK_BYTES || iv.byteLength !== AES_BLOCK_BYTES) {
@@ -98,14 +101,10 @@ export async function decryptPayload(payload: Uint8Array): Promise<ArrayBuffer> 
   }
 
   return decryptAesCbc(
-    payload.slice(1, 17).buffer,
-    payload.slice(17, 33).buffer,
-    payload.slice(33).buffer,
+    payload.slice(ENCRYPTED_KEY_START, ENCRYPTED_IV_START).buffer,
+    payload.slice(ENCRYPTED_IV_START, ENCRYPTED_PAYLOAD_START).buffer,
+    payload.slice(ENCRYPTED_PAYLOAD_START).buffer,
   );
-}
-
-export async function encodeLegacyJson(data: unknown): Promise<Uint8Array> {
-  return encryptPayload(new TextEncoder().encode(JSON.stringify(data)));
 }
 
 export function hasEncryptedHeader(bytes: Uint8Array): boolean {

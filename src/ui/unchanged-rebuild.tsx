@@ -2,6 +2,11 @@ import { useState } from "react";
 
 import type { MessagePackSource } from "../save/types";
 import type { ToastKind } from "./action-toast";
+import {
+  UNCHANGED_REBUILD_DISCLOSURE_LABEL,
+  UNCHANGED_REBUILD_DOWNLOAD_LABEL,
+} from "./copy";
+import { downloadLocalFile } from "./local-download";
 
 interface UnchangedRebuildProps {
   file: File;
@@ -31,17 +36,7 @@ export function UnchangedRebuild({
       const { encodeVerifiedMessagePackSave } = await import("../save/encode");
       const encoded = await encodeVerifiedMessagePackSave(source);
       const outputName = roundTripFileName(file.name);
-      const bytes = encoded.slice().buffer as ArrayBuffer;
-      const url = URL.createObjectURL(
-        new Blob([bytes], {
-          type: "application/octet-stream",
-        }),
-      );
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = outputName;
-      anchor.click();
-      window.setTimeout(() => URL.revokeObjectURL(url), 0);
+      downloadLocalFile(encoded, outputName);
       onNotice(`Downloaded ${outputName}.`, "ready");
     } catch (error) {
       const message =
@@ -53,27 +48,30 @@ export function UnchangedRebuild({
   }
 
   return (
-    <section className="write-check">
-      <div>
-        <p className="section-label">Compatibility check</p>
-        <h3>Download an unchanged rebuild</h3>
-        <p>
-          This keeps the original game-data bytes and only rebuilds their
-          compression and encryption. It cannot replace the file you opened.
-        </p>
-        {pendingChangeCount > 0 ? (
-          <p className="write-check-warning">
-            This test rebuild will not include the pending doctrine changes.
+    <details className="diagnostic-disclosure unchanged-rebuild">
+      <summary>{UNCHANGED_REBUILD_DISCLOSURE_LABEL}</summary>
+      <div className="unchanged-rebuild-content">
+        <div>
+          <p>
+            Download a test copy that keeps the original game-data bytes and
+            only rebuilds their compression and encryption. It cannot replace
+            the file you opened.
           </p>
-        ) : null}
+          {pendingChangeCount > 0 ? (
+            <p className="unchanged-rebuild-warning">
+              This test rebuild will not include the pending doctrine changes.
+            </p>
+          ) : null}
+        </div>
+        <button
+          aria-busy={busy}
+          type="button"
+          disabled={busy}
+          onClick={() => void download()}
+        >
+          {busy ? "Rebuilding…" : UNCHANGED_REBUILD_DOWNLOAD_LABEL}
+        </button>
       </div>
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => void download()}
-      >
-        {busy ? "Rebuilding…" : "Download unchanged rebuild"}
-      </button>
-    </section>
+    </details>
   );
 }

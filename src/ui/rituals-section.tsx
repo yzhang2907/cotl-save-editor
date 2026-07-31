@@ -29,7 +29,11 @@ export function RitualsSection({
 }: RitualsSectionProps) {
   const count = rituals.length + sermonsAndRites.length;
   return (
-    <OverviewSection title="Rituals and sermons" count={`${count} found`}>
+    <OverviewSection
+      count={`${count} found`}
+      readOnly
+      title="Rituals and sermons"
+    >
       {count === 0 ? (
         <p className="empty-overview">
           No ritual or sermon unlocks were found.

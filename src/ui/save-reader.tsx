@@ -1,4 +1,12 @@
+import { FileLock2, Save, UserX } from "lucide-react";
 import { useState, type ChangeEvent, type DragEvent } from "react";
+
+import {
+  NOTHING_OVERWRITTEN_LABEL,
+  NO_ACCOUNT_NEEDED_LABEL,
+  SAVE_SIZE_MAXIMUM_LABEL,
+} from "./copy";
+import { StepHeader } from "./step-header";
 
 interface SaveReaderProps {
   onFile: (file: File) => void;
@@ -46,19 +54,18 @@ export function SaveReader({ onFile }: SaveReaderProps) {
 
   return (
     <section className="reader" aria-labelledby="reader-title">
-      <div className="reader-copy">
-        <div className="step" aria-hidden="true">
-          I
-        </div>
-        <div>
-          <p className="section-label">First things first</p>
-          <h2 id="reader-title">Bring forth your save</h2>
-          <p>
+      <StepHeader
+        description={
+          <>
             Choose a <code>slot_#.mp</code> save, or an older{" "}
             <code>slot_#.json</code> save.
-          </p>
-        </div>
-      </div>
+          </>
+        }
+        eyebrow="First things first"
+        step="I"
+        title="Bring forth your save"
+        titleId="reader-title"
+      />
 
       <label
         className={`drop-zone${dragging ? " dragging" : ""}`}
@@ -87,13 +94,16 @@ export function SaveReader({ onFile }: SaveReaderProps) {
 
       <div className="save-rules" aria-label="File handling details">
         <span>
-          <b>✓</b> Read locally
+          <UserX aria-hidden="true" size={15} strokeWidth={3.5} />
+          {NO_ACCOUNT_NEEDED_LABEL}
         </span>
         <span>
-          <b>✓</b> Nothing overwritten
+          <FileLock2 aria-hidden="true" size={15} strokeWidth={3.5} />
+          {NOTHING_OVERWRITTEN_LABEL}
         </span>
         <span>
-          <b>✓</b> 64 MiB maximum
+          <Save aria-hidden="true" size={15} strokeWidth={3.5} />
+          {SAVE_SIZE_MAXIMUM_LABEL}
         </span>
       </div>
     </section>
