@@ -23,9 +23,7 @@ export function CompatibilityNotes({
   return (
     <section className="warnings">
       <h3>
-        {warnings.length === 1
-          ? "Compatibility note"
-          : "Compatibility notes"}
+        About this save
       </h3>
       <ul>
         {warnings.map((warning) => (

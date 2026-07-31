@@ -34,39 +34,39 @@ An unchanged rebuild keeps its empty array.
 - [x] Record the trait and upgrade IDs for each choice.
 - [x] Record the ritual upgrade IDs.
 - [x] Check the map against an upgraded campaign.
-- [x] Preview the exact values that each replacement removes and adds.
+- [x] Calculate the exact values that each replacement removes and adds.
 - [x] Reject unknown, conflicting, duplicate, or incomplete doctrine data.
 
-## 5. Replace the browser UI with React — Ready for review
+## 5. Replace the browser UI with React — Done
 
 - [x] Add React, ReactDOM, and the Vite React plug-in.
 - [x] Keep save decoding, validation, and encoding in plain TypeScript.
 - [x] Move the upload area, status banner, and save report into components.
 - [x] Move the cult overview and each detail section into components.
-- [x] Move the doctrine picker and change preview into components.
-- [x] Store the opened file, decoded save, and preview in React state.
+- [x] Move the doctrine picker and working-copy controls into components.
+- [x] Store the opened file, decoded save, and edits in React state.
 - [x] Keep all detail sections closed when a save opens.
 - [x] Keep the caret controls and current keyboard behavior.
 - [x] Keep the current appearance before making new design changes.
-- [x] Add component tests for file selection and doctrine previews.
+- [x] Add component tests for file selection and doctrine changes.
 - [x] Compare the React screen with the current screen by using a copied save.
 - [x] Remove the old manual DOM builders after the comparison passes.
-- [ ] Commit the React conversion without save-writing changes.
+- [x] Commit the React conversion without save-writing changes.
 
-## 6. Apply doctrine changes in memory
+## 6. Apply doctrine changes in memory — Ready for review
 
-- [ ] Keep the original decoded save unchanged.
-- [ ] Create a separate working copy for edits.
-- [ ] Apply one approved preview to the working copy.
-- [ ] Update the doctrine choice, cult trait, and linked unlock together.
-- [ ] Refuse a preview if its source values changed after it was made.
-- [ ] Rebuild the next preview from the current working copy.
-- [ ] Let the user undo one change or reset all changes.
-- [ ] List every pending change before export.
-- [ ] Compare the original and working copies after each change.
-- [ ] Reject changes outside the approved fields.
-- [ ] Test modern `CultTraits` and legacy `CultTrait` saves.
-- [ ] Test one change, several changes, reset, and blocked changes.
+- [x] Keep the original decoded save unchanged.
+- [x] Create a separate working copy for edits.
+- [x] Update the doctrine choice, cult trait, and linked unlock together.
+- [x] Refuse a selection if its source values changed before it was applied.
+- [x] Calculate each new selection from the current working copy.
+- [x] Let the user stage changes to several ranks and mark each change.
+- [x] List only the net changes, even after a choice is restored.
+- [x] Let the user discard one change or discard all changes.
+- [x] Compare the original and working copies after each change.
+- [x] Reject changes outside the approved fields.
+- [x] Test modern `CultTraits` and legacy `CultTrait` saves.
+- [x] Test one change, several changes, reset, and blocked changes.
 
 ## 7. Write a modified current save
 

@@ -13,16 +13,17 @@ inside the browser and is never uploaded.
 - LZ4 and AES rebuilding for unchanged test copies;
 - a read-only cult overview with follower, resource, and base data;
 - named doctrine, ritual, and sermon unlocks for game `1.5.25.1049`;
-- preview-only doctrine replacements with complete array changes;
+- direct doctrine choices with browser-only staging and discard controls;
 - raw ID warnings for values that the current catalog does not know;
 - doctrine-field and unknown-schema diagnostics;
 - support for both `CultTraits` and the legacy `CultTrait` field;
 - deterministic tests covering every recognized save envelope; and
 - an encrypted legacy JSON encoder.
 
-The current interface inspects saves, previews one doctrine replacement at a
-time, and can download an unchanged `.mp` test copy. Modified save export is
-not enabled. The preview rejects unknown or inconsistent doctrine data.
+The current interface inspects saves, applies doctrine replacements to a
+browser-only working copy, and can download an unchanged `.mp` test copy.
+Modified save export is not enabled. The editor rejects unknown or
+inconsistent doctrine data.
 
 Current game versions use `slot_#.mp`. An older campaign directory may still
 contain a legacy `slot_#.json` that is no longer current, so the app warns

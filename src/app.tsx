@@ -2,15 +2,16 @@ import { useCallback, useRef, useState } from "react";
 
 import { analyzeSave } from "./save/analyze";
 import type { DecodedSave } from "./save/types";
+import {
+  ActionToast,
+  type ToastKind,
+} from "./ui/action-toast";
 import { Hero, PageFooter, Topbar } from "./ui/page-chrome";
 import { SaveReport } from "./ui/save-report";
 import { SaveReader } from "./ui/save-reader";
-import {
-  StatusBanner,
-  type StatusKind,
-} from "./ui/status-banner";
 
 const MAX_SAVE_BYTES = 64 * 1024 * 1024;
+const FILE_LOADING_DELAY_MS = 400;
 
 interface OpenedSave {
   decoded: DecodedSave;
@@ -18,38 +19,51 @@ interface OpenedSave {
   id: number;
 }
 
-interface AppStatus {
-  kind: StatusKind;
+interface AppToast {
+  id: number;
+  kind: ToastKind;
   message: string;
 }
 
 export function App() {
   const requestId = useRef(0);
+  const toastId = useRef(0);
   const [openedSave, setOpenedSave] = useState<OpenedSave | null>(null);
-  const [status, setStatus] = useState<AppStatus | null>(null);
+  const [toast, setToast] = useState<AppToast | null>(null);
 
-  const showStatus = useCallback(
-    (message: string, kind: StatusKind): void => {
-      setStatus({ kind, message });
+  const showToast = useCallback(
+    (message: string, kind: ToastKind): void => {
+      const id = toastId.current + 1;
+      toastId.current = id;
+      setToast({ id, kind, message });
     },
     [],
   );
+
+  const dismissToast = useCallback((id: number): void => {
+    setToast((current) => (current?.id === id ? null : current));
+  }, []);
 
   const inspectFile = useCallback(
     async (file: File): Promise<void> => {
       const currentRequest = requestId.current + 1;
       requestId.current = currentRequest;
-      setOpenedSave(null);
+      setToast(null);
 
       if (file.size > MAX_SAVE_BYTES) {
-        showStatus(
+        showToast(
           "That file is larger than the 64 MiB safety limit.",
           "error",
         );
         return;
       }
 
-      showStatus(`Opening ${file.name}…`, "loading");
+      const loadingTimer = window.setTimeout(() => {
+        if (requestId.current === currentRequest) {
+          showToast(`Opening ${file.name}…`, "loading");
+        }
+      }, FILE_LOADING_DELAY_MS);
+
       try {
         const { decodeSave } = await import("./save/decode");
         const decoded = await decodeSave(await file.arrayBuffer());
@@ -61,17 +75,19 @@ export function App() {
           file,
           id: currentRequest,
         });
-        showStatus("Save opened successfully.", "ready");
+        showToast(`Opened ${file.name}.`, "ready");
       } catch (error) {
         if (requestId.current !== currentRequest) {
           return;
         }
         const message =
           error instanceof Error ? error.message : "Unknown error.";
-        showStatus(message, "error");
+        showToast(message, "error");
+      } finally {
+        window.clearTimeout(loadingTimer);
       }
     },
-    [showStatus],
+    [showToast],
   );
 
   return (
@@ -81,22 +97,27 @@ export function App() {
         <Hero />
         <SaveReader onFile={(file) => void inspectFile(file)} />
 
-        {status ? (
-          <StatusBanner kind={status.kind} message={status.message} />
-        ) : null}
-
         {openedSave ? (
           <SaveReport
             key={openedSave.id}
             decoded={openedSave.decoded}
             file={openedSave.file}
             report={analyzeSave(openedSave.decoded.data)}
-            onStatus={showStatus}
+            onNotice={showToast}
           />
         ) : null}
 
         <PageFooter />
       </main>
+      {toast ? (
+        <ActionToast
+          id={toast.id}
+          key={toast.id}
+          kind={toast.kind}
+          message={toast.message}
+          onDismiss={dismissToast}
+        />
+      ) : null}
     </>
   );
 }

@@ -3,6 +3,15 @@ import { decodeMessagePackPayload } from "./messagepack";
 import type { DecodedSave, SaveRecord } from "./types";
 
 const utf8Decoder = new TextDecoder("utf-8", { fatal: true });
+const SAVE_MARKERS = [
+  "BaseStructures",
+  "CultName",
+  "CultTrait",
+  "CultTraits",
+  "DoctrineUnlockedUpgrades",
+  "Followers",
+  "UnlockedUpgrades",
+] as const;
 
 export class SaveDecodeError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -14,6 +23,17 @@ export class SaveDecodeError extends Error {
 
 function isSaveRecord(value: unknown): value is SaveRecord {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function resemblesCultOfTheLambSave(data: SaveRecord): boolean {
+  return (
+    SAVE_MARKERS.filter((marker) => marker in data).length >= 2 &&
+    (
+      "DoctrineUnlockedUpgrades" in data ||
+      "Followers" in data ||
+      "BaseStructures" in data
+    )
+  );
 }
 
 function firstJsonByte(bytes: Uint8Array): number | undefined {
@@ -45,6 +65,11 @@ function parsePlainJson(bytes: Uint8Array): SaveRecord {
     const data: unknown = JSON.parse(text);
     if (!isSaveRecord(data)) {
       throw new SaveDecodeError("The save JSON must contain an object.");
+    }
+    if (!resemblesCultOfTheLambSave(data)) {
+      throw new SaveDecodeError(
+        "This JSON file does not look like a Cult of the Lamb save. Choose a slot_#.mp or slot_#.json file.",
+      );
     }
     return data;
   } catch (error) {

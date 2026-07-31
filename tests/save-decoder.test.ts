@@ -158,6 +158,20 @@ describe("decodeSave", () => {
     );
   });
 
+  it("rejects a generic JSON object that is not a game save", async () => {
+    const bytes = new TextEncoder().encode(
+      JSON.stringify({
+        recentProjects: [],
+        settings: { theme: "dark" },
+        version: 1,
+      }),
+    );
+
+    await expect(decodeSave(exactBuffer(bytes))).rejects.toThrow(
+      "does not look like a Cult of the Lamb save",
+    );
+  });
+
   it("rejects unknown binary files before decryption", async () => {
     const bytes = Uint8Array.of(0x01, 0x02, 0x03, 0x04);
 
@@ -193,7 +207,7 @@ describe("analyzeSave", () => {
     expect(report.canEditDoctrines).toBe(true);
     expect(report.unknownTopLevelKeys).toEqual(["1395"]);
     expect(report.warnings).toEqual([
-      expect.stringContaining("does not have a name for 1 save field yet"),
+      "This save contains one game-data entry that the editor cannot identify. It will be left unchanged.",
     ]);
   });
 });

@@ -1,4 +1,6 @@
 import type { CultOverview as CultOverviewData } from "../save/overview";
+import type { DoctrineChangePlan } from "../save/doctrine-editor";
+import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import type { SaveRecord } from "../save/types";
 import { DoctrinePanel } from "./doctrine-panel";
 import { FollowersSection } from "./followers-section";
@@ -28,10 +30,23 @@ function Stat({ label, note, value }: StatProps) {
 
 interface CultOverviewProps {
   data: SaveRecord;
+  doctrineChanges: PendingDoctrineChange[];
+  onApplyDoctrine: (plan: DoctrineChangePlan) => boolean;
+  onDiscardDoctrine: (change: PendingDoctrineChange) => void;
+  originalDoctrine: CultOverviewData["doctrine"];
+  onResetDoctrines: () => void;
   overview: CultOverviewData;
 }
 
-export function CultOverview({ data, overview }: CultOverviewProps) {
+export function CultOverview({
+  data,
+  doctrineChanges,
+  onApplyDoctrine,
+  onDiscardDoctrine,
+  originalDoctrine,
+  onResetDoctrines,
+  overview,
+}: CultOverviewProps) {
   const doctrineChoiceCount = overview.doctrine.categories.reduce(
     (total, category) => total + category.pairs.length,
     0,
@@ -44,11 +59,11 @@ export function CultOverview({ data, overview }: CultOverviewProps) {
           <p className="section-label">Local save record</p>
           <h3 id="cult-overview-title">Inside the cult</h3>
           <p>
-            Inspect the cult and preview doctrine replacements below. Nothing
-            is changed or exported.
+            Inspect the cult and apply doctrine replacements to a browser-only
+            working copy. Nothing is exported.
           </p>
         </div>
-        <span className="read-only-seal">Preview only</span>
+        <span className="read-only-seal">Working copy</span>
       </header>
 
       <div className="overview-stats">
@@ -105,7 +120,15 @@ export function CultOverview({ data, overview }: CultOverviewProps) {
           title="Doctrines"
           count={`${overview.doctrine.selectedChoiceCount} of ${doctrineChoiceCount} choices`}
         >
-          <DoctrinePanel data={data} doctrine={overview.doctrine} />
+          <DoctrinePanel
+            data={data}
+            doctrine={overview.doctrine}
+            changes={doctrineChanges}
+            onApply={onApplyDoctrine}
+            onDiscard={onDiscardDoctrine}
+            originalDoctrine={originalDoctrine}
+            onReset={onResetDoctrines}
+          />
         </OverviewSection>
         <RitualsSection
           rituals={overview.rituals}

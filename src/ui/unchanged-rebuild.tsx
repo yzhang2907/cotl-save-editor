@@ -1,11 +1,12 @@
 import { useState } from "react";
 
 import type { MessagePackSource } from "../save/types";
-import type { StatusKind } from "./status-banner";
+import type { ToastKind } from "./action-toast";
 
 interface UnchangedRebuildProps {
   file: File;
-  onStatus: (message: string, kind: StatusKind) => void;
+  onNotice: (message: string, kind: ToastKind) => void;
+  pendingChangeCount: number;
   source: MessagePackSource;
 }
 
@@ -17,14 +18,15 @@ function roundTripFileName(fileName: string): string {
 
 export function UnchangedRebuild({
   file,
-  onStatus,
+  onNotice,
+  pendingChangeCount,
   source,
 }: UnchangedRebuildProps) {
   const [busy, setBusy] = useState(false);
 
   async function download(): Promise<void> {
     setBusy(true);
-    onStatus("Rebuilding the save locally…", "loading");
+    onNotice("Rebuilding the save locally…", "loading");
     try {
       const { encodeVerifiedMessagePackSave } = await import("../save/encode");
       const encoded = await encodeVerifiedMessagePackSave(source);
@@ -40,14 +42,11 @@ export function UnchangedRebuild({
       anchor.download = outputName;
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
-      onStatus(
-        `Downloaded ${outputName}. The original file was not changed.`,
-        "ready",
-      );
+      onNotice(`Downloaded ${outputName}.`, "ready");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unknown error.";
-      onStatus(`The test copy could not be created: ${message}`, "error");
+      onNotice(`The test copy could not be created: ${message}`, "error");
     } finally {
       setBusy(false);
     }
@@ -62,6 +61,11 @@ export function UnchangedRebuild({
           This keeps the original game-data bytes and only rebuilds their
           compression and encryption. It cannot replace the file you opened.
         </p>
+        {pendingChangeCount > 0 ? (
+          <p className="write-check-warning">
+            This test rebuild will not include the pending doctrine changes.
+          </p>
+        ) : null}
       </div>
       <button
         type="button"

@@ -29,9 +29,13 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
   const warnings: string[] = [];
 
   if (unknownTopLevelKeys.length > 0) {
-    const noun = unknownTopLevelKeys.length === 1 ? "field" : "fields";
+    const subject =
+      unknownTopLevelKeys.length === 1
+        ? "one game-data entry"
+        : `${unknownTopLevelKeys.length} game-data entries`;
+    const pronoun = unknownTopLevelKeys.length === 1 ? "It" : "They";
     warnings.push(
-      `This editor does not have a name for ${unknownTopLevelKeys.length} save ${noun} yet. The data remains visible in Advanced diagnostics and is preserved by an unchanged rebuild.`,
+      `This save contains ${subject} that the editor cannot identify. ${pronoun} will be left unchanged.`,
     );
   }
   if (doctrineUnlockCount === null) {

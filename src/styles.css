@@ -13,6 +13,7 @@
   --red-dark: #a91425;
   --gold: #f2c94c;
   --green: #a6d477;
+  --orange: #ff9d45;
   --bar-height: 68px;
   --field-split: 440px;
 }
@@ -651,28 +652,103 @@ h2 {
   color: var(--green);
 }
 
-.status {
-  margin: 3.6rem auto 1.4rem;
-  padding: 0.85rem 2rem;
-  border: 4px solid var(--ink);
-  background: var(--gold);
-  color: var(--ink);
-  clip-path: polygon(2% 0, 98% 3%, 100% 50%, 98% 97%, 1% 100%, 0 50%);
-  font-weight: 900;
-  text-align: center;
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) rotate(1deg) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(-1deg) scale(1);
+  }
 }
 
-.status.error {
+@keyframes toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.action-toast {
+  position: fixed;
+  z-index: 20;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: grid;
+  width: min(430px, calc(100vw - 2rem));
+  grid-template-columns: 34px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.85rem;
+  border: 3px solid var(--ink);
+  border-radius: 8px 5px 10px 6px;
+  background: var(--orange);
+  box-shadow: 5px 6px 0 #0d0a0b;
+  color: var(--ink);
+  animation: toast-enter 160ms ease-out both;
+  font-weight: 900;
+  transform: rotate(-1deg);
+}
+
+.action-toast.loading {
+  background: var(--gold);
+}
+
+.action-toast.ready {
+  background: var(--green);
+}
+
+.action-toast.error {
   background: var(--red);
   color: var(--bone);
 }
 
-.status.ready {
-  background: var(--green);
+.action-toast-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 3px solid currentColor;
+  border-radius: 52% 44% 48% 55%;
+  transform: rotate(-6deg);
+}
+
+.action-toast.loading .action-toast-icon svg {
+  animation: toast-spin 900ms linear infinite;
+}
+
+.action-toast p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+
+.action-toast button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+}
+
+.action-toast button:hover {
+  background: rgb(23 18 20 / 14%);
+  transform: rotate(7deg) scale(1.08);
+}
+
+.action-toast button:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
 }
 
 .report {
-  margin-top: 1.6rem;
+  margin-top: 3.6rem;
   padding: clamp(1.4rem, 4vw, 2.7rem);
 }
 
@@ -919,15 +995,8 @@ h2 {
 }
 
 .empty-overview,
-.catalog-note,
 .catalog-warning {
   margin: 0;
-}
-
-.catalog-note {
-  color: var(--bone-muted);
-  font-size: 0.78rem;
-  font-weight: 700;
 }
 
 .catalog-warning {
@@ -944,8 +1013,7 @@ h2 {
   margin-bottom: 0.25rem;
 }
 
-.doctrine-edit-blockers ul,
-.doctrine-plan-blocked ul {
+.doctrine-edit-blockers ul {
   margin: 0;
   padding-left: 1.1rem;
 }
@@ -1117,15 +1185,11 @@ h2 {
 
 .doctrine-pair {
   display: grid;
-  grid-template-columns: 28px 1fr;
-  align-items: center;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
   gap: 0.55rem;
-  padding: 0.62rem 0.2rem;
+  padding: 0.65rem 0.2rem;
   border-bottom: 1px solid #403942;
-}
-
-.doctrine-pair.editable {
-  grid-template-columns: 28px minmax(0, 1fr) minmax(94px, auto);
 }
 
 .doctrine-pair:last-child {
@@ -1144,19 +1208,114 @@ h2 {
   font-weight: 900;
 }
 
-.doctrine-pair strong,
-.doctrine-pair small {
+.doctrine-choice-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.doctrine-choice-option {
+  position: relative;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0.58rem 2.5rem 0.58rem 0.7rem;
+  border: 0;
+  border-radius: 5px 8px 4px 7px;
+  background: #2b252a;
+  box-shadow: 0 3px 0 #120e10;
+  color: var(--bone);
+  cursor: pointer;
+  text-align: left;
+}
+
+.doctrine-choice-option:hover:not(:disabled) {
+  background: #352d33;
+  transform: translateY(-1px) rotate(-0.3deg);
+}
+
+.doctrine-choice-option:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.doctrine-choice-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.doctrine-choice-option.selected:disabled,
+.doctrine-choice-option.original:disabled {
+  opacity: 1;
+}
+
+.doctrine-choice-option.selected {
+  background: rgb(255 45 65 / 15%);
+  box-shadow: 0 3px 0 #120e10;
+}
+
+.doctrine-choice-option.changed {
+  background: rgb(255 157 69 / 16%);
+  box-shadow: 0 3px 0 #120e10;
+}
+
+.doctrine-choice-option.original {
+  background: #2a2328;
+}
+
+.doctrine-choice-check {
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 52% 45% 55% 43%;
+  background: var(--red);
+  box-shadow: 2px 2px 0 #0d0a0b;
+  color: var(--bone);
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+.doctrine-choice-check svg {
   display: block;
 }
 
-.doctrine-pair strong {
-  color: var(--bone);
-  font-size: 0.82rem;
+.doctrine-choice-option.changed .doctrine-choice-check {
+  background: var(--orange);
+  color: var(--ink);
+  transform: translateY(-50%) rotate(7deg);
 }
 
-.doctrine-pair small {
+.doctrine-choice-option strong,
+.doctrine-choice-option small {
+  display: block;
+}
+
+.doctrine-choice-option strong {
+  overflow-wrap: anywhere;
+  color: var(--bone);
+  font-size: 0.78rem;
+}
+
+.doctrine-choice-option small {
+  margin-top: 0.16rem;
   color: var(--bone-muted);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
+}
+
+.doctrine-choice-state {
+  margin-left: 0.4rem;
+  color: var(--bone-muted);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.doctrine-choice-option.changed .doctrine-choice-state {
+  color: var(--orange);
 }
 
 .doctrine-pair.missing {
@@ -1172,8 +1331,7 @@ h2 {
   color: var(--gold);
 }
 
-.doctrine-preview-button,
-.clear-doctrine-preview {
+.pending-doctrine-actions button {
   border: 2px solid var(--bone);
   border-radius: 7px 5px 8px 6px;
   background: var(--red);
@@ -1184,30 +1342,13 @@ h2 {
   line-height: 1.05;
 }
 
-.doctrine-preview-button {
-  max-width: 132px;
-  padding: 0.48rem 0.55rem;
-  font-size: 0.68rem;
-}
-
-.doctrine-preview-button:hover,
-.clear-doctrine-preview:hover {
+.pending-doctrine-actions button:hover {
   transform: translateY(-1px) rotate(-1deg);
 }
 
-.doctrine-preview-button:focus-visible,
-.clear-doctrine-preview:focus-visible {
+.pending-doctrine-actions button:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
-}
-
-.doctrine-preview-button:disabled {
-  border-color: #68606a;
-  background: #39323b;
-  box-shadow: none;
-  color: var(--bone-muted);
-  cursor: not-allowed;
-  transform: none;
 }
 
 .overview-subheading {
@@ -1226,263 +1367,127 @@ h2 {
   gap: 0.4rem;
 }
 
-.doctrine-preview-section {
-  margin-top: 1.6rem;
-  padding-top: 1.15rem;
-  border-top: 3px solid #504853;
-}
-
-.doctrine-preview-section .overview-subheading {
-  margin: 0 0 0.55rem;
-  color: var(--red);
-  font-size: 1.15rem;
-}
-
-.doctrine-change-preview {
-  min-height: 150px;
-  padding: 1rem 0.85rem;
-  border-left: 4px solid var(--red);
+.pending-doctrine-changes {
+  margin: 1rem -0.25rem 1.5rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 0;
   background:
-    linear-gradient(90deg, rgb(255 45 65 / 8%), transparent 42%);
+    linear-gradient(
+      100deg,
+      rgb(255 157 69 / 15%),
+      rgb(255 157 69 / 4%) 68%,
+      transparent
+    );
+  box-shadow: none;
 }
 
-.doctrine-preview-empty {
-  display: grid;
-  min-height: 126px;
-  place-items: center;
-  align-content: center;
-  color: var(--bone-muted);
-  text-align: center;
+.pending-doctrine-changes .section-label {
+  color: var(--orange) !important;
 }
 
-.doctrine-preview-empty > span {
-  color: var(--red);
-  font-family: "Lilita One", "Arial Black", sans-serif;
-  font-size: 2rem;
-  transform: rotate(180deg);
-}
-
-.doctrine-preview-empty strong {
-  color: var(--bone);
-  font-family: "Lilita One", "Arial Black", sans-serif;
-  font-size: 1.15rem;
-  font-weight: 400;
-}
-
-.doctrine-preview-empty p {
-  max-width: 520px;
-  margin: 0.15rem 0 0;
-  font-size: 0.76rem;
-  font-weight: 700;
-}
-
-.doctrine-change-preview > header {
+.pending-doctrine-changes > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.doctrine-change-preview h4 {
+.pending-doctrine-changes h4 {
   margin: 0;
   color: var(--bone);
-  font-size: 1.45rem;
+  font-size: 1.05rem;
 }
 
-.preview-only-badge {
-  flex: 0 0 auto;
-  padding: 0.4rem 0.55rem;
-  border: 2px solid var(--gold);
-  border-radius: 7px 9px 6px 10px;
-  color: var(--gold);
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.06em;
+.pending-doctrine-changes > header > strong {
+  color: var(--orange);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  transform: rotate(2deg);
 }
 
-.doctrine-plan-copy {
-  margin: 0.55rem 0 0;
-  color: var(--bone-muted);
+.pending-doctrine-changes ol {
+  display: grid;
+  gap: 0;
+  margin: 0.65rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-doctrine-changes li {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.3fr) 30px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid rgb(245 234 208 / 14%);
+}
+
+.pending-doctrine-changes li > span {
+  color: var(--orange);
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pending-doctrine-changes li strong {
+  color: var(--bone);
   font-size: 0.78rem;
+  text-align: right;
+}
+
+.pending-doctrine-remove {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 52% 44% 48% 55%;
+  background: var(--orange);
+  box-shadow: 2px 2px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  transform: rotate(5deg);
+}
+
+.pending-doctrine-remove svg {
+  display: block;
+}
+
+.pending-doctrine-remove:hover {
+  transform: rotate(-7deg) scale(1.08);
+}
+
+.pending-doctrine-remove:focus-visible {
+  outline: 3px solid var(--bone);
+  outline-offset: 2px;
+}
+
+.pending-doctrine-changes > p {
+  margin: 0;
+  color: var(--bone-muted);
+  font-size: 0.72rem;
   font-weight: 700;
 }
 
-.doctrine-change-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+.pending-doctrine-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
   margin-top: 0.8rem;
-  padding-block: 0.8rem;
-  border-block: 1px solid #514952;
 }
 
-.doctrine-change-column {
-  min-width: 0;
-}
-
-.doctrine-change-column h5 {
-  margin: 0 0 0.55rem;
-  color: var(--bone);
-  font-size: 0.85rem;
-}
-
-.doctrine-change-column.removed h5 {
-  color: #ff7c88;
-}
-
-.doctrine-change-column.added h5 {
-  color: var(--green);
-}
-
-.doctrine-change-list {
-  display: grid;
-  gap: 0.45rem;
-}
-
-.doctrine-change-item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.35rem;
-  min-width: 0;
-  padding: 0.58rem 0.7rem;
-  border-left: 3px solid currentcolor;
-  border-radius: 0 6px 6px 0;
-  background: rgb(255 255 255 / 4%);
-  font-weight: 900;
-}
-
-.doctrine-change-item::before {
-  grid-row: 1 / 3;
-  align-self: center;
-  font-size: 1.15rem;
-}
-
-.doctrine-change-item.removed::before {
-  content: "−";
-}
-
-.doctrine-change-item.added::before {
-  content: "+";
-}
-
-.doctrine-change-item strong,
-.doctrine-change-item small {
-  display: block;
-  min-width: 0;
-}
-
-.doctrine-change-item strong {
-  overflow-wrap: anywhere;
-  color: var(--bone);
-  font-size: 0.8rem;
-}
-
-.doctrine-change-item small {
-  margin-top: 0.12rem;
-  color: currentcolor;
-  font-size: 0.62rem;
-  letter-spacing: 0.02em;
-}
-
-.doctrine-change-item.removed {
-  color: #ff7c88;
-}
-
-.doctrine-change-item.added {
-  color: var(--green);
-}
-
-.doctrine-unchanged-note {
-  margin: 0.55rem 0 0;
-  color: var(--bone-muted);
-  font-size: 0.7rem;
-  font-weight: 800;
-}
-
-.overview-panel .doctrine-array-details {
-  margin-top: 0.55rem;
-}
-
-.overview-panel .doctrine-array-details > summary {
-  display: block;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--gold);
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.overview-panel .doctrine-array-details > summary::before {
-  content: none;
-}
-
-.overview-panel .doctrine-array-details[open] > summary {
-  border: 0;
-  background: none;
-}
-
-.doctrine-array-comparison {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.45rem;
-}
-
-.doctrine-array-comparison h6 {
-  margin: 0 0 0.3rem;
-  color: var(--bone);
-  font-size: 0.68rem;
-}
-
-.doctrine-array-values {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.doctrine-array-comparison span,
-.doctrine-array-comparison code {
-  display: block;
-}
-
-.doctrine-array-comparison span {
-  margin-bottom: 0.12rem;
-  color: var(--red);
-  font-size: 0.58rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.doctrine-array-comparison code {
-  max-height: 7rem;
-  overflow: auto;
-  padding: 0.4rem;
-  border-radius: 4px;
-  background: #0b0809;
-  color: var(--bone-muted);
-  font-size: 0.62rem;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-  white-space: normal;
-}
-
-.clear-doctrine-preview {
-  margin-top: 0.8rem;
+.pending-doctrine-actions button {
   padding: 0.52rem 0.7rem;
   font-size: 0.75rem;
 }
 
-.doctrine-plan-blocked {
-  padding: 0.75rem;
-  border-left: 4px solid var(--gold);
-  background: rgb(242 201 76 / 9%);
-  color: var(--gold);
-  font-size: 0.78rem;
+.pending-doctrine-actions button {
+  border-color: var(--orange);
+  background: rgb(255 157 69 / 9%);
+  box-shadow: 2px 2px 0 #0d0a0b;
+  color: var(--bone);
 }
 
 .write-check {
@@ -1510,6 +1515,13 @@ h2 {
 .write-check .section-label {
   margin-bottom: 0.2rem;
   font-size: 0.68rem;
+}
+
+.write-check .write-check-warning {
+  margin-top: 0.45rem;
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 900;
 }
 
 .write-check button {
@@ -1747,27 +1759,25 @@ footer {
     grid-template-columns: 1fr;
   }
 
-  .doctrine-pair.editable {
-    grid-template-columns: 28px minmax(0, 1fr);
+  .pending-doctrine-changes li {
+    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr) 30px;
+    gap: 0.15rem 0.75rem;
   }
 
-  .doctrine-preview-button {
+  .pending-doctrine-changes li > span,
+  .pending-doctrine-changes li strong {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .pending-doctrine-remove {
     grid-column: 2;
-    width: 100%;
-    max-width: none;
+    grid-row: 1 / 3;
   }
 
-  .doctrine-change-preview > header {
-    flex-direction: column;
-  }
-
-  .doctrine-change-columns,
-  .doctrine-array-comparison {
-    grid-template-columns: 1fr;
-  }
-
-  .doctrine-change-columns {
-    gap: 0.85rem;
+  .pending-doctrine-actions button {
+    flex: 1 1 150px;
   }
 
   .follower-labels {
@@ -1864,5 +1874,10 @@ footer {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .action-toast,
+  .action-toast.loading .action-toast-icon svg {
+    animation: none;
   }
 }

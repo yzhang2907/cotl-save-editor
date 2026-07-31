@@ -32,8 +32,8 @@ export function Hero() {
         </h1>
         <p className="hook">Picked the wrong doctrine?</p>
         <p className="lede">
-          Start by opening your save. This version checks the file and shows
-          what it contains; it does not change anything yet.
+          Start by opening your save. This version can apply doctrine changes
+          to a browser-only working copy; edited download is not enabled yet.
         </p>
       </div>
 

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { Check } from "lucide-react";
+import { useLayoutEffect, useRef } from "react";
 
 import {
   assessDoctrineEditing,
@@ -9,113 +10,184 @@ import type {
   DoctrineOverview,
   DoctrinePairOverview,
 } from "../save/overview";
+import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import type { SaveRecord } from "../save/types";
-import { DoctrinePreview } from "./doctrine-preview";
+import { PendingDoctrineChanges } from "./pending-doctrine-changes";
 
 interface DoctrinePairProps {
   data: SaveRecord;
-  onPreview: (plan: DoctrineChangePlan) => void;
+  onChange: (
+    plan: DoctrineChangePlan,
+    doctrineId: number,
+    viewportTop: number,
+  ) => void;
+  originalPair: DoctrinePairOverview | null;
   pair: DoctrinePairOverview;
 }
 
-function DoctrinePair({ data, onPreview, pair }: DoctrinePairProps) {
-  const selected = pair.selected[0] ?? null;
-  const opposing =
-    pair.state === "selected" && selected
-      ? pair.choices.find(
-          (candidate) => candidate.doctrineId !== selected.doctrineId,
-        ) ?? null
-      : null;
-  const plan = opposing
-    ? planDoctrineChange(data, opposing.doctrineId)
-    : null;
+function selectedIds(pair: DoctrinePairOverview | null): string {
+  return (
+    pair?.selected
+      .map((choice) => choice.doctrineId)
+      .sort((left, right) => left - right)
+      .join(",") ?? ""
+  );
+}
 
-  let description;
-  if (pair.state === "selected" && selected) {
-    description = (
-      <>
-        <strong>{selected.name}</strong>
-        <small>
-          {opposing
-            ? `Chosen over ${opposing.name} · ID ${selected.doctrineId}`
-            : `Doctrine ID ${selected.doctrineId}`}
-        </small>
-      </>
-    );
-  } else if (pair.state === "conflict") {
-    description = (
-      <>
-        <strong>Both choices are present</strong>
-        <small>
-          {pair.selected
-            .map(
-              (candidate) =>
-                `${candidate.name} (${candidate.doctrineId})`,
-            )
-            .join(" · ")}
-        </small>
-      </>
-    );
-  } else {
-    description = (
-      <>
-        <strong>Not declared</strong>
-        <small>
-          {pair.choices[0].name} or {pair.choices[1].name}
-        </small>
-      </>
-    );
-  }
+function DoctrinePair({
+  data,
+  onChange,
+  originalPair,
+  pair,
+}: DoctrinePairProps) {
+  const changed = selectedIds(pair) !== selectedIds(originalPair);
 
   return (
     <div
-      className={`doctrine-pair ${pair.state}${opposing ? " editable" : ""}`}
+      className={[
+        "doctrine-pair",
+        pair.state,
+        changed ? "changed" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       <span className="doctrine-rank">{pair.rank}</span>
-      <div>{description}</div>
-      {opposing && plan ? (
-        <button
-          className="doctrine-preview-button"
-          type="button"
-          disabled={plan.state !== "ready"}
-          title={plan.blockers.length > 0 ? plan.blockers.join(" ") : undefined}
-          onClick={() => onPreview(plan)}
-        >
-          {plan.state === "ready"
-            ? `Preview ${opposing.name}`
-            : "Preview blocked"}
-        </button>
-      ) : null}
+      <div
+        className="doctrine-choice-options"
+        role="group"
+        aria-label={`Rank ${pair.rank} doctrine`}
+      >
+        {pair.choices.map((choice) => {
+          const isSelected = pair.selected.some(
+            (selected) => selected.doctrineId === choice.doctrineId,
+          );
+          const isOriginal = originalPair?.selected.some(
+            (selected) => selected.doctrineId === choice.doctrineId,
+          ) ?? false;
+          const plan = planDoctrineChange(data, choice.doctrineId);
+          const canSelect =
+            !isSelected &&
+            pair.state === "selected" &&
+            plan.state === "ready";
+          const stateLabel = isSelected
+            ? changed
+              ? "Changed"
+              : null
+            : changed && isOriginal
+              ? "Original"
+              : null;
+          const title =
+            pair.state === "conflict"
+              ? "This rank contains both choices."
+              : pair.state === "missing"
+                ? "This rank has no selected choice."
+                : plan.blockers.length > 0
+                  ? plan.blockers.join(" ")
+                  : undefined;
+
+          return (
+            <button
+              aria-pressed={isSelected}
+              className={[
+                "doctrine-choice-option",
+                isSelected ? "selected" : "",
+                changed && isSelected ? "changed" : "",
+                changed && isOriginal ? "original" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              disabled={!canSelect}
+              data-doctrine-id={choice.doctrineId}
+              key={choice.doctrineId}
+              onClick={(event) =>
+                onChange(
+                  plan,
+                  choice.doctrineId,
+                  event.currentTarget.getBoundingClientRect().top,
+                )
+              }
+              title={title}
+              type="button"
+            >
+              <strong>{choice.name}</strong>
+              <small>
+                ID {choice.doctrineId}
+                {stateLabel ? (
+                  <span className="doctrine-choice-state">
+                    {stateLabel}
+                  </span>
+                ) : null}
+              </small>
+              {isSelected ? (
+                <span className="doctrine-choice-check" aria-hidden="true">
+                  <Check size={20} strokeWidth={5} />
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 interface DoctrinePanelProps {
+  changes: PendingDoctrineChange[];
   data: SaveRecord;
   doctrine: DoctrineOverview;
+  onApply: (plan: DoctrineChangePlan) => boolean;
+  onDiscard: (change: PendingDoctrineChange) => void;
+  onReset: () => void;
+  originalDoctrine: DoctrineOverview;
 }
 
-export function DoctrinePanel({ data, doctrine }: DoctrinePanelProps) {
-  const [preview, setPreview] = useState<DoctrineChangePlan | null>(null);
-  const previewElement = useRef<HTMLDivElement>(null);
+export function DoctrinePanel({
+  changes,
+  data,
+  doctrine,
+  onApply,
+  onDiscard,
+  onReset,
+  originalDoctrine,
+}: DoctrinePanelProps) {
   const assessment = assessDoctrineEditing(data);
+  const selectionAnchor = useRef<{
+    doctrineId: number;
+    viewportTop: number;
+  } | null>(null);
 
-  useEffect(() => {
-    if (preview) {
-      previewElement.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+  useLayoutEffect(() => {
+    const anchor = selectionAnchor.current;
+    selectionAnchor.current = null;
+    if (anchor === null) {
+      return;
     }
-  }, [preview]);
+    const choice = document.querySelector<HTMLElement>(
+      `[data-doctrine-id="${anchor.doctrineId}"]`,
+    );
+    if (choice === null) {
+      return;
+    }
+    const offset = choice.getBoundingClientRect().top - anchor.viewportTop;
+    if (Math.abs(offset) > 1) {
+      window.scrollBy(0, offset);
+    }
+  }, [data]);
+
+  function applySelection(
+    plan: DoctrineChangePlan,
+    doctrineId: number,
+    viewportTop: number,
+  ): void {
+    selectionAnchor.current = { doctrineId, viewportTop };
+    if (!onApply(plan)) {
+      selectionAnchor.current = null;
+    }
+  }
 
   return (
     <>
-      <p className="catalog-note">
-        Catalog for game {doctrine.catalogVersion}. Previewing a replacement
-        does not change the opened save.
-      </p>
-
       {doctrine.unknownIds.length > 0 ? (
         <p className="catalog-warning">
           Unknown doctrine IDs: {doctrine.unknownIds.join(", ")}.
@@ -124,7 +196,7 @@ export function DoctrinePanel({ data, doctrine }: DoctrinePanelProps) {
 
       {assessment.blockers.length > 0 ? (
         <div className="catalog-warning doctrine-edit-blockers">
-          <strong>Doctrine previews are blocked.</strong>
+          <strong>Doctrine changes are unavailable.</strong>
           <ul>
             {assessment.blockers.map((blocker) => (
               <li key={blocker}>{blocker}</li>
@@ -133,25 +205,43 @@ export function DoctrinePanel({ data, doctrine }: DoctrinePanelProps) {
         </div>
       ) : null}
 
+      <PendingDoctrineChanges
+        changes={changes}
+        onDiscard={onDiscard}
+        onReset={onReset}
+      />
+
       <div className="doctrine-grid">
-        {doctrine.categories.map((category) => (
-          <section className="doctrine-category" key={category.key}>
-            <header>
-              <h4>{category.name}</h4>
-              <span>
-                {category.selectedCount}/{category.pairs.length}
-              </span>
-            </header>
-            {category.pairs.map((pair) => (
-              <DoctrinePair
-                data={data}
-                key={pair.rank}
-                pair={pair}
-                onPreview={setPreview}
-              />
-            ))}
-          </section>
-        ))}
+        {doctrine.categories.map((category) => {
+          const originalCategory =
+            originalDoctrine.categories.find(
+              (candidate) => candidate.key === category.key,
+            ) ?? null;
+
+          return (
+            <section className="doctrine-category" key={category.key}>
+              <header>
+                <h4>{category.name}</h4>
+                <span>
+                  {category.selectedCount}/{category.pairs.length}
+                </span>
+              </header>
+              {category.pairs.map((pair) => (
+                <DoctrinePair
+                  data={data}
+                  key={pair.rank}
+                  onChange={applySelection}
+                  originalPair={
+                    originalCategory?.pairs.find(
+                      (candidate) => candidate.rank === pair.rank,
+                    ) ?? null
+                  }
+                  pair={pair}
+                />
+              ))}
+            </section>
+          );
+        })}
       </div>
 
       {doctrine.specials.length > 0 ? (
@@ -166,20 +256,6 @@ export function DoctrinePanel({ data, doctrine }: DoctrinePanelProps) {
           </div>
         </>
       ) : null}
-
-      <section className="doctrine-preview-section">
-        <h4 className="overview-subheading">Change preview</h4>
-        <div
-          className="doctrine-change-preview"
-          aria-live="polite"
-          ref={previewElement}
-        >
-          <DoctrinePreview
-            plan={preview}
-            onClear={() => setPreview(null)}
-          />
-        </div>
-      </section>
     </>
   );
 }

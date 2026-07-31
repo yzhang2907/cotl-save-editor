@@ -1,4 +1,8 @@
-import { useState, type SyntheticEvent } from "react";
+import {
+  useState,
+  type ReactNode,
+  type SyntheticEvent,
+} from "react";
 
 import type { SaveRecord } from "../save/types";
 
@@ -24,7 +28,15 @@ function serializeSaveData(data: SaveRecord): string {
   );
 }
 
-export function AdvancedDiagnostics({ data }: { data: SaveRecord }) {
+interface AdvancedDiagnosticsProps {
+  children?: ReactNode;
+  data: SaveRecord;
+}
+
+export function AdvancedDiagnostics({
+  children,
+  data,
+}: AdvancedDiagnosticsProps) {
   const [record, setRecord] = useState<string | null>(null);
 
   function prepareRecord(event: SyntheticEvent<HTMLDetailsElement>): void {
@@ -57,6 +69,7 @@ export function AdvancedDiagnostics({ data }: { data: SaveRecord }) {
             "Open this section to prepare the complete save record."}
         </pre>
       </details>
+      {children}
     </section>
   );
 }
