@@ -46,6 +46,9 @@ Run all checks:
 pnpm check
 ```
 
+The interface uses React and Vite. Save decoding, validation, and encoding
+remain in framework-independent TypeScript modules under `src/save`.
+
 Run the optional check against a copied save:
 
 ```sh
