@@ -83,9 +83,9 @@ export function SaveReader({ onFile }: SaveReaderProps) {
         />
         <span className="drop-mark" aria-hidden="true">
           <svg viewBox="0 0 96 96">
-            <path d="M29 19h27l13 13v45H29V19Z" />
-            <path d="M56 19v15h14M40 52c5-7 11-7 16 0-5 7-11 7-16 0Z" />
-            <circle cx="48" cy="52" r="2.5" />
+            <path d="M25 15h32l16 16v50H25V15Z" />
+            <path d="M57 15v16h16M39 54c6-9 14-9 20 0-6 9-14 9-20 0Z" />
+            <ellipse cx="49" cy="54" rx="2" ry="5.5" />
           </svg>
         </span>
         <strong>Choose a save</strong>

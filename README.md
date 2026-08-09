@@ -141,6 +141,8 @@ sync conflict, or temporarily disable cloud sync while restoring.
 
 ## Development safety
 
-Real saves and private fixtures are ignored by Git. Point tests and
-manual checks only at user-made copies, never at the game's active save
-directory.
+Real save files and private test saves are set up to be skipped by
+Git, so they cannot accidentally end up in the repository. Whether you
+are running the automated tests or trying things by hand, always work
+on a copy of a save file instead of on the files in the game's actual save
+folder.

@@ -1,3 +1,5 @@
+import { SquareCode } from "lucide-react";
+
 import {
   AlchemicalMark,
   DoubleBarInvertedCross,
@@ -24,6 +26,15 @@ export function Topbar() {
         </svg>
       </div>
       <span>Unofficial fan-made save tool</span>
+      <a
+        className="topbar-source"
+        href="https://github.com/yzhang2907/cotl-save-editor"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <SquareCode aria-hidden="true" size={16} strokeWidth={2.5} />
+        Source code
+      </a>
     </header>
   );
 }
