@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { MessageSquareCode, X } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -197,7 +197,10 @@ export function EditedSaveDownload({
         </ol>
       </section>
 
-      <details className="edited-save-recovery" open={failure !== null}>
+      <details
+        className="diagnostic-disclosure edited-save-recovery"
+        open={failure !== null}
+      >
         <summary>If the edited save does not work</summary>
         <div>
           <p>
@@ -211,6 +214,15 @@ export function EditedSaveDownload({
             your full-folder backup. If Steam reports a conflict, keep the
             restored local files.
           </p>
+          <a
+            className="edited-save-issue-link"
+            href="https://github.com/yzhang2907/cotl-save-editor/issues"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MessageSquareCode aria-hidden="true" size={16} strokeWidth={2.5} />
+            Report an issue
+          </a>
         </div>
       </details>
 

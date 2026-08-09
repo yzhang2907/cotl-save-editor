@@ -1,3 +1,4 @@
+import { Copy } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -113,6 +114,7 @@ export function AdvancedDiagnostics({
           onClick={() => void copyRecord()}
           type="button"
         >
+          <Copy aria-hidden="true" size={16} strokeWidth={2.5} />
           {copyState === "copied"
             ? TECHNICAL_SAVE_PREVIEW_COPIED_LABEL
             : copyState === "failed"
