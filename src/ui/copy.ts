@@ -17,6 +17,8 @@ export const SUPPORTED_GAME_VERSION_LABEL =
   `Tested with game version ${CATALOG_GAME_VERSION}`;
 export const SAVE_REPORT_TITLE = "Rethink your path";
 export const TECHNICAL_SAVE_PREVIEW_LABEL = "Technical save preview";
+export const TECHNICAL_SAVE_PREVIEW_COPY_LABEL = "Copy record";
+export const TECHNICAL_SAVE_PREVIEW_COPIED_LABEL = "Copied";
 export const UNCHANGED_REBUILD_DISCLOSURE_LABEL =
   "Unchanged rebuild test copy";
 export const UNCHANGED_REBUILD_DOWNLOAD_LABEL =

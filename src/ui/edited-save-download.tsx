@@ -182,16 +182,19 @@ export function EditedSaveDownload({
       >
         <h4 id="edited-save-install-title">Install the edited file</h4>
         <ol>
-          <li>Keep the game closed and preserve your full-folder backup.</li>
+          <li>Close the game completely.</li>
+          <li>Locate the game’s <code>saves</code> directory.</li>
+          <li>Copy the whole directory somewhere safe as a backup.</li>
           <li>
-            Rename <code>{outputName}</code> to <code>{fileName}</code> only
-            when placing it in the game’s save directory.
+            Move <code>{outputName}</code> into the <code>saves</code>{" "}
+            directory and rename it to <code>{fileName}</code>.
           </li>
           <li>
             Replace only that slot file. Leave its matching metadata file
             unchanged.
           </li>
-          <li>Start the game, load that slot, save, and reload it once.</li>
+          <li>Start the game and load that slot.</li>
+          <li>Save in the game, then reload the slot once.</li>
         </ol>
       </section>
 

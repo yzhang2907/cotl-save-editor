@@ -1,4 +1,6 @@
 import {
+  useEffect,
+  useRef,
   useState,
   type ReactNode,
   type SyntheticEvent,
@@ -7,8 +9,12 @@ import {
 import type { SaveRecord } from "../save/types";
 import {
   ADVANCED_DIAGNOSTICS_TITLE,
+  TECHNICAL_SAVE_PREVIEW_COPIED_LABEL,
+  TECHNICAL_SAVE_PREVIEW_COPY_LABEL,
   TECHNICAL_SAVE_PREVIEW_LABEL,
 } from "./copy";
+
+const COPIED_RESET_MS = 2000;
 
 function serializeSaveData(data: SaveRecord): string {
   return JSON.stringify(
@@ -42,6 +48,37 @@ export function AdvancedDiagnostics({
   data,
 }: AdvancedDiagnosticsProps) {
   const [record, setRecord] = useState<string | null>(null);
+  const [copyState, setCopyState] = useState<
+    "idle" | "copied" | "failed"
+  >("idle");
+  const copyResetTimer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyResetTimer.current !== null) {
+        window.clearTimeout(copyResetTimer.current);
+      }
+    },
+    [],
+  );
+
+  async function copyRecord(): Promise<void> {
+    let nextState: "copied" | "failed";
+    try {
+      await navigator.clipboard.writeText(serializeSaveData(data));
+      nextState = "copied";
+    } catch {
+      nextState = "failed";
+    }
+    setCopyState(nextState);
+    if (copyResetTimer.current !== null) {
+      window.clearTimeout(copyResetTimer.current);
+    }
+    copyResetTimer.current = window.setTimeout(
+      () => setCopyState("idle"),
+      COPIED_RESET_MS,
+    );
+  }
 
   function prepareRecord(event: SyntheticEvent<HTMLDetailsElement>): void {
     if (!event.currentTarget.open || record !== null) {
@@ -71,6 +108,17 @@ export function AdvancedDiagnostics({
         onToggle={prepareRecord}
       >
         <summary>{TECHNICAL_SAVE_PREVIEW_LABEL}</summary>
+        <button
+          className="preview-copy-button"
+          onClick={() => void copyRecord()}
+          type="button"
+        >
+          {copyState === "copied"
+            ? TECHNICAL_SAVE_PREVIEW_COPIED_LABEL
+            : copyState === "failed"
+              ? "Copy failed"
+              : TECHNICAL_SAVE_PREVIEW_COPY_LABEL}
+        </button>
         <pre>
           {record ??
             "Open this section to prepare the complete save record."}

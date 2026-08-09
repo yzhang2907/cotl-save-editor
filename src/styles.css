@@ -468,12 +468,12 @@ h1 span {
     radial-gradient(ellipse 9px 17px at 74% 0, var(--red) 0 96%, transparent 100%),
     radial-gradient(ellipse 20px 35px at 86% 0, var(--red) 0 96%, transparent 100%),
     radial-gradient(ellipse 13px 24px at 97% 0, var(--red) 0 96%, transparent 100%),
-    linear-gradient(45deg, transparent 48%, var(--red) 50%) left top /
-      18px 12px no-repeat,
+    radial-gradient(ellipse 18px 12px at 18px 0, var(--red) 0 96%, transparent 100%)
+      left top / 18px 12px no-repeat,
     linear-gradient(var(--red), var(--red)) center top /
       calc(100% - 34px) 12px no-repeat,
-    linear-gradient(-45deg, transparent 48%, var(--red) 50%) right top /
-      18px 12px no-repeat;
+    radial-gradient(ellipse 18px 12px at 0 0, var(--red) 0 96%, transparent 100%)
+      right top / 18px 12px no-repeat;
   content: "";
   pointer-events: none;
 }
@@ -1872,6 +1872,22 @@ h2 {
 }
 
 .diagnostic-disclosure summary:hover {
+  color: var(--bone);
+}
+
+.preview-copy-button {
+  margin: 0.6rem 0;
+  padding: 0.3rem 0.9rem;
+  border: 2px solid #4d4650;
+  border-radius: 999px;
+  background: #0d0a0b;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.preview-copy-button:hover {
   color: var(--bone);
 }
 

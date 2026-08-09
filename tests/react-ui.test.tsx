@@ -43,6 +43,8 @@ import {
   NO_EDITED_SAVE_CHANGES_LABEL,
   READ_ONLY_LABEL,
   SAVE_REPORT_TITLE,
+  TECHNICAL_SAVE_PREVIEW_COPIED_LABEL,
+  TECHNICAL_SAVE_PREVIEW_COPY_LABEL,
   TECHNICAL_SAVE_PREVIEW_LABEL,
   UNCHANGED_REBUILD_DISCLOSURE_LABEL,
   UNCHANGED_REBUILD_DOWNLOAD_LABEL,
@@ -492,6 +494,33 @@ describe("AdvancedDiagnostics", () => {
       screen.getByText(UNCHANGED_REBUILD_DISCLOSURE_LABEL),
     );
     expect(rebuild.open).toBe(true);
+  });
+
+  it("copies the serialized record to the clipboard", async () => {
+    const user = userEvent.setup();
+    const writeText = vi.fn<(text: string) => Promise<void>>(
+      async () => undefined,
+    );
+    Object.defineProperty(window.navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+
+    render(<AdvancedDiagnostics data={{ CultName: "Copy Cult" }} />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: TECHNICAL_SAVE_PREVIEW_COPY_LABEL,
+      }),
+    );
+
+    expect(writeText).toHaveBeenCalledOnce();
+    expect(writeText.mock.calls[0]?.[0]).toContain("Copy Cult");
+    expect(
+      await screen.findByRole("button", {
+        name: TECHNICAL_SAVE_PREVIEW_COPIED_LABEL,
+      }),
+    ).toBeTruthy();
   });
 });
 
