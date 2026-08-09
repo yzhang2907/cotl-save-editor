@@ -1009,6 +1009,35 @@ h2 {
   transform: rotate(90deg);
 }
 
+/*
+ * Read-only sections sit quieter than the editable doctrine panel, so that
+ * the panel a user can act on reads first. Hover and keyboard focus restore
+ * full contrast, because these sections still open.
+ */
+.overview-panel.read-only > summary {
+  color: var(--bone-muted);
+}
+
+.overview-panel.read-only > summary::before,
+.overview-panel.read-only > summary::after {
+  color: #8d8478;
+}
+
+.overview-panel.read-only > summary:hover,
+.overview-panel.read-only > summary:focus-visible {
+  color: var(--bone);
+}
+
+.overview-panel.read-only > summary:hover::before,
+.overview-panel.read-only > summary:focus-visible::before {
+  color: var(--red);
+}
+
+.overview-panel.read-only > summary:hover::after,
+.overview-panel.read-only > summary:focus-visible::after {
+  color: var(--bone);
+}
+
 .overview-panel-body {
   padding: 1rem 0.25rem 1.5rem;
 }
