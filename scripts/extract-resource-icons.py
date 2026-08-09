@@ -17,21 +17,23 @@ DEFAULT_MAPPING = (
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("bundle", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("bundles", nargs="+", type=Path)
     parser.add_argument("--mapping", type=Path, default=DEFAULT_MAPPING)
     args = parser.parse_args()
 
     definitions = json.loads(args.mapping.read_text(encoding="utf-8"))
-    environment = UnityPy.load(str(args.bundle))
+    environment = UnityPy.load(*[str(bundle) for bundle in args.bundles])
     args.output.mkdir(parents=True, exist_ok=True)
     sprites = {}
 
+    # Earlier bundles win: pass the Resources_Atlas bundle first so
+    # duplicate sprite names in later bundles cannot shadow it.
     for obj in environment.objects:
         if obj.type.name != "Sprite":
             continue
         sprite = obj.read()
-        sprites[sprite.m_Name] = sprite
+        sprites.setdefault(sprite.m_Name, sprite)
 
     manifest: list[dict[str, int | str]] = []
     missing: list[str] = []

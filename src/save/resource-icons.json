@@ -7,6 +7,7 @@
   { "id": 20, "itemType": "BLACK_GOLD", "sprite": "GoldCoin" },
   { "id": 21, "itemType": "BERRY", "sprite": "Berries" },
   { "id": 22, "itemType": "MONSTER_HEART", "sprite": "MonsterHeart" },
+  { "id": 26, "itemType": "TRINKET_CARD", "sprite": "CardBack_Trinket" },
   { "id": 28, "itemType": "FISH", "sprite": "Fish" },
   { "id": 29, "itemType": "MUSHROOM_SMALL", "sprite": "Mushroom" },
   { "id": 33, "itemType": "FISH_SMALL", "sprite": "Fish Small" },
@@ -42,41 +43,19 @@
   { "id": 98, "itemType": "SEED_BEETROOT", "sprite": "Seed Beetroot" },
   { "id": 101, "itemType": "BEHOLDER_EYE", "sprite": "BeholderEye" },
   { "id": 102, "itemType": "CAULIFLOWER", "sprite": "Cauliflower" },
-  {
-    "id": 103,
-    "itemType": "SEED_CAULIFLOWER",
-    "sprite": "Seed Cauliflower"
-  },
+  { "id": 103, "itemType": "SEED_CAULIFLOWER", "sprite": "Seed Cauliflower" },
   { "id": 105, "itemType": "MEAT_MORSEL", "sprite": "Meat_Morsel" },
+  { "id": 114, "itemType": "TALISMAN", "sprite": "TunicTalisman_Small" },
   { "id": 117, "itemType": "SHELL", "sprite": "Shell" },
   { "id": 119, "itemType": "GOD_TEAR", "sprite": "GodTear" },
-  {
-    "id": 121,
-    "itemType": "CRYSTAL_DOCTRINE_STONE",
-    "sprite": "CrystalDoctrineStone"
-  },
-  {
-    "id": 122,
-    "itemType": "Necklace_Loyalty",
-    "sprite": "Necklace_9"
-  },
-  {
-    "id": 123,
-    "itemType": "Necklace_Demonic",
-    "sprite": "Necklace_7"
-  },
+  { "id": 121, "itemType": "CRYSTAL_DOCTRINE_STONE", "sprite": "CrystalDoctrineStone" },
+  { "id": 122, "itemType": "Necklace_Loyalty", "sprite": "Necklace_9" },
+  { "id": 123, "itemType": "Necklace_Demonic", "sprite": "Necklace_7" },
   { "id": 124, "itemType": "Necklace_Dark", "sprite": "Necklace_11" },
   { "id": 125, "itemType": "Necklace_Light", "sprite": "Necklace_10" },
-  {
-    "id": 126,
-    "itemType": "Necklace_Missionary",
-    "sprite": "Necklace_8"
-  },
-  {
-    "id": 127,
-    "itemType": "Necklace_Gold_Skull",
-    "sprite": "Necklace_6"
-  },
+  { "id": 126, "itemType": "Necklace_Missionary", "sprite": "Necklace_8" },
+  { "id": 127, "itemType": "Necklace_Gold_Skull", "sprite": "Necklace_6" },
+  { "id": 128, "itemType": "GOD_TEAR_FRAGMENT", "sprite": "GodTearShard" },
   { "id": 129, "itemType": "WEBBER_SKULL", "sprite": "WebberSkull" },
   { "id": 130, "itemType": "SNOW_CHUNK", "sprite": "SnowChunk" },
   { "id": 131, "itemType": "CHARCOAL", "sprite": "Charcoal" },
@@ -84,11 +63,7 @@
   { "id": 133, "itemType": "COTTON", "sprite": "Cotton" },
   { "id": 136, "itemType": "FISH_PIKE", "sprite": "Fish_Pike" },
   { "id": 137, "itemType": "FISH_CATFISH", "sprite": "Fish_Catfish" },
-  {
-    "id": 139,
-    "itemType": "LIGHTNING_SHARD",
-    "sprite": "LightningShard"
-  },
+  { "id": 139, "itemType": "LIGHTNING_SHARD", "sprite": "LightningShard" },
   { "id": 140, "itemType": "SEED_COTTON", "sprite": "SeedCotton" },
   { "id": 141, "itemType": "LORE_STONE", "sprite": "LoreStone" },
   { "id": 142, "itemType": "POOP_GOLD", "sprite": "Poop_Gold" },
@@ -99,46 +74,54 @@
   { "id": 152, "itemType": "SEED_HOPS", "sprite": "SeedHops" },
   { "id": 153, "itemType": "SEED_GRAPES", "sprite": "SeedGrapes" },
   { "id": 154, "itemType": "PLEASURE_POINT", "sprite": "Sin" },
+  { "id": 155, "itemType": "EGG_FOLLOWER", "sprite": "Egg_uncracked" },
   { "id": 159, "itemType": "YOLK", "sprite": "Yolk" },
   { "id": 160, "itemType": "SEED_SOZO", "sprite": "SeedSozo" },
   { "id": 163, "itemType": "Necklace_Bell", "sprite": "Necklace_12" },
   { "id": 165, "itemType": "WOOL", "sprite": "Wool" },
-  {
-    "id": 166,
-    "itemType": "SEED_SNOW_FRUIT",
-    "sprite": "SnowFruit Seed"
-  },
+  { "id": 166, "itemType": "SEED_SNOW_FRUIT", "sprite": "SnowFruit Seed" },
   { "id": 167, "itemType": "SNOW_FRUIT", "sprite": "SnowFruit" },
   { "id": 168, "itemType": "CHILLI", "sprite": "Chilli" },
   { "id": 169, "itemType": "SEED_CHILLI", "sprite": "Seed Chilli" },
   { "id": 170, "itemType": "ANIMAL_GOAT", "sprite": "Ranch_Goat" },
-  {
-    "id": 173,
-    "itemType": "ELECTRIFIED_MAGMA",
-    "sprite": "ElectrifiedMagma"
-  },
+  { "id": 173, "itemType": "ELECTRIFIED_MAGMA", "sprite": "ElectrifiedMagma" },
   { "id": 176, "itemType": "ANIMAL_TURTLE", "sprite": "Ranch_Turtle" },
   { "id": 177, "itemType": "ANIMAL_CRAB", "sprite": "Ranch_Crab" },
   { "id": 178, "itemType": "ANIMAL_SPIDER", "sprite": "Ranch_Spider" },
   { "id": 179, "itemType": "ANIMAL_SNAIL", "sprite": "Ranch_Snail" },
-  {
-    "id": 180,
-    "itemType": "Necklace_Deaths_Door",
-    "sprite": "Necklace_13"
-  },
+  { "id": 180, "itemType": "Necklace_Deaths_Door", "sprite": "Necklace_13" },
   { "id": 181, "itemType": "Necklace_Winter", "sprite": "Necklace_14" },
   { "id": 182, "itemType": "Necklace_Frozen", "sprite": "Necklace_15" },
   { "id": 183, "itemType": "Necklace_Weird", "sprite": "Necklace_16" },
-  {
-    "id": 184,
-    "itemType": "Necklace_Targeted",
-    "sprite": "Necklace_17"
-  },
+  { "id": 184, "itemType": "Necklace_Targeted", "sprite": "Necklace_17" },
   { "id": 186, "itemType": "SOOT", "sprite": "Soot" },
   { "id": 187, "itemType": "POOP_ROTSTONE", "sprite": "Poop_Rot" },
   { "id": 188, "itemType": "ANIMAL_COW", "sprite": "Ranch_Cow" },
   { "id": 189, "itemType": "ANIMAL_LLAMA", "sprite": "Ranch_Llama" },
   { "id": 194, "itemType": "FORGE_FLAME", "sprite": "SacredFlame" },
+  { "id": 195, "itemType": "BROKEN_WEAPON_HAMMER", "sprite": "Icon_Weapon_Hammer_Legendary" },
+  { "id": 196, "itemType": "BROKEN_WEAPON_SWORD", "sprite": "Icon_Weapon_Sword_Legendary" },
   { "id": 197, "itemType": "MILK", "sprite": "Milk" },
-  { "id": 208, "itemType": "FISHING_ROD", "sprite": "FishingRod" }
+  { "id": 201, "itemType": "BROKEN_WEAPON_DAGGER", "sprite": "Icon_Weapon_Dagger_Legendary" },
+  { "id": 202, "itemType": "BROKEN_WEAPON_GAUNTLETS", "sprite": "Icon_Weapon_Guantlet_Legendary" },
+  { "id": 203, "itemType": "BROKEN_WEAPON_AXE", "sprite": "Icon_Weapon_Axe_Executioner" },
+  { "id": 205, "itemType": "BROKEN_WEAPON_CHAIN", "sprite": "Icon_Weapon_Chain_Legendary" },
+  { "id": 206, "itemType": "ILLEGIBLE_LETTER_SCYLLA", "sprite": "Letter_Ice" },
+  { "id": 208, "itemType": "FISHING_ROD", "sprite": "FishingRod" },
+  { "id": 216, "itemType": "SPECIAL_WOOL_RANCHER", "sprite": "Wool_Rancher" },
+  { "id": 217, "itemType": "SPECIAL_WOOL_LAMBWAR", "sprite": "Wool_LambWar" },
+  { "id": 218, "itemType": "SPECIAL_WOOL_BLACKSMITH", "sprite": "Wool_Blacksmith" },
+  { "id": 219, "itemType": "SPECIAL_WOOL_TAROT", "sprite": "Wool_Tarots" },
+  { "id": 220, "itemType": "SPECIAL_WOOL_DECORATION", "sprite": "Wool_Decorations" },
+  { "id": 221, "itemType": "SPECIAL_WOOL_6", "sprite": "Wool_Priest" },
+  { "id": 222, "itemType": "SPECIAL_WOOL_7", "sprite": "Wool_HollowKnight" },
+  { "id": 223, "itemType": "SPECIAL_WOOL_8", "sprite": "Wool_Bones" },
+  { "id": 224, "itemType": "SPECIAL_WOOL_9", "sprite": "Wool_Moth" },
+  { "id": 225, "itemType": "SPECIAL_WOOL_10", "sprite": "Wool_Innocent" },
+  { "id": 227, "itemType": "RATAU_STAFF", "sprite": "Icon_Weapon_Staff_Ratau" },
+  { "id": 228, "itemType": "BOP", "sprite": "Bop" },
+  { "id": 230, "itemType": "YEW_CURSED", "sprite": "YewCursed" },
+  { "id": 231, "itemType": "YEW_HOLY", "sprite": "YewHoly" },
+  { "id": 233, "itemType": "LEGENDARY_WEAPON_FRAGMENT", "sprite": "LegendaryWeaponFragment" },
+  { "id": 235, "itemType": "SPECIAL_WOOL_11", "sprite": "Wool_HollowKnight" }
 ]

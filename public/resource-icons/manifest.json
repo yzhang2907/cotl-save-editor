@@ -56,6 +56,13 @@
     "width": 121
   },
   {
+    "height": 171,
+    "id": 26,
+    "itemType": "TRINKET_CARD",
+    "sprite": "CardBack_Trinket",
+    "width": 108
+  },
+  {
     "height": 64,
     "id": 28,
     "itemType": "FISH",
@@ -315,6 +322,13 @@
     "width": 115
   },
   {
+    "height": 200,
+    "id": 114,
+    "itemType": "TALISMAN",
+    "sprite": "TunicTalisman_Small",
+    "width": 188
+  },
+  {
     "height": 114,
     "id": 117,
     "itemType": "SHELL",
@@ -376,6 +390,13 @@
     "itemType": "Necklace_Gold_Skull",
     "sprite": "Necklace_6",
     "width": 72
+  },
+  {
+    "height": 111,
+    "id": 128,
+    "itemType": "GOD_TEAR_FRAGMENT",
+    "sprite": "GodTearShard",
+    "width": 111
   },
   {
     "height": 114,
@@ -502,6 +523,13 @@
     "itemType": "PLEASURE_POINT",
     "sprite": "Sin",
     "width": 116
+  },
+  {
+    "height": 152,
+    "id": 155,
+    "itemType": "EGG_FOLLOWER",
+    "sprite": "Egg_uncracked",
+    "width": 107
   },
   {
     "height": 87,
@@ -672,6 +700,20 @@
     "width": 148
   },
   {
+    "height": 169,
+    "id": 195,
+    "itemType": "BROKEN_WEAPON_HAMMER",
+    "sprite": "Icon_Weapon_Hammer_Legendary",
+    "width": 171
+  },
+  {
+    "height": 236,
+    "id": 196,
+    "itemType": "BROKEN_WEAPON_SWORD",
+    "sprite": "Icon_Weapon_Sword_Legendary",
+    "width": 198
+  },
+  {
     "height": 96,
     "id": 197,
     "itemType": "MILK",
@@ -679,10 +721,157 @@
     "width": 90
   },
   {
+    "height": 173,
+    "id": 201,
+    "itemType": "BROKEN_WEAPON_DAGGER",
+    "sprite": "Icon_Weapon_Dagger_Legendary",
+    "width": 124
+  },
+  {
+    "height": 216,
+    "id": 202,
+    "itemType": "BROKEN_WEAPON_GAUNTLETS",
+    "sprite": "Icon_Weapon_Guantlet_Legendary",
+    "width": 191
+  },
+  {
+    "height": 170,
+    "id": 203,
+    "itemType": "BROKEN_WEAPON_AXE",
+    "sprite": "Icon_Weapon_Axe_Executioner",
+    "width": 173
+  },
+  {
+    "height": 191,
+    "id": 205,
+    "itemType": "BROKEN_WEAPON_CHAIN",
+    "sprite": "Icon_Weapon_Chain_Legendary",
+    "width": 193
+  },
+  {
+    "height": 125,
+    "id": 206,
+    "itemType": "ILLEGIBLE_LETTER_SCYLLA",
+    "sprite": "Letter_Ice",
+    "width": 165
+  },
+  {
     "height": 148,
     "id": 208,
     "itemType": "FISHING_ROD",
     "sprite": "FishingRod",
     "width": 99
+  },
+  {
+    "height": 129,
+    "id": 216,
+    "itemType": "SPECIAL_WOOL_RANCHER",
+    "sprite": "Wool_Rancher",
+    "width": 153
+  },
+  {
+    "height": 128,
+    "id": 217,
+    "itemType": "SPECIAL_WOOL_LAMBWAR",
+    "sprite": "Wool_LambWar",
+    "width": 132
+  },
+  {
+    "height": 111,
+    "id": 218,
+    "itemType": "SPECIAL_WOOL_BLACKSMITH",
+    "sprite": "Wool_Blacksmith",
+    "width": 142
+  },
+  {
+    "height": 113,
+    "id": 219,
+    "itemType": "SPECIAL_WOOL_TAROT",
+    "sprite": "Wool_Tarots",
+    "width": 146
+  },
+  {
+    "height": 125,
+    "id": 220,
+    "itemType": "SPECIAL_WOOL_DECORATION",
+    "sprite": "Wool_Decorations",
+    "width": 168
+  },
+  {
+    "height": 106,
+    "id": 221,
+    "itemType": "SPECIAL_WOOL_6",
+    "sprite": "Wool_Priest",
+    "width": 133
+  },
+  {
+    "height": 149,
+    "id": 222,
+    "itemType": "SPECIAL_WOOL_7",
+    "sprite": "Wool_HollowKnight",
+    "width": 146
+  },
+  {
+    "height": 141,
+    "id": 223,
+    "itemType": "SPECIAL_WOOL_8",
+    "sprite": "Wool_Bones",
+    "width": 136
+  },
+  {
+    "height": 145,
+    "id": 224,
+    "itemType": "SPECIAL_WOOL_9",
+    "sprite": "Wool_Moth",
+    "width": 197
+  },
+  {
+    "height": 127,
+    "id": 225,
+    "itemType": "SPECIAL_WOOL_10",
+    "sprite": "Wool_Innocent",
+    "width": 203
+  },
+  {
+    "height": 234,
+    "id": 227,
+    "itemType": "RATAU_STAFF",
+    "sprite": "Icon_Weapon_Staff_Ratau",
+    "width": 147
+  },
+  {
+    "height": 100,
+    "id": 228,
+    "itemType": "BOP",
+    "sprite": "Bop",
+    "width": 92
+  },
+  {
+    "height": 99,
+    "id": 230,
+    "itemType": "YEW_CURSED",
+    "sprite": "YewCursed",
+    "width": 158
+  },
+  {
+    "height": 79,
+    "id": 231,
+    "itemType": "YEW_HOLY",
+    "sprite": "YewHoly",
+    "width": 151
+  },
+  {
+    "height": 131,
+    "id": 233,
+    "itemType": "LEGENDARY_WEAPON_FRAGMENT",
+    "sprite": "LegendaryWeaponFragment",
+    "width": 103
+  },
+  {
+    "height": 149,
+    "id": 235,
+    "itemType": "SPECIAL_WOOL_11",
+    "sprite": "Wool_HollowKnight",
+    "width": 146
   }
 ]
