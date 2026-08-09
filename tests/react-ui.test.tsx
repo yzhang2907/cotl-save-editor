@@ -5,6 +5,7 @@ import {
   cleanup,
   render,
   screen,
+  within,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -32,6 +33,7 @@ import {
 import { AdvancedDiagnostics } from "../src/ui/advanced-diagnostics";
 import { CultOverview } from "../src/ui/cult-overview";
 import { EditedSaveDownload } from "../src/ui/edited-save-download";
+import { doctrinePendingSaveChange } from "../src/ui/pending-save-changes";
 import { SaveReader } from "../src/ui/save-reader";
 import { SaveReport } from "../src/ui/save-report";
 import { UnchangedRebuild } from "../src/ui/unchanged-rebuild";
@@ -288,7 +290,7 @@ describe("EditedSaveDownload", () => {
 
     const { container } = render(
       <EditedSaveDownload
-        changes={[replacement]}
+        changes={[doctrinePendingSaveChange(replacement)]}
         fileName="slot_0.mp"
         onNotice={onNotice}
         original={original}
@@ -360,7 +362,7 @@ describe("EditedSaveDownload", () => {
 
     render(
       <EditedSaveDownload
-        changes={[replacement]}
+        changes={[doctrinePendingSaveChange(replacement)]}
         fileName="slot_0.mp"
         onNotice={() => undefined}
         original={original}
@@ -414,7 +416,7 @@ describe("EditedSaveDownload", () => {
 
     render(
       <EditedSaveDownload
-        changes={[woolhaven]}
+        changes={[doctrinePendingSaveChange(woolhaven)]}
         fileName="slot_4.MP"
         onNotice={() => undefined}
         original={original}
@@ -521,6 +523,263 @@ describe("AdvancedDiagnostics", () => {
         name: TECHNICAL_SAVE_PREVIEW_COPIED_LABEL,
       }),
     ).toBeTruthy();
+  });
+});
+
+describe("SaveReport editing", () => {
+  const GOLD = { QuantityReserved: 5, quantity: 123, type: 20 };
+  const editingSave: SaveRecord = doctrineSaveFromChoices(
+    [FAITHFUL, BELIEF_IN_AFTERLIFE, FUNERAL],
+    {
+      BaseStructures: [],
+      CultName: "Test Cult",
+      Followers: [],
+      UnlockedSermonsAndRituals: [],
+      items: [{ ...GOLD }],
+    },
+  );
+
+  function renderEditingReport(onNotice = () => undefined) {
+    return render(
+      <SaveReport
+        decoded={{
+          data: structuredClone(editingSave),
+          format: "encrypted-messagepack",
+          messagePack: EMPTY_SLOT_MESSAGEPACK_SOURCE,
+        }}
+        file={new File(["save"], "slot_0.mp")}
+        onNotice={onNotice}
+        report={analyzeSave(editingSave)}
+      />,
+    );
+  }
+
+  it("stages and discards a cult rename", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditingReport();
+
+    await user.click(
+      screen.getByRole("button", { name: "Rename the cult" }),
+    );
+    const nameInput = screen.getByRole("textbox", {
+      name: "New cult name",
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, "Chosen of the Isopod");
+    await user.click(screen.getByRole("button", { name: "Stage" }));
+
+    expect(screen.getByText("Chosen of the Isopod")).toBeTruthy();
+    expect(screen.getByText("was “Test Cult”")).toBeTruthy();
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
+
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Cult name")).toBeTruthy();
+    expect(
+      within(dialog).getByText("“Test Cult” → “Chosen of the Isopod”"),
+    ).toBeTruthy();
+    await user.keyboard("{Escape}");
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard the cult name edit" }),
+    );
+    expect(screen.getByText("Test Cult")).toBeTruthy();
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+  });
+
+  it("warns about names beyond the game's entry limit, but stages them", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditingReport();
+
+    await user.click(
+      screen.getByRole("button", { name: "Rename the cult" }),
+    );
+    const nameInput = screen.getByRole("textbox", {
+      name: "New cult name",
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, "Congregation of the Woolly Deep");
+    expect(
+      screen.getByText(/rename screen cannot type it back in/),
+    ).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: "Stage" }));
+
+    expect(
+      screen.getByText("Congregation of the Woolly Deep"),
+    ).toBeTruthy();
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
+  });
+
+  it("stages, lists, and discards a resource edit", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditingReport();
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Edit Gold Coins" }),
+    );
+    const quantityInput = screen.getByRole("spinbutton", {
+      name: "Gold Coins quantity",
+    });
+    await user.clear(quantityInput);
+    await user.type(quantityInput, "400");
+    await user.click(
+      screen.getByRole("button", { name: "Stage the Gold Coins edit" }),
+    );
+
+    expect(screen.getByText("Item 20 · edited")).toBeTruthy();
+    expect(screen.getByText("400")).toBeTruthy();
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
+
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+    expect(screen.getByText("Resources · Item 20")).toBeTruthy();
+    expect(screen.getByText("Gold Coins: 123 → 400")).toBeTruthy();
+    await user.keyboard("{Escape}");
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard the Gold Coins edit" }),
+    );
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(screen.queryByText("Item 20 · edited")).toBeNull();
+  });
+
+  it("stages an added item from the catalog picker", async () => {
+    const user = userEvent.setup();
+    const { container } = renderEditingReport();
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Add an item" }),
+    );
+    const picker = screen.getByRole("dialog");
+    await user.type(
+      within(picker).getByRole("searchbox", {
+        name: "Search the item catalog",
+      }),
+      "Stone",
+    );
+    await user.click(
+      within(picker).getByRole("button", { name: "Stone (Item 2)" }),
+    );
+    const quantityInput = within(picker).getByRole("spinbutton", {
+      name: "Quantity",
+    });
+    await user.clear(quantityInput);
+    await user.type(quantityInput, "250");
+    await user.click(
+      within(picker).getByRole("button", { name: "Add Stone" }),
+    );
+
+    expect(screen.getByText("Stone")).toBeTruthy();
+    expect(screen.getByText("Item 2 · edited")).toBeTruthy();
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(doctrineChangeCountLabel(1));
+
+    await user.click(
+      screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
+    );
+    expect(
+      within(screen.getByRole("dialog")).getByText("Add Stone: 250"),
+    ).toBeTruthy();
+    await user.keyboard("{Escape}");
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard the Stone edit" }),
+    );
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(screen.queryByText("Item 2 · edited")).toBeNull();
+  });
+
+  it("disables Woolhaven items in the picker without the DLC", async () => {
+    const user = userEvent.setup();
+    renderEditingReport();
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Add an item" }),
+    );
+    const picker = screen.getByRole("dialog");
+    await user.type(
+      within(picker).getByRole("searchbox", {
+        name: "Search the item catalog",
+      }),
+      "Woolhaven",
+    );
+    const option = within(picker).getByRole("button", {
+      name: "Woolhaven Necklace (Item 185)",
+    });
+    expect((option as HTMLButtonElement).disabled).toBe(true);
+    expect(within(picker).getByText(/needs Woolhaven/)).toBeTruthy();
+  });
+
+  it("lists never-obtainable items in their own picker section", async () => {
+    const user = userEvent.setup();
+    renderEditingReport();
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Add an item" }),
+    );
+    const picker = screen.getByRole("dialog");
+    await user.type(
+      within(picker).getByRole("searchbox", {
+        name: "Search the item catalog",
+      }),
+      "Cod",
+    );
+    const section = within(picker)
+      .getByText("Unobtainable items")
+      .closest("section");
+    expect(section).not.toBeNull();
+    expect(
+      within(section as HTMLElement).getByRole("button", {
+        name: "Cod (Item 135)",
+      }),
+    ).toBeTruthy();
+  });
+
+  it("refuses an invalid resource quantity with a notice", async () => {
+    const user = userEvent.setup();
+    const onNotice = vi.fn();
+    const { container } = renderEditingReport(onNotice);
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Edit Gold Coins" }),
+    );
+    const quantityInput = screen.getByRole("spinbutton", {
+      name: "Gold Coins quantity",
+    });
+    await user.clear(quantityInput);
+    await user.type(quantityInput, "99999999");
+    await user.click(
+      screen.getByRole("button", { name: "Stage the Gold Coins edit" }),
+    );
+
+    expect(onNotice).toHaveBeenCalledWith(
+      expect.stringContaining("The resource edit was not staged"),
+      "error",
+    );
+    expect(
+      container.querySelector(".change-count-seal")?.textContent,
+    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
   });
 });
 

@@ -1171,6 +1171,10 @@ h2 {
   filter: drop-shadow(2px 3px 0 rgb(0 0 0 / 28%));
 }
 
+.resource-icon-fallback {
+  opacity: 0.75;
+}
+
 .resource-row strong,
 .resource-row small {
   display: block;
@@ -1196,6 +1200,394 @@ h2 {
   font-family: "Lilita One", "Arial Black", sans-serif;
   font-size: 1.15rem;
   font-weight: 400;
+}
+
+.resource-row {
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.resource-row .resource-identity {
+  flex: 1 1 auto;
+}
+
+.resource-edit {
+  display: flex;
+  width: 62px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.resource-edit-toggle,
+.resource-edit-discard,
+.resource-edit-confirm,
+.resource-edit-cancel,
+.stat-edit-toggle,
+.stat-edit-discard {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 52% 44% 48% 55%;
+  background: var(--gold);
+  box-shadow: 2px 2px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  transform: rotate(-4deg);
+}
+
+.resource-edit-discard,
+.stat-edit-discard {
+  background: var(--orange);
+  transform: rotate(5deg);
+}
+
+.resource-edit-cancel {
+  border-color: #4d4650;
+  background: var(--night-raised);
+  color: var(--bone);
+  transform: rotate(3deg);
+}
+
+.resource-edit-toggle:hover,
+.resource-edit-discard:hover,
+.resource-edit-confirm:hover,
+.resource-edit-cancel:hover,
+.stat-edit-toggle:hover,
+.stat-edit-discard:hover {
+  transform: rotate(6deg) scale(1.08);
+}
+
+.resource-edit-toggle:focus-visible,
+.resource-edit-discard:focus-visible,
+.resource-edit-confirm:focus-visible,
+.resource-edit-cancel:focus-visible,
+.stat-edit-toggle:focus-visible,
+.stat-edit-discard:focus-visible {
+  outline: 3px solid var(--bone);
+  outline-offset: 2px;
+}
+
+.resource-row.edited .resource-identity small {
+  color: var(--red);
+}
+
+.stat-edit-warning {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--gold);
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.resource-quantity-form {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.resource-quantity-form input,
+.stat-edit-form input {
+  padding: 0.3rem 0.5rem;
+  border: 2px solid var(--bone-muted);
+  border-radius: 7px 5px 8px 6px;
+  background: rgb(245 234 208 / 8%);
+  color: var(--bone);
+}
+
+.resource-quantity-form input {
+  width: 6.5rem;
+  appearance: textfield;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1rem;
+  text-align: right;
+}
+
+.resource-quantity-form input::-webkit-outer-spin-button,
+.resource-quantity-form input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.stat-edit-form input {
+  width: 100%;
+}
+
+.resource-quantity-form input:focus-visible,
+.stat-edit-form input:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.stat-edit-actions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.stat-edit-actions button {
+  padding: 0.28rem 0.7rem;
+  border: 2px solid var(--bone);
+  border-radius: 7px 5px 8px 6px;
+  background: var(--red);
+  box-shadow: 2px 3px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.78rem;
+  line-height: 1.05;
+}
+
+.stat-edit-actions button[type="button"] {
+  background: transparent;
+  color: var(--bone);
+}
+
+.stat-edit-actions button:hover {
+  transform: translateY(-1px) rotate(-1deg);
+}
+
+.stat-edit-actions button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.resource-add-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.resource-add-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border: 3px solid var(--bone);
+  border-radius: 10px 7px 12px 8px;
+  background: var(--red);
+  box-shadow: 3px 4px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  transform: rotate(-1deg);
+}
+
+.resource-add-button:hover {
+  transform: rotate(1deg) translateY(-1px);
+}
+
+.resource-add-button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.resource-add-modal form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.resource-add-search {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 2px solid var(--bone-muted);
+  border-radius: 8px 6px 9px 7px;
+  background: rgb(245 234 208 / 8%);
+  color: var(--bone);
+  font: inherit;
+}
+
+.resource-add-search:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.resource-add-results {
+  display: grid;
+  gap: 0.85rem;
+  max-height: min(46vh, 24rem);
+  overflow-y: auto;
+  padding: 0.15rem;
+}
+
+.resource-add-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.45rem;
+}
+
+.resource-add-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid #4d4650;
+  border-radius: 9px 7px 10px 8px;
+  background: rgb(245 234 208 / 4%);
+  color: var(--bone);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.resource-add-option:hover {
+  border-color: var(--bone);
+}
+
+.resource-add-option:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.resource-add-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.resource-add-option:disabled:hover {
+  border-color: #4d4650;
+}
+
+.resource-add-option[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: rgb(240 179 90 / 14%);
+}
+
+.resource-add-option .resource-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.resource-add-option strong,
+.resource-add-option small {
+  display: block;
+}
+
+.resource-add-option strong {
+  font-size: 0.78rem;
+}
+
+.resource-add-option small {
+  color: var(--bone-muted);
+  font-size: 0.62rem;
+}
+
+.resource-add-unobtainable {
+  padding-top: 0.85rem;
+  border-top: 1px solid #4d4650;
+}
+
+.resource-add-unobtainable h4 {
+  margin: 0 0 0.3rem;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.resource-add-unobtainable > p {
+  margin: 0 0 0.7rem;
+  color: var(--bone-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.resource-add-quantity {
+  display: grid;
+  justify-self: start;
+  gap: 0.25rem;
+  color: var(--bone-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.resource-add-quantity input {
+  width: 8rem;
+  padding: 0.4rem 0.6rem;
+  appearance: textfield;
+  border: 2px solid var(--bone-muted);
+  border-radius: 7px 5px 8px 6px;
+  background: rgb(245 234 208 / 8%);
+  color: var(--bone);
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.95rem;
+}
+
+.resource-add-quantity input::-webkit-outer-spin-button,
+.resource-add-quantity input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.resource-add-quantity input:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.resource-add-cancel,
+.resource-add-stage {
+  padding: 0.55rem 1rem;
+  border: 3px solid var(--bone);
+  border-radius: 10px 7px 12px 8px;
+  background: var(--red);
+  box-shadow: 3px 4px 0 #0d0a0b;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.resource-add-cancel {
+  border-color: #736975;
+  background: transparent;
+  box-shadow: none;
+  color: var(--bone);
+}
+
+.resource-add-cancel:hover,
+.resource-add-stage:hover:not(:disabled) {
+  transform: rotate(-1deg) translateY(-1px);
+}
+
+.resource-add-cancel:focus-visible,
+.resource-add-stage:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.resource-add-stage:disabled {
+  border-color: #5b525d;
+  background: var(--night-raised);
+  box-shadow: none;
+  color: #8f8592;
+  cursor: not-allowed;
+}
+
+.overview-stat.editable {
+  position: relative;
+}
+
+.overview-stat .stat-edit-controls {
+  position: absolute;
+  display: flex;
+  top: 0.45rem;
+  right: 0.45rem;
+  gap: 0.35rem;
+}
+
+.stat-edit-form {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
 }
 
 .doctrine-grid {

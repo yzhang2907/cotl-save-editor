@@ -1,3 +1,7 @@
+import { Pencil, X } from "lucide-react";
+import { useState, type FormEvent } from "react";
+
+import { GAME_CULT_NAME_INPUT_LIMIT } from "../save/cult-edits";
 import type { CultOverview as CultOverviewData } from "../save/overview";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
 import type { PendingDoctrineChange } from "../save/doctrine-workspace";
@@ -10,8 +14,26 @@ import {
   displayNumber,
 } from "./overview-format";
 import { OverviewSection } from "./overview-section";
-import { ResourcesSection } from "./resources-section";
+import {
+  ResourcesSection,
+  type AddableItem,
+  type ResourceEditRequest,
+} from "./resources-section";
 import { RitualsSection } from "./rituals-section";
+
+export interface CultEditingProps {
+  addableItems: AddableItem[];
+  editedResourceTypes: ReadonlySet<number>;
+  nameEditable: boolean;
+  nameEdited: boolean;
+  onAddResource: (edit: ResourceEditRequest) => boolean;
+  onDiscardRename: () => void;
+  onDiscardResourceEdit: (type: number) => void;
+  onEditResource: (edit: ResourceEditRequest) => boolean;
+  onRename: (name: string) => boolean;
+  originalName: string | null;
+  pendingCultEditCount: number;
+}
 
 interface StatProps {
   label: string;
@@ -29,9 +51,95 @@ function Stat({ label, note, value }: StatProps) {
   );
 }
 
+function CultNameStat({
+  editing,
+  name,
+}: {
+  editing: CultEditingProps | undefined;
+  name: string | null;
+}) {
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState("");
+  const value = name ?? "Unnamed";
+
+  if (editing === undefined || !editing.nameEditable) {
+    return <Stat label="Cult name" value={value} />;
+  }
+
+  function submit(event: FormEvent): void {
+    event.preventDefault();
+    if (editing !== undefined && editing.onRename(draft)) {
+      setRenaming(false);
+    }
+  }
+
+  return (
+    <div className="overview-stat editable">
+      <span className="overview-stat-label">Cult name</span>
+      {renaming ? (
+        <form className="stat-edit-form" onSubmit={submit}>
+          <input
+            aria-label="New cult name"
+            autoFocus
+            onChange={(event) => setDraft(event.currentTarget.value)}
+            type="text"
+            value={draft}
+          />
+          {draft.trim().length > GAME_CULT_NAME_INPUT_LIMIT ? (
+            <small className="stat-edit-warning" role="note">
+              Longer than the game&apos;s {GAME_CULT_NAME_INPUT_LIMIT}
+              -character name entry. The game loads it fine, but its
+              rename screen cannot type it back in.
+            </small>
+          ) : null}
+          <div className="stat-edit-actions">
+            <button type="submit">Stage</button>
+            <button onClick={() => setRenaming(false)} type="button">
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <strong>{value}</strong>
+          {editing.nameEdited ? (
+            <small>was “{editing.originalName ?? "Unnamed"}”</small>
+          ) : null}
+          <div className="stat-edit-controls">
+            {editing.nameEdited ? (
+              <button
+                aria-label="Discard the cult name edit"
+                className="stat-edit-discard"
+                onClick={editing.onDiscardRename}
+                title="Discard this edit"
+                type="button"
+              >
+                <X aria-hidden="true" size={14} strokeWidth={4} />
+              </button>
+            ) : null}
+            <button
+              aria-label="Rename the cult"
+              className="stat-edit-toggle"
+              onClick={() => {
+                setDraft(name ?? "");
+                setRenaming(true);
+              }}
+              title="Rename the cult"
+              type="button"
+            >
+              <Pencil aria-hidden="true" size={14} strokeWidth={3} />
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface CultOverviewProps {
   data: SaveRecord;
   doctrineChanges: PendingDoctrineChange[];
+  editing?: CultEditingProps;
   onApplyDoctrine: (plan: DoctrineChangePlan) => boolean;
   onDiscardDoctrine: (change: PendingDoctrineChange) => void;
   originalDoctrine: CultOverviewData["doctrine"];
@@ -42,6 +150,7 @@ interface CultOverviewProps {
 export function CultOverview({
   data,
   doctrineChanges,
+  editing,
   onApplyDoctrine,
   onDiscardDoctrine,
   originalDoctrine,
@@ -57,7 +166,8 @@ export function CultOverview({
       ),
     0,
   );
-  const changeCount = doctrineChanges.length;
+  const changeCount =
+    doctrineChanges.length + (editing?.pendingCultEditCount ?? 0);
 
   return (
     <section className="cult-overview" aria-labelledby="cult-overview-title">
@@ -65,8 +175,8 @@ export function CultOverview({
         <div>
           <h3 id="cult-overview-title">Inside the cult</h3>
           <p>
-            Doctrine changes go to a working copy. The file you opened
-            stays untouched.
+            Changes go to a working copy. The file you opened stays
+            untouched.
           </p>
         </div>
         <span
@@ -77,7 +187,7 @@ export function CultOverview({
       </header>
 
       <div className="overview-stats">
-        <Stat label="Cult name" value={overview.identity.name ?? "Unnamed"} />
+        <CultNameStat editing={editing} name={overview.identity.name} />
         <Stat
           label="Day"
           value={
@@ -119,7 +229,12 @@ export function CultOverview({
         )}
         {overview.itemTypeCount === null ? null : (
           <ResourcesSection
+            addableItems={editing?.addableItems}
             count={overview.itemTypeCount}
+            editedTypes={editing?.editedResourceTypes}
+            onAdd={editing?.onAddResource}
+            onDiscardEdit={editing?.onDiscardResourceEdit}
+            onEdit={editing?.onEditResource}
             resources={overview.resources}
           />
         )}

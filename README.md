@@ -8,6 +8,7 @@ in the browser and never uploaded.
 - opens current `.mp` saves; legacy `.json` saves are read-only;
 - shows followers, resources, base data, and progression unlocks;
 - stages doctrine replacements and missing-tier unlocks;
+- renames the cult, edits resource quantities, and adds catalog items;
 - handles dual doctrines and DLC-gated content;
 - warns about unknown or inconsistent save data; and
 - verifies each rebuilt save before downloading it.

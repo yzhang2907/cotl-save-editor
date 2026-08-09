@@ -1,5 +1,21 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import {
+  ITEM_NAMES,
+  UNOBTAINABLE_ITEM_TYPES,
+} from "../save/catalogs";
+import {
+  applyCultEdits,
+  discardCultNameEdit,
+  discardResourceEdit,
+  emptyCultEdits,
+  itemRequiredDlc,
+  listPendingCultEdits,
+  stageCultNameEdit,
+  stageResourceAddition,
+  stageResourceEdit,
+} from "../save/cult-edits";
+import { dlcDefinition, saveHasActivatedDlc } from "../save/dlc";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
 import {
   applyDoctrineChange,
@@ -18,8 +34,13 @@ import type { ToastKind } from "./action-toast";
 import { AdvancedDiagnostics } from "./advanced-diagnostics";
 import { CompatibilityNotes } from "./compatibility-notes";
 import { SAVE_REPORT_TITLE } from "./copy";
-import { CultOverview } from "./cult-overview";
+import { CultOverview, type CultEditingProps } from "./cult-overview";
 import { EditedSaveDownload } from "./edited-save-download";
+import {
+  cultEditPendingSaveChange,
+  doctrinePendingSaveChange,
+} from "./pending-save-changes";
+import type { ResourceEditRequest } from "./resources-section";
 import { SaveMetadata } from "./save-metadata";
 import { StepHeader } from "./step-header";
 import { UnchangedRebuild } from "./unchanged-rebuild";
@@ -40,15 +61,35 @@ export function SaveReport({
   const [workspace, setWorkspace] = useState(() =>
     createDoctrineWorkspace(decoded.data),
   );
+  const [cultEdits, setCultEdits] = useState(emptyCultEdits);
   const showCultOverview =
     decoded.messagePack?.schema === "slot" ||
     Array.isArray(decoded.data.Followers) ||
     Array.isArray(decoded.data.DoctrineUnlockedUpgrades);
-  const overview = buildCultOverview(workspace.data);
-  const originalDoctrine = buildCultOverview(workspace.original).doctrine;
-  const pendingDoctrineChanges = listPendingDoctrineChanges(workspace);
   const showEditedSaveDownload =
     decoded.messagePack?.schema === "slot";
+
+  const working = useMemo(() => {
+    try {
+      return applyCultEdits(workspace.data, workspace.original, cultEdits);
+    } catch {
+      return workspace.data;
+    }
+  }, [cultEdits, workspace]);
+  const overview = buildCultOverview(working);
+  const originalDoctrine = buildCultOverview(workspace.original).doctrine;
+  const pendingDoctrineChanges = listPendingDoctrineChanges(workspace);
+  const pendingCultEdits = useMemo(() => {
+    try {
+      return listPendingCultEdits(workspace.original, cultEdits);
+    } catch {
+      return [];
+    }
+  }, [cultEdits, workspace.original]);
+  const pendingChanges = [
+    ...pendingDoctrineChanges.map(doctrinePendingSaveChange),
+    ...pendingCultEdits.map(cultEditPendingSaveChange),
+  ];
 
   function applyDoctrine(plan: DoctrineChangePlan): boolean {
     try {
@@ -83,16 +124,103 @@ export function SaveReport({
     setWorkspace(resetDoctrineChanges(workspace));
   }
 
+  function renameCult(name: string): boolean {
+    try {
+      setCultEdits(
+        stageCultNameEdit(workspace.original, cultEdits, name),
+      );
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error.";
+      onNotice(`The cult was not renamed: ${message}`, "error");
+      return false;
+    }
+  }
+
+  function editResource(edit: ResourceEditRequest): boolean {
+    try {
+      setCultEdits(
+        stageResourceEdit(workspace.original, cultEdits, edit),
+      );
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error.";
+      onNotice(`The resource edit was not staged: ${message}`, "error");
+      return false;
+    }
+  }
+
+  function addResource(edit: ResourceEditRequest): boolean {
+    try {
+      setCultEdits(
+        stageResourceAddition(workspace.original, cultEdits, edit),
+      );
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error.";
+      onNotice(`The item was not added: ${message}`, "error");
+      return false;
+    }
+  }
+
+  const presentItemTypes = new Set(
+    overview.resources.map((resource) => resource.id),
+  );
+  const editing: CultEditingProps | undefined = showEditedSaveDownload
+    ? {
+        addableItems: Object.entries(ITEM_NAMES)
+          .map(([id, name]) => {
+            const itemType = Number(id);
+            const requiredDlc = itemRequiredDlc(itemType);
+            const locked =
+              requiredDlc !== null &&
+              !saveHasActivatedDlc(workspace.original, requiredDlc);
+            return {
+              id: itemType,
+              lockedReason: locked
+                ? `needs ${dlcDefinition(requiredDlc).displayName}`
+                : null,
+              name,
+              unobtainable: UNOBTAINABLE_ITEM_TYPES.has(itemType),
+            };
+          })
+          .filter((item) => !presentItemTypes.has(item.id))
+          .sort((left, right) => left.name.localeCompare(right.name)),
+        editedResourceTypes: new Set([
+          ...cultEdits.resources.map((edit) => edit.type),
+          ...cultEdits.additions.map((edit) => edit.type),
+        ]),
+        nameEditable: typeof workspace.original.CultName === "string",
+        nameEdited: cultEdits.cultName !== null,
+        onDiscardRename: () =>
+          setCultEdits(discardCultNameEdit(cultEdits)),
+        onDiscardResourceEdit: (type) =>
+          setCultEdits(discardResourceEdit(cultEdits, type)),
+        onAddResource: addResource,
+        onEditResource: editResource,
+        onRename: renameCult,
+        originalName:
+          typeof workspace.original.CultName === "string" &&
+          workspace.original.CultName.trim()
+            ? workspace.original.CultName
+            : null,
+        pendingCultEditCount: pendingCultEdits.length,
+      }
+    : undefined;
+
   const advancedDiagnostics = (
     <AdvancedDiagnostics
-      data={workspace.data}
-      key={workspace.history.length}
+      data={working}
+      key={pendingChanges.length}
     >
       {decoded.messagePack ? (
         <UnchangedRebuild
           file={file}
           onNotice={onNotice}
-          pendingChangeCount={pendingDoctrineChanges.length}
+          pendingChangeCount={pendingChanges.length}
           source={decoded.messagePack}
         />
       ) : null}
@@ -134,6 +262,7 @@ export function SaveReport({
           <CultOverview
             data={workspace.data}
             doctrineChanges={pendingDoctrineChanges}
+            editing={editing}
             onApplyDoctrine={applyDoctrine}
             onDiscardDoctrine={discardDoctrine}
             originalDoctrine={originalDoctrine}
@@ -147,12 +276,12 @@ export function SaveReport({
 
       {showEditedSaveDownload && decoded.messagePack ? (
         <EditedSaveDownload
-          changes={pendingDoctrineChanges}
+          changes={pendingChanges}
           fileName={file.name}
           onNotice={onNotice}
           original={workspace.original}
           source={decoded.messagePack}
-          working={workspace.data}
+          working={working}
         >
           {advancedDiagnostics}
         </EditedSaveDownload>

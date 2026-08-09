@@ -7,7 +7,6 @@ import {
 } from "react";
 
 import { dlcDefinition, type DlcKey } from "../save/dlc";
-import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import { editedSaveFileName } from "../save/file-names";
 import type { MessagePackSource, SaveRecord } from "../save/types";
 import type { ToastKind } from "./action-toast";
@@ -17,12 +16,12 @@ import {
   EDITED_SAVE_SUBSECTION_TITLE,
   NO_EDITED_SAVE_CHANGES_LABEL,
 } from "./copy";
-import { doctrineChangeLabel } from "./doctrine-change-label";
 import { downloadLocalFile } from "./local-download";
+import type { PendingSaveChange } from "./pending-save-changes";
 import { StepHeader } from "./step-header";
 
 interface EditedSaveDownloadProps {
-  changes: PendingDoctrineChange[];
+  changes: PendingSaveChange[];
   children?: ReactNode;
   fileName: string;
   onNotice: (message: string, kind: ToastKind) => void;
@@ -265,13 +264,9 @@ export function EditedSaveDownload({
               <h4 id="final-doctrine-changes-title">Final changes</h4>
               <ol>
                 {changes.map((change) => (
-                  <li
-                    key={`${change.categoryName}-${change.rank}-${change.toDoctrineId}`}
-                  >
-                    <span>
-                      {change.categoryName} · Rank {change.rank}
-                    </span>
-                    <strong>{doctrineChangeLabel(change)}</strong>
+                  <li key={change.key}>
+                    <span>{change.scope}</span>
+                    <strong>{change.label}</strong>
                   </li>
                 ))}
               </ol>
