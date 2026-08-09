@@ -101,11 +101,14 @@ An unchanged rebuild keeps its empty array.
 
 ## 9. Check edited files in the game
 
+All accepted tests below ran against game version 1.5.25.1049, the same
+version as the doctrine map in section 4.
+
 - [ ] Test one doctrine replacement in each category.
-- [ ] Test several doctrine replacements in one file.
-- [ ] Load the edited file and confirm the selected doctrines.
+- [x] Test several doctrine replacements in one file.
+- [x] Load the edited file and confirm the selected doctrines.
 - [ ] Save in the game, return to the title screen, and load it again.
-- [ ] Restart the game and load the edited file again.
+- [x] Restart the game and load the edited file again.
 - [ ] Test a new campaign created by the current game.
 - [x] Test an old campaign upgraded by the current game.
 - [ ] Test supported legacy JSON saves.
@@ -113,6 +116,20 @@ An unchanged rebuild keeps its empty array.
 - [x] Confirm an unchanged rebuild in the game.
 - [ ] Use only user-made copies for all automated and manual checks.
 - [ ] Record the game version used for each accepted test.
+
+Accepted on 1.5.25.1049: Afterlife rank 1 `Belief in Afterlife` to
+`Belief in Sacrifice` and rank 2 `Funeral` to `Ritual of Resurrection`,
+staged together in one file. The game showed both doctrines and performed
+the granted ritual, so the linked upgrade grants applied correctly. The
+file survived an in-game save, a full game restart, and a second load.
+
+Category coverage is one of seven. `work`, `possessions`, `sustenance`,
+`law`, and `sins` are still untested. The `winter` category is
+Woolhaven-only and cannot be tested on this account, so category coverage
+can be accepted at six of seven with `winter` deferred until a save has
+activated that DLC. On a save without `MAJOR_DLC`, the interface showed
+every `winter` choice as disabled, so the DLC gate refuses selections
+that the game could not honour.
 
 ## 10. Prepare for public use
 
