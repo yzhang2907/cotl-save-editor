@@ -13,36 +13,60 @@ import { buildCultOverview } from "../src/save/overview";
 
 const saveCopyPath = process.env.COTL_SAVE_COPY;
 const rebuiltSaveCopyPath = process.env.COTL_REBUILT_SAVE_COPY;
+const newSaveCopyPath = process.env.COTL_NEW_SAVE_COPY;
 const describeSaveCopy = saveCopyPath ? describe : describe.skip;
+const describeNewSaveCopy = newSaveCopyPath ? describe : describe.skip;
 
 async function readSaveCopy(path: string): Promise<ArrayBuffer> {
   return new Uint8Array(await readFile(path)).slice().buffer;
 }
 
+/**
+ * Checks what every slot save must satisfy, whatever its progress, and
+ * confirms that an unchanged rebuild keeps the raw bytes.
+ */
+async function checkSlotSave(path: string) {
+  const decoded = await decodeSave(await readSaveCopy(path));
+
+  expect(decoded.format).toBe("encrypted-messagepack");
+  if (!decoded.messagePack) {
+    throw new Error("Expected raw MessagePack source data.");
+  }
+  expect(decoded.messagePack.schema).toBe("slot");
+  const report = analyzeSave(decoded.data);
+  expect(report.doctrineFields.doctrineUnlockCount).not.toBeNull();
+  expect(report.doctrineFields.unlockedUpgradeCount).not.toBeNull();
+  expect(report.doctrineFields.cultTraitsCount).not.toBeNull();
+
+  const overview = buildCultOverview(decoded.data);
+  expect(overview.identity.day).not.toBeNull();
+  expect(overview.resources.every((resource) => resource.known)).toBe(true);
+  expect(overview.doctrine.unknownIds).toEqual([]);
+  expect(assessDoctrineEditing(decoded.data).blockers).toEqual([]);
+
+  const rewritten = await encodeVerifiedMessagePackSave(decoded.messagePack);
+  const roundTrip = await decodeSave(rewritten.slice().buffer);
+
+  expect(roundTrip.data).toEqual(decoded.data);
+  expect(roundTrip.messagePack?.rawData).toEqual(decoded.messagePack.rawData);
+  expect(roundTrip.messagePack?.rawPayload).toEqual(
+    decoded.messagePack.rawPayload,
+  );
+  expect(
+    roundTrip.messagePack?.compression?.blockSizes.every((size) => size > 0),
+  ).toBe(true);
+
+  return { decoded, overview };
+}
+
 describeSaveCopy("real save copy", () => {
   it("keeps all data through an encrypted MP round trip", async () => {
-    const decoded = await decodeSave(
-      await readSaveCopy(saveCopyPath as string),
-    );
+    const { decoded, overview } = await checkSlotSave(saveCopyPath as string);
 
-    expect(decoded.format).toBe("encrypted-messagepack");
-    if (!decoded.messagePack) {
-      throw new Error("Expected raw MessagePack source data.");
-    }
-    expect(decoded.messagePack.schema).toBe("slot");
-    const report = analyzeSave(decoded.data);
-    expect(report.doctrineFields.doctrineUnlockCount).not.toBeNull();
-    expect(report.doctrineFields.unlockedUpgradeCount).not.toBeNull();
-    expect(report.doctrineFields.cultTraitsCount).not.toBeNull();
-
-    const overview = buildCultOverview(decoded.data);
     expect(overview.identity.name).toBeTruthy();
-    expect(overview.identity.day).not.toBeNull();
     expect(overview.followerCount).toBeGreaterThan(0);
     expect(overview.structureCount).toBeGreaterThan(0);
     expect(overview.itemTypeCount).toBeGreaterThan(0);
-    expect(overview.resources.every((resource) => resource.known)).toBe(true);
-    expect(overview.doctrine.unknownIds).toEqual([]);
     expect(overview.rituals.length).toBeGreaterThan(0);
     expect(overview.sermonsAndRites.length).toBeGreaterThan(0);
     expect(
@@ -51,8 +75,6 @@ describeSaveCopy("real save copy", () => {
       ),
     ).toBe(true);
 
-    const doctrineAssessment = assessDoctrineEditing(decoded.data);
-    expect(doctrineAssessment.blockers).toEqual([]);
     const doctrinePlans = overview.doctrine.categories.flatMap((category) =>
       category.pairs.flatMap((pair) => {
         if (pair.selected.length !== 1) {
@@ -88,24 +110,6 @@ describeSaveCopy("real save copy", () => {
             ],
       ),
     ).toEqual([]);
-
-    const rewritten = await encodeVerifiedMessagePackSave(
-      decoded.messagePack,
-    );
-    const roundTrip = await decodeSave(rewritten.slice().buffer);
-
-    expect(roundTrip.data).toEqual(decoded.data);
-    expect(roundTrip.messagePack?.rawData).toEqual(
-      decoded.messagePack.rawData,
-    );
-    expect(roundTrip.messagePack?.rawPayload).toEqual(
-      decoded.messagePack.rawPayload,
-    );
-    expect(
-      roundTrip.messagePack?.compression?.blockSizes.every(
-        (size) => size > 0,
-      ),
-    ).toBe(true);
   });
 
   it.runIf(rebuiltSaveCopyPath)(
@@ -123,4 +127,16 @@ describeSaveCopy("real save copy", () => {
       );
     },
   );
+});
+
+describeNewSaveCopy("new campaign save copy", () => {
+  it("reads and rebuilds a campaign with no progress", async () => {
+    const { overview } = await checkSlotSave(newSaveCopyPath as string);
+
+    // A campaign can be saved before the cult is named and before any
+    // doctrine is chosen. Neither state may be treated as a bad save.
+    expect(overview.doctrine.categories.every(
+      (category) => category.selectedCount === 0,
+    )).toBe(true);
+  });
 });

@@ -62,6 +62,13 @@ COTL_REBUILT_SAVE_COPY=/path/to/copied/slot_1.mp \
   pnpm exec vitest run tests/real-save-roundtrip.test.ts
 ```
 
+Check a copy of a campaign that has no cult name and no doctrines yet:
+
+```sh
+COTL_NEW_SAVE_COPY=/path/to/copied/slot_0.mp \
+  pnpm exec vitest run tests/real-save-roundtrip.test.ts
+```
+
 Never point this check at the game's active save directory.
 
 ## Format notes

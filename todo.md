@@ -108,7 +108,7 @@ All accepted tests used game version 1.5.25.1049.
 - [x] Load the edited file and confirm the selected doctrines.
 - [x] Save in the game, return to the title screen, and load it again.
 - [x] Restart the game and load the edited file again.
-- [ ] Test a new campaign created by the current game.
+- [x] Test a new campaign created by the current game.
 - [x] Test an old campaign upgraded by the current game.
 - [x] Drop legacy JSON editing. Reading and its stale-file warning stay.
 - [x] Test a current save with an unknown position.
@@ -121,6 +121,10 @@ restart. Granted rituals worked, so linked upgrades apply.
 
 Woolhaven is deferred: the DLC is not owned, and its choices stay disabled
 without `MAJOR_DLC`.
+
+A new campaign decodes to the same 1,396 positions as an upgraded one. It
+can have no cult name and no doctrines, so overview checks that assume
+progress belong to the mature-save test only.
 
 ## 10. Prepare for public use
 
