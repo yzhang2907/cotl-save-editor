@@ -107,6 +107,11 @@ export async function decodeSave(input: ArrayBuffer): Promise<DecodedSave> {
     }
 
     const decoded = await decodeMessagePackPayload(decrypted);
+    if (decoded.source.schema === "meta") {
+      throw new SaveDecodeError(
+        "This looks like the game's meta.mp progress file, not a campaign slot. Choose a slot_#.mp file.",
+      );
+    }
     return {
       data: decoded.data,
       format: "encrypted-messagepack",

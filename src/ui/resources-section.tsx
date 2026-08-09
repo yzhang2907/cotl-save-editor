@@ -14,7 +14,7 @@ function ResourceRow({ resource }: { resource: ResourceOverview }) {
         {iconIds.has(resource.id) ? (
           <img
             className="resource-icon"
-            src={`/resource-icons/${resource.id}.webp`}
+            src={`${import.meta.env.BASE_URL}resource-icons/${resource.id}.webp`}
             alt=""
             loading="lazy"
             width="52"

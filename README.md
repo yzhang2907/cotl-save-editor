@@ -1,26 +1,26 @@
 # Cult of the Lamb Save Editor
 
-A privacy-first browser editor for Cult of the Lamb saves. Save data is read
-inside the browser and is never uploaded.
+An unofficial browser editor for Cult of the Lamb saves. Saves are read
+in the browser and never uploaded.
 
-## Capabilities
+## What it does
 
-- private, local loading of current `.mp` saves, and read-only inspection of
-  legacy `.json` saves;
-- an overview of followers, resources, base data, and progression unlocks;
-- doctrine replacements and missing-tier unlocks staged entirely in the browser;
-- support for dual doctrines and DLC-gated content;
-- warnings for unknown or inconsistent save data; and
-- verified edited downloads with clear backup and game-safety checks.
+- opens current `.mp` saves; legacy `.json` saves are read-only;
+- shows followers, resources, base data, and progression unlocks;
+- stages doctrine replacements and missing-tier unlocks;
+- handles dual doctrines and DLC-gated content;
+- warns about unknown or inconsistent save data; and
+- verifies each rebuilt save before downloading it.
 
-The current interface inspects saves, applies doctrine replacements or
-missing-tier unlocks to a browser-only working copy, builds and reopens an
-edited `.mp` save in memory, and downloads it with an `.edited.mp` suffix only
-after verification and explicit safety confirmations. An unlock adds its
-doctrine ID and every catalog-mapped trait or ritual grant as one checked
-operation. The editor rejects unknown or inconsistent doctrine data.
-DLC ownership cannot be detected in the browser. DLC-specific changes are
-available only after that save has activated the required DLC in the game.
+Edits go to a working copy. The editor rebuilds the `.mp` save in
+memory, reopens it to check that only the approved fields changed, and
+downloads it with an `.edited.mp` suffix once you confirm the safety
+steps. An unlock adds its doctrine ID and every catalog-mapped trait or
+ritual grant as one checked operation. Unknown or inconsistent doctrine
+data is rejected.
+
+The browser cannot detect DLC ownership. DLC-specific changes appear
+only after that save has activated the required DLC in the game.
 
 Current game versions use `slot_#.mp`. An older campaign directory may still
 contain a legacy `slot_#.json` that is no longer current, so the app warns
@@ -93,11 +93,53 @@ The package is MIT licensed.
 Doctrine, ritual, and item names use a versioned local catalog. Unknown IDs
 stay visible so that a game update cannot silently assign the wrong name.
 
-## Safety
+## Privacy
 
-Real saves and private fixtures are ignored by Git. Keep a backup of the
-entire Cult of the Lamb `saves` directory before using any save editor.
-Close the game before installing an edited file. The browser never writes to
-the active save directory: it downloads a separately named file that must be
-installed manually. Steam Cloud can overwrite either the edited file or a
-restored backup.
+Saves are decoded, edited, and rebuilt inside the browser. The app
+makes no network requests after the page loads, needs no account, and
+sets no tracking. Downloads go wherever the browser puts them; the app
+never touches the game's save directory.
+
+## Backing up, installing, and recovering saves
+
+The interface states the game version it was tested with. A newer game
+version may still work, but check that the overview looks right before
+editing.
+
+Back up before anything else:
+
+1. Close Cult of the Lamb completely.
+2. Copy the game's entire `saves` directory somewhere outside it, for
+   example `Documents/cotl-backup-2026-08-09`. On Steam for Windows the
+   directory is
+   `%LOCALAPPDATA%Low\Massive Monster\Cult Of The Lamb\saves`; on Linux
+   (Proton) it is inside
+   `steamapps/compatdata/1313140/pfx/drive_c/users/steamuser/AppData/LocalLow/Massive Monster/Cult Of The Lamb/saves`.
+3. Only ever open a copy in the editor, never the live file.
+
+Install an edited save:
+
+1. Keep the game closed.
+2. Move the downloaded file, named like `slot_0.edited.mp`, into the
+   `saves` directory.
+3. Rename your original, for example `slot_0.mp` → `slot_0.mp.bak`, then
+   rename the edited file to the original name, `slot_0.mp`.
+4. Start the game and load the slot.
+
+Steam Cloud: cloud sync can silently restore the old save over your
+edited file, or upload the edited file over your cloud copy. To be
+safe, disable cloud sync for Cult of the Lamb (game Properties →
+General → Steam Cloud) before installing the edit, and re-enable it
+once the game has loaded and saved with the edited file.
+
+Recovery: if the game refuses to load, crashes, or shows wrong data,
+close it, delete the edited `slot_#.mp`, and rename your `.bak` file (or
+restore the copied `saves` directory) back to the original name. If
+Steam Cloud already synced, choose the local backup when Steam offers a
+sync conflict, or temporarily disable cloud sync while restoring.
+
+## Development safety
+
+Real saves and private fixtures are ignored by Git. Point tests and
+manual checks only at user-made copies, never at the game's active save
+directory.

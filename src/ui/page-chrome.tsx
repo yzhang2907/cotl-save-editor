@@ -2,7 +2,10 @@ import {
   AlchemicalMark,
   DoubleBarInvertedCross,
 } from "./alchemical-mark";
-import { HERO_TAGLINE } from "./copy";
+import {
+  HERO_TAGLINE,
+  SUPPORTED_GAME_VERSION_LABEL,
+} from "./copy";
 
 export function Topbar() {
   return (
@@ -74,6 +77,7 @@ export function PageFooter() {
   return (
     <footer>
       <span>Not affiliated with Massive Monster or Devolver Digital</span>
+      <span>{SUPPORTED_GAME_VERSION_LABEL}</span>
       <span>Back up thy save.</span>
     </footer>
   );

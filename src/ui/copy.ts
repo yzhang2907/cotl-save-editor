@@ -1,3 +1,4 @@
+import { CATALOG_GAME_VERSION } from "../save/catalogs";
 import { MAX_SAVE_MEBIBYTES } from "../save/limits";
 
 export const ADVANCED_DIAGNOSTICS_TITLE = "Advanced diagnostics";
@@ -12,6 +13,8 @@ export const NOTHING_OVERWRITTEN_LABEL = "Nothing overwritten";
 export const READ_ONLY_LABEL = "Read-Only";
 export const SAVE_SIZE_MAXIMUM_LABEL =
   `${MAX_SAVE_MEBIBYTES} MiB maximum`;
+export const SUPPORTED_GAME_VERSION_LABEL =
+  `Tested with game version ${CATALOG_GAME_VERSION}`;
 export const SAVE_REPORT_TITLE = "Rethink your path";
 export const TECHNICAL_SAVE_PREVIEW_LABEL = "Technical save preview";
 export const UNCHANGED_REBUILD_DISCLOSURE_LABEL =

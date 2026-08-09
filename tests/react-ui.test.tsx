@@ -10,7 +10,9 @@ import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { App } from "../src/app";
 import { analyzeSave } from "../src/save/analyze";
+import { MAX_SAVE_BYTES } from "../src/save/limits";
 import { dlcDefinition } from "../src/save/dlc";
 import type { DoctrineChangePlan } from "../src/save/doctrine-editor";
 import {
@@ -150,6 +152,25 @@ describe("ActionToast", () => {
     act(() => vi.advanceTimersByTime(longestDismissDelay * 2));
 
     expect(onDismiss).not.toHaveBeenCalled();
+  });
+});
+
+describe("App", () => {
+  it("refuses an oversized file without reading it", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    const input = container.querySelector<HTMLInputElement>("#file-input");
+    const file = new File(["save"], "slot_0.mp");
+    Object.defineProperty(file, "size", { value: MAX_SAVE_BYTES + 1 });
+    const readFile = vi.spyOn(file, "arrayBuffer");
+
+    expect(input).not.toBeNull();
+    await user.upload(input as HTMLInputElement, file);
+
+    expect(
+      await screen.findByText(/larger than the .* safety limit/),
+    ).toBeTruthy();
+    expect(readFile).not.toHaveBeenCalled();
   });
 });
 

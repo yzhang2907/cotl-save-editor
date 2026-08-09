@@ -177,6 +177,35 @@ describe("decodeSave", () => {
       "not a recognized Cult of the Lamb",
     );
   });
+
+  it("rejects an empty file", async () => {
+    await expect(
+      decodeSave(exactBuffer(new Uint8Array())),
+    ).rejects.toThrow("empty");
+  });
+
+  it("rejects a truncated encrypted save", async () => {
+    const encrypted = await encryptPayload(encode(makePositionalSave()), {
+      key: TEST_AES_KEY,
+      iv: TEST_AES_IV,
+    });
+    const truncated = encrypted.slice(0, encrypted.byteLength - 100);
+
+    await expect(decodeSave(exactBuffer(truncated))).rejects.toBeInstanceOf(
+      SaveDecodeError,
+    );
+  });
+
+  it("rejects a meta.mp file with a clear message", async () => {
+    const encrypted = await encryptPayload(
+      encode(Array.from<unknown>({ length: 10 }).fill(null)),
+      { key: TEST_AES_KEY, iv: TEST_AES_IV },
+    );
+
+    await expect(decodeSave(exactBuffer(encrypted))).rejects.toThrow(
+      "not a campaign slot",
+    );
+  });
 });
 
 describe("analyzeSave", () => {

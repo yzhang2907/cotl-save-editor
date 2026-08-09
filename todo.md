@@ -128,14 +128,18 @@ progress belong to the mature-save test only.
 
 ## 10. Prepare for public use
 
-- [ ] State the supported game version in the interface.
-- [ ] Reject unsupported save layouts with a clear message.
-- [ ] Handle empty, truncated, corrupt, and oversized files.
-- [ ] Keep save data inside the browser.
+- [x] State the supported game version in the interface.
+- [x] Reject unsupported save layouts with a clear message.
+- [x] Handle empty, truncated, corrupt, and oversized files.
+- [x] Keep save data inside the browser.
 - [ ] Confirm permission to distribute extracted game icons.
 - [ ] Replace game icons if distribution permission is not available.
-- [ ] Document backup, replacement, Steam Cloud, and recovery steps.
-- [ ] Test the production build on a static host.
+
+Icons stay for now by decision. Massive Monster publishes no policy on
+extracted assets, so confirmation means asking them directly.
+- [x] Document backup, replacement, Steam Cloud, and recovery steps.
+- [ ] Test the production build on a static host. Verified locally under a
+      `/cotl-save-editor/` subpath; a real GitHub Pages deploy is pending.
 
 ## 11. Add more editors
 
