@@ -35,6 +35,7 @@ export interface ResourceOverview {
   name: string;
   quantity: number;
   reserved: number;
+  reservedStored: boolean;
 }
 
 export interface DoctrinePairOverview {
@@ -183,20 +184,22 @@ function buildResources(data: SaveRecord): ResourceOverview[] {
         return [];
       }
       const knownName = ITEM_NAMES[id];
+      const reserved = finiteNumber(item.QuantityReserved);
       return [
         {
           id,
           known: knownName !== undefined,
           name: knownName ?? `Unknown item ${id}`,
           quantity,
-          reserved: finiteNumber(item.QuantityReserved) ?? 0,
+          reserved: reserved ?? 0,
+          reservedStored: reserved !== null,
         },
       ];
     })
-    .sort((left, right) => {
-      const quantityDifference = right.quantity - left.quantity;
-      return quantityDifference || left.name.localeCompare(right.name);
-    });
+    .sort(
+      (left, right) =>
+        left.name.localeCompare(right.name) || left.id - right.id,
+    );
 }
 
 function buildDoctrine(data: SaveRecord): DoctrineOverview {

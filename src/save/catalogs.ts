@@ -423,7 +423,7 @@ export const ITEM_NAMES: Readonly<Record<number, string>> = {
   21: "Berries",
   22: "Heart of a Heretic",
   26: "Tarot Card",
-  28: "Fish",
+  28: "Salmon",
   29: "Menticide Mushrooms",
   33: "Minnow",
   34: "Tuna",
@@ -472,6 +472,7 @@ export const ITEM_NAMES: Readonly<Record<number, string>> = {
   125: "Light Necklace",
   126: "Missionary Necklace",
   127: "Golden Skull Necklace",
+  128: "God Tear Fragment",
   129: "Webber's Skull",
   130: "Snow Chunk",
   131: "Charcoal",
@@ -494,6 +495,7 @@ export const ITEM_NAMES: Readonly<Record<number, string>> = {
   155: "Follower Egg",
   159: "Yolk",
   160: "Sozo Seed",
+  162: "Devoted Fertiliser",
   163: "Bell Necklace",
   165: "Wool",
   166: "Snow Fruit Seeds",
@@ -518,11 +520,58 @@ export const ITEM_NAMES: Readonly<Record<number, string>> = {
   188: "Cow",
   189: "Llama",
   194: "Forge Flame",
+  195: "Rusted Hammer",
+  196: "Snapped Sword",
   197: "Milk",
+  201: "Blunt Dagger",
+  202: "Stiffened Gauntlets",
+  203: "Lambs' Slaughter",
+  205: "Shattered Flail",
+  206: "Illegible Letter",
   208: "Fishing Rod",
+  210: "Scourge of Svarog",
+  211: "Golden End",
+  212: "Ruin of Nirah",
+  213: "Claws of the Wolf",
+  215: "Yngya's Torment",
+  216: "Wool of the Rancher",
+  217: "Wool of the Scholar",
+  218: "Wool of the Charred",
+  219: "Wool of the Stargazer",
+  220: "Wool of the Shrewd",
+  221: "Wool of the Resolute",
+  222: "Wool of the Warrior",
+  223: "Wool of the Harbinger",
+  224: "Wool of the Pretender",
+  225: "Wool of the Innocent",
   227: "Ratau's Staff",
+  228: "Bop",
   229: "Flockade Piece",
+  230: "Cursed Yewbark",
+  231: "Pure Yewbark",
+  233: "Legendary Weapon Fragment",
   234: "Purple Flower Seeds",
+  235: "Wool of the Knight",
 };
+
+// Item types tied to the Woolhaven expansion: wool and the knowledge
+// Wools, the DLC necklaces, ranching animals and produce, the furnace
+// and Rot materials, and the blacksmith's broken and legendary weapons.
+export const WOOLHAVEN_ITEM_TYPES: ReadonlySet<number> = new Set([
+  165, 170, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187,
+  188, 189, 194, 195, 196, 197, 201, 202, 203, 205, 206, 208, 210, 211,
+  212, 213, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 227,
+  228, 229, 230, 231, 233, 234, 235,
+]);
+
+// Item types the community wiki's item-ID table marks as never
+// appearing in the save's items inventory through normal play: cut
+// content (the Cod, Pike, and Catfish fish) and things the game tracks
+// outside the inventory (tarot cards, commandment fragments, Flockade
+// pieces). Adding one writes a record the game never reads.
+export const UNOBTAINABLE_ITEM_TYPES: ReadonlySet<number> = new Set([
+  26, 118, 120, 129, 130, 131, 135, 136, 137, 139, 141, 155, 163, 173,
+  185, 227, 229, 234,
+]);
 
 export const CATALOG_GAME_VERSION = "1.5.25.1049";

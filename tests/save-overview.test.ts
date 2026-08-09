@@ -155,6 +155,7 @@ describe("buildCultOverview", () => {
         name: "Gold Coins",
         quantity: ITEMS.GOLD.quantity,
         reserved: ITEMS.GOLD.QuantityReserved,
+        reservedStored: true,
       },
       {
         id: ITEMS.SIN.type,
@@ -162,6 +163,7 @@ describe("buildCultOverview", () => {
         name: "Sin",
         quantity: ITEMS.SIN.quantity,
         reserved: ITEMS.SIN.QuantityReserved,
+        reservedStored: true,
       },
       {
         id: ITEMS.UNKNOWN.type,
@@ -169,6 +171,7 @@ describe("buildCultOverview", () => {
         name: `Unknown item ${UNKNOWN_CATALOG_ID}`,
         quantity: ITEMS.UNKNOWN.quantity,
         reserved: ITEMS.UNKNOWN.QuantityReserved,
+        reservedStored: true,
       },
     ]);
   });
