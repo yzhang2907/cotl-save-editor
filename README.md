@@ -5,10 +5,11 @@ inside the browser and is never uploaded.
 
 ## Capabilities
 
-- private, local loading of legacy `.json` and current `.mp` saves;
+- private, local loading of current `.mp` saves, and read-only inspection of
+  legacy `.json` saves;
 - an overview of followers, resources, base data, and progression unlocks;
 - doctrine replacements and missing-tier unlocks staged entirely in the browser;
-- support for legacy saves, dual doctrines, and DLC-gated content;
+- support for dual doctrines and DLC-gated content;
 - warnings for unknown or inconsistent save data; and
 - verified edited downloads with clear backup and game-safety checks.
 

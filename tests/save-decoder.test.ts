@@ -8,7 +8,6 @@ import {
 } from "../src/save/encryption";
 import { decodeSave, SaveDecodeError } from "../src/save/decode";
 import { encodeVerifiedMessagePackSave } from "../src/save/encode";
-import { encodeLegacyJsonSave } from "../src/save/legacy-json";
 import { MESSAGEPACK_LZ4_EXTENSION } from "../src/save/messagepack";
 import { sourceWarnings } from "../src/save/source";
 import type { SaveRecord } from "../src/save/types";
@@ -47,7 +46,9 @@ describe("decodeSave", () => {
   });
 
   it("reads legacy encrypted JSON", async () => {
-    const bytes = await encodeLegacyJsonSave(sampleSave);
+    const bytes = await encryptPayload(
+      new TextEncoder().encode(JSON.stringify(sampleSave)),
+    );
     const result = await decodeSave(exactBuffer(bytes));
 
     expect(result.format).toBe("encrypted-json");
