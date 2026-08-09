@@ -143,10 +143,25 @@ extracted assets, so confirmation means asking them directly.
 
 ## 11. Add more editors
 
-- [ ] Edit the cult name.
-- [ ] Edit resource quantities and reserved quantities.
+- [x] Edit the cult name.
+- [x] Edit resource quantities and reserved quantities.
+- [x] Add catalog-known items that the save does not hold yet.
 - [ ] Edit follower data after all linked follower records are mapped.
 - [ ] Edit unlocks after their dependencies are mapped.
 - [ ] Edit quests after their state transitions are mapped.
-- [ ] Add an approved-field comparison for each editor.
+- [x] Add an approved-field comparison for each editor.
 - [ ] Add browser and in-game checks for each editor.
+
+Cult name and resource edits stage into the same working copy as
+doctrine changes and go through the same rebuild, reopen, and
+byte-for-byte verification. Within `items`, only `quantity` and
+`QuantityReserved` may change on existing entries; item types and
+unknown sub-positions are preserved and enforced, and entries are
+never removed. New entries append at the end, must use catalog-known
+item types not already held, and always carry the
+`[type, quantity, QuantityReserved]` layout. Items without a stored
+`QuantityReserved` keep it absent. Browser checks are automated in
+`tests/cult-edits.test.ts`, `tests/current-save.test.ts`, and
+`tests/react-ui.test.tsx`; the in-game check of an edited name and
+quantity is still pending. Follower, unlock, and quest editors stay
+blocked on their mapping work.
