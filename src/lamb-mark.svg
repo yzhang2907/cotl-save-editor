@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="256" viewBox="0 0 128 256">
+  <defs>
+    <g id="mark" fill="none" stroke="#766d79" opacity=".3" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="64" cy="66" r="30"/>
+      <path d="M64 96 46.4 41.7 92.5 75.3H35.5L81.6 41.7Z"/>
+      <path d="M49 38C47 34 48 30 51 28C53 30 54 34 54 37"/>
+      <path d="M79 38C81 34 80 30 77 28C75 30 74 34 74 37"/>
+      <path d="M38 51C31 61 23 67 16 70C21 73.5 28 75.5 35.8 76.3"/>
+      <path d="M90 51C97 61 105 67 112 70C107 73.5 100 75.5 92.2 76.3"/>
+    </g>
+  </defs>
+  <use href="#mark"/>
+  <use href="#mark" transform="translate(64 128)"/>
+  <use href="#mark" transform="translate(-64 128)"/>
+</svg>
