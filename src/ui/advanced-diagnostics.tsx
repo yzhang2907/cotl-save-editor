@@ -63,7 +63,7 @@ export function AdvancedDiagnostics({
     <section className="advanced-diagnostics">
       <h3>{ADVANCED_DIAGNOSTICS_TITLE}</h3>
       <p>
-        Use this complete decoded record for troubleshooting. Large saves may
+        The complete decoded record, for troubleshooting. Large saves may
         take a moment to display.
       </p>
       <details

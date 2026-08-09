@@ -65,8 +65,8 @@ export function CultOverview({
         <div>
           <h3 id="cult-overview-title">Inside the cult</h3>
           <p>
-            Inspect the cult and apply doctrine replacements to a browser-only
-            working copy. Nothing is exported.
+            Doctrine changes go to a working copy. The file you opened
+            stays untouched.
           </p>
         </div>
         <span

@@ -53,9 +53,8 @@ export function UnchangedRebuild({
       <div className="unchanged-rebuild-content">
         <div>
           <p>
-            Download a test copy that keeps the original game-data bytes and
-            only rebuilds their compression and encryption. It cannot replace
-            the file you opened.
+            Download a test copy that keeps the original game-data bytes
+            and rebuilds only the compression and encryption.
           </p>
           {pendingChangeCount > 0 ? (
             <p className="unchanged-rebuild-warning">

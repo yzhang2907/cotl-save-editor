@@ -53,7 +53,7 @@ export function PendingDoctrineChanges({
           </li>
         ))}
       </ol>
-      <p>Review and download the verified edited file below.</p>
+      <p>Download the edited file below.</p>
       <div className="pending-doctrine-actions">
         <button type="button" onClick={onReset}>
           Discard all

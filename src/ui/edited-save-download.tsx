@@ -97,7 +97,7 @@ export function EditedSaveDownload({
   async function verifyAndDownload(): Promise<void> {
     if (!confirmationsComplete || busy) {
       onNotice(
-        "Complete every safety confirmation before downloading.",
+        "Tick every box before downloading.",
         "error",
       );
       return;
@@ -107,7 +107,7 @@ export function EditedSaveDownload({
     requestId.current = currentRequest;
     setBusy(true);
     setFailure(null);
-    onNotice("Verifying the edited save locally…", "loading");
+    onNotice("Checking the edited save…", "loading");
 
     try {
       const { encodeVerifiedModifiedCurrentSave } = await import(
@@ -132,7 +132,7 @@ export function EditedSaveDownload({
       const message =
         error instanceof Error ? error.message : "Unknown error.";
       setFailure(message);
-      onNotice(`The edited save was stopped: ${message}`, "error");
+      onNotice(`The download was stopped: ${message}`, "error");
     } finally {
       if (requestId.current === currentRequest) {
         setBusy(false);
@@ -146,7 +146,7 @@ export function EditedSaveDownload({
       aria-labelledby="edited-save-step-title"
     >
       <StepHeader
-        description="Review, verify, and download a separately named edited save."
+        description="Review the changes, then download the edited save."
         eyebrow="Edited save download"
         step="III"
         title={EDITED_SAVE_STEP_TITLE}
@@ -157,8 +157,8 @@ export function EditedSaveDownload({
         <div>
           <h3>{EDITED_SAVE_SUBSECTION_TITLE}</h3>
           <p>
-            Review the final changes and safety notes first. The browser
-            verifies the rebuilt save before it starts the download.
+            The rebuilt save is checked against the original before the
+            download starts.
           </p>
         </div>
         <button
@@ -180,7 +180,7 @@ export function EditedSaveDownload({
         className="edited-save-install"
         aria-labelledby="edited-save-install-title"
       >
-        <h4 id="edited-save-install-title">Install the verified file</h4>
+        <h4 id="edited-save-install-title">Install the edited file</h4>
         <ol>
           <li>Keep the game closed and preserve your full-folder backup.</li>
           <li>
@@ -250,9 +250,9 @@ export function EditedSaveDownload({
             </header>
 
             <p id="edited-save-review-description">
-              Verification rebuilds the staged doctrine changes, reopens the
-              encrypted file, and confirms that every other raw save position
-              stayed unchanged.
+              The editor rebuilds the save with these changes, reopens it,
+              and confirms that every other position is byte-for-byte
+              unchanged.
             </p>
 
             <section
