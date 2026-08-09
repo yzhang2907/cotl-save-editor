@@ -141,6 +141,7 @@ export function EditedSaveDownload({
 
   return (
     <section
+      id="edited-save-download"
       className="report modified-save-check"
       aria-labelledby="edited-save-step-title"
     >

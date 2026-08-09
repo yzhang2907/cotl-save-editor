@@ -24,8 +24,14 @@ export const UNCHANGED_REBUILD_DISCLOSURE_LABEL =
 export const UNCHANGED_REBUILD_DOWNLOAD_LABEL =
   "Download unchanged rebuild";
 
+export const GO_TO_DOWNLOAD_LABEL = "Go to download";
+
 export function doctrineChangeCountLabel(changeCount: number): string {
   return changeCount === 0
     ? NO_DOCTRINE_CHANGES_LABEL
     : `${changeCount} ${changeCount === 1 ? "change" : "changes"}`;
+}
+
+export function viewPendingChangesLabel(changeCount: number): string {
+  return `View ${changeCount} ${changeCount === 1 ? "change" : "changes"}`;
 }

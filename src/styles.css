@@ -27,6 +27,10 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 [hidden] {
   display: none !important;
 }
@@ -877,6 +881,21 @@ h2 {
 .action-toast-dismiss:focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 2px;
+}
+
+.change-dock {
+  position: fixed;
+  z-index: 15;
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  left: clamp(1rem, 3vw, 2rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  animation: toast-enter 160ms ease-out both;
+}
+
+.change-dock-view {
+  background: var(--orange);
 }
 
 .report {
@@ -1814,6 +1833,7 @@ h2 {
 }
 
 .pending-changes {
+  scroll-margin-top: 1.5rem;
   margin: 1rem -0.25rem 1.5rem;
   padding: 0.8rem 1.1rem 0.35rem;
   border: 0;
@@ -1911,6 +1931,7 @@ h2 {
 
 .modified-save-check {
   display: block;
+  scroll-margin-top: 1.5rem;
 }
 
 .modified-save-check > .step-header {
@@ -2504,7 +2525,8 @@ footer {
   }
 
   .action-toast,
-  .action-toast.loading .action-toast-icon svg {
+  .action-toast.loading .action-toast-icon svg,
+  .change-dock {
     animation: none;
   }
 }

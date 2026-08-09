@@ -22,6 +22,7 @@ export function PendingChanges({
 
   return (
     <section
+      id="pending-changes"
       className="pending-changes"
       aria-labelledby="pending-changes-title"
     >

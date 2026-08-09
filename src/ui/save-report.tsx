@@ -32,6 +32,7 @@ import type {
 } from "../save/types";
 import type { ToastKind } from "./action-toast";
 import { AdvancedDiagnostics } from "./advanced-diagnostics";
+import { ChangeDock } from "./change-dock";
 import { CompatibilityNotes } from "./compatibility-notes";
 import { SAVE_REPORT_TITLE } from "./copy";
 import { CultOverview, type CultEditingProps } from "./cult-overview";
@@ -304,6 +305,16 @@ export function SaveReport({
           {advancedDiagnostics}
         </EditedSaveDownload>
       ) : null}
+
+      <ChangeDock
+        changeCount={pendingChanges.length}
+        downloadTargetId={
+          showEditedSaveDownload && decoded.messagePack
+            ? "edited-save-download"
+            : null
+        }
+        pendingListTargetId="pending-changes"
+      />
     </>
   );
 }

@@ -41,6 +41,7 @@ import {
   ADVANCED_DIAGNOSTICS_TITLE,
   EDITED_SAVE_REVIEW_LABEL,
   EDITED_SAVE_STEP_TITLE,
+  GO_TO_DOWNLOAD_LABEL,
   NO_DOCTRINE_CHANGES_LABEL,
   NO_EDITED_SAVE_CHANGES_LABEL,
   READ_ONLY_LABEL,
@@ -51,6 +52,7 @@ import {
   UNCHANGED_REBUILD_DISCLOSURE_LABEL,
   UNCHANGED_REBUILD_DOWNLOAD_LABEL,
   doctrineChangeCountLabel,
+  viewPendingChangesLabel,
 } from "../src/ui/copy";
 import {
   BELIEF_IN_AFTERLIFE,
@@ -591,6 +593,46 @@ describe("SaveReport editing", () => {
     expect(
       container.querySelector(".change-count-seal")?.textContent,
     ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+  });
+
+  it("shows jump shortcuts only while changes are staged", async () => {
+    const scrolled: string[] = [];
+    Element.prototype.scrollIntoView = function scrollIntoView() {
+      scrolled.push((this as Element).id);
+    };
+    const user = userEvent.setup();
+    renderEditingReport();
+
+    expect(
+      screen.queryByRole("button", { name: GO_TO_DOWNLOAD_LABEL }),
+    ).toBeNull();
+
+    await user.click(
+      screen.getByRole("button", { name: "Rename the cult" }),
+    );
+    const nameInput = screen.getByRole("textbox", {
+      name: "New cult name",
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, "Flock");
+    await user.click(
+      screen.getByRole("button", { name: "Stage the cult name edit" }),
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: viewPendingChangesLabel(1) }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: GO_TO_DOWNLOAD_LABEL }),
+    );
+    expect(scrolled).toEqual(["pending-changes", "edited-save-download"]);
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard the cult name edit" }),
+    );
+    expect(
+      screen.queryByRole("button", { name: GO_TO_DOWNLOAD_LABEL }),
+    ).toBeNull();
   });
 
   it("warns about names beyond the game's entry limit, but stages them", async () => {
