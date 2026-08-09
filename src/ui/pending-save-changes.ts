@@ -37,13 +37,13 @@ export function cultEditPendingSaveChange(
   if (edit.kind === "resource-add") {
     return {
       key: `resource-add-${edit.itemType}`,
-      label: `Add ${edit.itemName}: ${displayNumber(edit.quantity)}${
+      label: `Add ${displayNumber(edit.quantity)}${
         edit.reserved > 0
           ? ` (reserved ${displayNumber(edit.reserved)})`
           : ""
       }`,
       requiredDlc: edit.requiredDlc,
-      scope: `Resources · Item ${edit.itemType}`,
+      scope: `Resources · ${edit.itemName}`,
     };
   }
 
@@ -60,8 +60,8 @@ export function cultEditPendingSaveChange(
   }
   return {
     key: `resource-${edit.itemType}`,
-    label: `${edit.itemName}: ${parts.join(", ")}`,
+    label: parts.join(", "),
     requiredDlc: null,
-    scope: `Resources · Item ${edit.itemType}`,
+    scope: `Resources · ${edit.itemName}`,
   };
 }

@@ -11,9 +11,7 @@ import type {
   DoctrineOverview,
   DoctrinePairOverview,
 } from "../save/overview";
-import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import type { SaveRecord } from "../save/types";
-import { PendingDoctrineChanges } from "./pending-doctrine-changes";
 
 interface DoctrinePairProps {
   data: SaveRecord;
@@ -159,22 +157,16 @@ function DoctrinePair({
 }
 
 interface DoctrinePanelProps {
-  changes: PendingDoctrineChange[];
   data: SaveRecord;
   doctrine: DoctrineOverview;
   onApply: (plan: DoctrineChangePlan) => boolean;
-  onDiscard: (change: PendingDoctrineChange) => void;
-  onReset: () => void;
   originalDoctrine: DoctrineOverview;
 }
 
 export function DoctrinePanel({
-  changes,
   data,
   doctrine,
   onApply,
-  onDiscard,
-  onReset,
   originalDoctrine,
 }: DoctrinePanelProps) {
   const assessment = assessDoctrineEditing(data);
@@ -230,12 +222,6 @@ export function DoctrinePanel({
           </ul>
         </div>
       ) : null}
-
-      <PendingDoctrineChanges
-        changes={changes}
-        onDiscard={onDiscard}
-        onReset={onReset}
-      />
 
       <div className="doctrine-grid">
         {doctrine.categories.map((category) => {

@@ -1,13 +1,16 @@
-import { Pencil, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { GAME_CULT_NAME_INPUT_LIMIT } from "../save/cult-edits";
 import type { CultOverview as CultOverviewData } from "../save/overview";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
-import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import type { SaveRecord } from "../save/types";
 import { doctrineChangeCountLabel } from "./copy";
 import { DoctrinePanel } from "./doctrine-panel";
+import {
+  PendingChanges,
+  type PendingChangeItem,
+} from "./pending-changes";
 import { FollowersSection } from "./followers-section";
 import {
   displayDuration,
@@ -32,7 +35,6 @@ export interface CultEditingProps {
   onEditResource: (edit: ResourceEditRequest) => boolean;
   onRename: (name: string) => boolean;
   originalName: string | null;
-  pendingCultEditCount: number;
 }
 
 interface StatProps {
@@ -74,7 +76,9 @@ function CultNameStat({
   }
 
   return (
-    <div className="overview-stat editable">
+    <div
+      className={`overview-stat editable${editing.nameEdited ? " edited" : ""}`}
+    >
       <span className="overview-stat-label">Cult name</span>
       {renaming ? (
         <form className="stat-edit-form" onSubmit={submit}>
@@ -85,6 +89,25 @@ function CultNameStat({
             type="text"
             value={draft}
           />
+          <div className="stat-edit-seals">
+            <button
+              aria-label="Stage the cult name edit"
+              className="resource-edit-confirm"
+              title="Stage this edit"
+              type="submit"
+            >
+              <Check aria-hidden="true" size={20} strokeWidth={4} />
+            </button>
+            <button
+              aria-label="Stop renaming the cult"
+              className="resource-edit-cancel"
+              onClick={() => setRenaming(false)}
+              title="Cancel"
+              type="button"
+            >
+              <X aria-hidden="true" size={20} strokeWidth={4} />
+            </button>
+          </div>
           {draft.trim().length > GAME_CULT_NAME_INPUT_LIMIT ? (
             <small className="stat-edit-warning" role="note">
               Longer than the game&apos;s {GAME_CULT_NAME_INPUT_LIMIT}
@@ -92,12 +115,6 @@ function CultNameStat({
               rename screen cannot type it back in.
             </small>
           ) : null}
-          <div className="stat-edit-actions">
-            <button type="submit">Stage</button>
-            <button onClick={() => setRenaming(false)} type="button">
-              Cancel
-            </button>
-          </div>
         </form>
       ) : (
         <>
@@ -114,7 +131,7 @@ function CultNameStat({
                 title="Discard this edit"
                 type="button"
               >
-                <X aria-hidden="true" size={14} strokeWidth={4} />
+                <X aria-hidden="true" size={18} strokeWidth={4} />
               </button>
             ) : null}
             <button
@@ -127,7 +144,7 @@ function CultNameStat({
               title="Rename the cult"
               type="button"
             >
-              <Pencil aria-hidden="true" size={14} strokeWidth={3} />
+              <Pencil aria-hidden="true" size={17} strokeWidth={3} />
             </button>
           </div>
         </>
@@ -138,24 +155,22 @@ function CultNameStat({
 
 interface CultOverviewProps {
   data: SaveRecord;
-  doctrineChanges: PendingDoctrineChange[];
   editing?: CultEditingProps;
   onApplyDoctrine: (plan: DoctrineChangePlan) => boolean;
-  onDiscardDoctrine: (change: PendingDoctrineChange) => void;
+  onDiscardAllChanges: () => void;
   originalDoctrine: CultOverviewData["doctrine"];
-  onResetDoctrines: () => void;
   overview: CultOverviewData;
+  pendingChanges: PendingChangeItem[];
 }
 
 export function CultOverview({
   data,
-  doctrineChanges,
   editing,
   onApplyDoctrine,
-  onDiscardDoctrine,
+  onDiscardAllChanges,
   originalDoctrine,
-  onResetDoctrines,
   overview,
+  pendingChanges,
 }: CultOverviewProps) {
   const doctrineChoiceCount = overview.doctrine.categories.reduce(
     (total, category) =>
@@ -166,8 +181,7 @@ export function CultOverview({
       ),
     0,
   );
-  const changeCount =
-    doctrineChanges.length + (editing?.pendingCultEditCount ?? 0);
+  const changeCount = pendingChanges.length;
 
   return (
     <section className="cult-overview" aria-labelledby="cult-overview-title">
@@ -220,6 +234,11 @@ export function CultOverview({
         )}
       </div>
 
+      <PendingChanges
+        items={pendingChanges}
+        onDiscardAll={onDiscardAllChanges}
+      />
+
       <div className="overview-panels">
         {overview.followerCount === null ? null : (
           <FollowersSection
@@ -245,11 +264,8 @@ export function CultOverview({
           <DoctrinePanel
             data={data}
             doctrine={overview.doctrine}
-            changes={doctrineChanges}
             onApply={onApplyDoctrine}
-            onDiscard={onDiscardDoctrine}
             originalDoctrine={originalDoctrine}
-            onReset={onResetDoctrines}
           />
         </OverviewSection>
         <RitualsSection

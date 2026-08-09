@@ -19,8 +19,11 @@ export interface ResourceEditRequest {
 
 interface ResourceRowProps {
   edited: boolean;
+  editing: boolean;
   onDiscardEdit: ((type: number) => void) | null;
   onEdit: ((edit: ResourceEditRequest) => boolean) | null;
+  onStartEdit: () => void;
+  onStopEdit: () => void;
   resource: ResourceOverview;
 }
 
@@ -40,11 +43,13 @@ function ResourceIcon({ id }: { id: number }) {
 
 function ResourceRow({
   edited,
+  editing,
   onDiscardEdit,
   onEdit,
+  onStartEdit,
+  onStopEdit,
   resource,
 }: ResourceRowProps) {
-  const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
 
   function submit(event: FormEvent): void {
@@ -61,7 +66,7 @@ function ResourceRow({
       type: resource.id,
     });
     if (staged) {
-      setEditing(false);
+      onStopEdit();
     }
   }
 
@@ -89,7 +94,7 @@ function ResourceRow({
             onChange={(event) => setDraft(event.currentTarget.value)}
             onKeyDown={(event) => {
               if (event.key === "Escape") {
-                setEditing(false);
+                onStopEdit();
               }
             }}
             type="number"
@@ -101,16 +106,16 @@ function ResourceRow({
             title="Stage this edit"
             type="submit"
           >
-            <Check aria-hidden="true" size={16} strokeWidth={4} />
+            <Check aria-hidden="true" size={20} strokeWidth={4} />
           </button>
           <button
             aria-label={`Stop editing ${resource.name}`}
             className="resource-edit-cancel"
-            onClick={() => setEditing(false)}
+            onClick={onStopEdit}
             title="Cancel"
             type="button"
           >
-            <X aria-hidden="true" size={16} strokeWidth={4} />
+            <X aria-hidden="true" size={20} strokeWidth={4} />
           </button>
         </form>
       ) : (
@@ -131,7 +136,7 @@ function ResourceRow({
                   title="Discard this edit"
                   type="button"
                 >
-                  <X aria-hidden="true" size={16} strokeWidth={4} />
+                  <X aria-hidden="true" size={20} strokeWidth={4} />
                 </button>
               ) : null}
               <button
@@ -139,12 +144,12 @@ function ResourceRow({
                 className="resource-edit-toggle"
                 onClick={() => {
                   setDraft(String(resource.quantity));
-                  setEditing(true);
+                  onStartEdit();
                 }}
                 title={`Edit ${resource.name}`}
                 type="button"
               >
-                <Pencil aria-hidden="true" size={16} strokeWidth={3} />
+                <Pencil aria-hidden="true" size={19} strokeWidth={3} />
               </button>
             </div>
           ) : null}
@@ -386,6 +391,7 @@ export function ResourcesSection({
   resources,
 }: ResourcesSectionProps) {
   const [adding, setAdding] = useState(false);
+  const [editingType, setEditingType] = useState<number | null>(null);
   const canAdd =
     onAdd !== undefined &&
     addableItems !== undefined &&
@@ -404,9 +410,12 @@ export function ResourcesSection({
           {resources.map((resource) => (
             <ResourceRow
               edited={editedTypes?.has(resource.id) === true}
+              editing={editingType === resource.id}
               key={resource.id}
               onDiscardEdit={onDiscardEdit ?? null}
               onEdit={onEdit ?? null}
+              onStartEdit={() => setEditingType(resource.id)}
+              onStopEdit={() => setEditingType(null)}
               resource={resource}
             />
           ))}

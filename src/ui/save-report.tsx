@@ -90,6 +90,26 @@ export function SaveReport({
     ...pendingDoctrineChanges.map(doctrinePendingSaveChange),
     ...pendingCultEdits.map(cultEditPendingSaveChange),
   ];
+  const pendingChangeItems = [
+    ...pendingDoctrineChanges.map((change) => ({
+      ...doctrinePendingSaveChange(change),
+      onDiscard: () => discardDoctrine(change),
+    })),
+    ...pendingCultEdits.map((edit) => ({
+      ...cultEditPendingSaveChange(edit),
+      onDiscard: () =>
+        setCultEdits(
+          edit.kind === "cult-name"
+            ? discardCultNameEdit(cultEdits)
+            : discardResourceEdit(cultEdits, edit.itemType),
+        ),
+    })),
+  ];
+
+  function discardAllChanges(): void {
+    resetDoctrines();
+    setCultEdits(emptyCultEdits());
+  }
 
   function applyDoctrine(plan: DoctrineChangePlan): boolean {
     try {
@@ -207,7 +227,6 @@ export function SaveReport({
           workspace.original.CultName.trim()
             ? workspace.original.CultName
             : null,
-        pendingCultEditCount: pendingCultEdits.length,
       }
     : undefined;
 
@@ -261,13 +280,12 @@ export function SaveReport({
         {showCultOverview ? (
           <CultOverview
             data={workspace.data}
-            doctrineChanges={pendingDoctrineChanges}
             editing={editing}
             onApplyDoctrine={applyDoctrine}
-            onDiscardDoctrine={discardDoctrine}
+            onDiscardAllChanges={discardAllChanges}
             originalDoctrine={originalDoctrine}
-            onResetDoctrines={resetDoctrines}
             overview={overview}
+            pendingChanges={pendingChangeItems}
           />
         ) : null}
 

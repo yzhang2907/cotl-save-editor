@@ -826,8 +826,8 @@ h2 {
 }
 
 .warnings {
-  padding: 0.85rem 1rem;
-  border-left: 4px solid var(--gold);
+  padding: 0.8rem 1.1rem 0.85rem;
+  border-radius: 8px 11px 7px 10px;
   background: rgb(242 201 76 / 8%);
   color: var(--bone);
 }
@@ -835,7 +835,9 @@ h2 {
 .warnings h3 {
   margin-bottom: 0.35rem;
   color: var(--gold);
-  font-size: 1rem;
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
 }
 
 .warnings ul {
@@ -1145,7 +1147,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.65rem 0.2rem;
+  padding: 0.65rem 0.55rem;
   border-bottom: 1px solid #403942;
 }
 
@@ -1213,7 +1215,7 @@ h2 {
 
 .resource-edit {
   display: flex;
-  width: 62px;
+  width: 78px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
@@ -1227,15 +1229,15 @@ h2 {
 .stat-edit-toggle,
 .stat-edit-discard {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   padding: 0;
   place-items: center;
   border: 3px solid var(--ink);
   border-radius: 52% 44% 48% 55%;
-  background: var(--gold);
+  background: var(--red);
   box-shadow: 2px 2px 0 #0d0a0b;
-  color: var(--ink);
+  color: var(--bone);
   cursor: pointer;
   transform: rotate(-4deg);
 }
@@ -1243,7 +1245,16 @@ h2 {
 .resource-edit-discard,
 .stat-edit-discard {
   background: var(--orange);
+  color: var(--ink);
   transform: rotate(5deg);
+}
+
+/* The pencil glyph is tip-heavy toward its bottom-left corner, so a
+   mathematically centered placement reads low-left; nudge it back. */
+.resource-edit-toggle svg,
+.stat-edit-toggle svg {
+  display: block;
+  transform: translate(1px, -1px);
 }
 
 .resource-edit-cancel {
@@ -1272,13 +1283,14 @@ h2 {
   outline-offset: 2px;
 }
 
-.resource-row.edited .resource-identity small {
-  color: var(--red);
+.resource-row.edited {
+  border-radius: 6px 8px 5px 7px;
+  background: rgb(255 157 69 / 16%);
 }
 
 .stat-edit-warning {
   display: block;
-  margin-top: 0.3rem;
+  flex-basis: 100%;
   color: var(--gold);
   font-size: 0.66rem;
   font-weight: 800;
@@ -1315,7 +1327,9 @@ h2 {
 }
 
 .stat-edit-form input {
-  width: 100%;
+  width: auto;
+  min-width: 0;
+  flex: 1 1 7rem;
 }
 
 .resource-quantity-form input:focus-visible,
@@ -1325,36 +1339,56 @@ h2 {
   outline-offset: 1px;
 }
 
-.stat-edit-actions {
+.stat-edit-seals {
   display: flex;
-  gap: 0.45rem;
+  flex: 0 0 auto;
+  gap: 0.35rem;
 }
 
-.stat-edit-actions button {
-  padding: 0.28rem 0.7rem;
-  border: 2px solid var(--bone);
+/* Shared small action button: staged-edit forms, the picker modal
+   footer, and the pending-changes discard-all all use this recipe. */
+.resource-add-cancel,
+.resource-add-stage,
+.pending-change-discard-all {
+  padding: 0.4rem 0.9rem;
+  border: 2px solid var(--ink);
   border-radius: 7px 5px 8px 6px;
   background: var(--red);
   box-shadow: 2px 3px 0 #0d0a0b;
   color: var(--ink);
   cursor: pointer;
   font-family: "Lilita One", "Arial Black", sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   line-height: 1.05;
 }
 
-.stat-edit-actions button[type="button"] {
+.resource-add-cancel,
+.pending-change-discard-all {
+  border-color: #736975;
   background: transparent;
+  box-shadow: none;
   color: var(--bone);
 }
 
-.stat-edit-actions button:hover {
+.resource-add-cancel:hover,
+.resource-add-stage:hover:not(:disabled),
+.pending-change-discard-all:hover {
   transform: translateY(-1px) rotate(-1deg);
 }
 
-.stat-edit-actions button:focus-visible {
+.resource-add-cancel:focus-visible,
+.resource-add-stage:focus-visible,
+.pending-change-discard-all:focus-visible {
   outline: 3px solid var(--gold);
   outline-offset: 2px;
+}
+
+.resource-add-stage:disabled {
+  border-color: #5b525d;
+  background: var(--night-raised);
+  box-shadow: none;
+  color: #8f8592;
+  cursor: not-allowed;
 }
 
 .resource-add-row {
@@ -1368,14 +1402,14 @@ h2 {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.95rem;
-  border: 3px solid var(--bone);
+  border: 3px solid var(--ink);
   border-radius: 10px 7px 12px 8px;
   background: var(--red);
   box-shadow: 3px 4px 0 #0d0a0b;
   color: var(--ink);
   cursor: pointer;
   font-family: "Lilita One", "Arial Black", sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   letter-spacing: 0.02em;
   transform: rotate(-1deg);
 }
@@ -1458,8 +1492,8 @@ h2 {
 }
 
 .resource-add-option[aria-pressed="true"] {
-  border-color: var(--gold);
-  background: rgb(240 179 90 / 14%);
+  border-color: var(--orange);
+  background: rgb(255 157 69 / 16%);
 }
 
 .resource-add-option .resource-icon {
@@ -1532,44 +1566,9 @@ h2 {
   outline-offset: 1px;
 }
 
-.resource-add-cancel,
-.resource-add-stage {
-  padding: 0.55rem 1rem;
-  border: 3px solid var(--bone);
-  border-radius: 10px 7px 12px 8px;
-  background: var(--red);
-  box-shadow: 3px 4px 0 #0d0a0b;
-  color: var(--ink);
-  cursor: pointer;
-  font-family: "Lilita One", "Arial Black", sans-serif;
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
-}
 
-.resource-add-cancel {
-  border-color: #736975;
-  background: transparent;
-  box-shadow: none;
-  color: var(--bone);
-}
-
-.resource-add-cancel:hover,
-.resource-add-stage:hover:not(:disabled) {
-  transform: rotate(-1deg) translateY(-1px);
-}
-
-.resource-add-cancel:focus-visible,
-.resource-add-stage:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 3px;
-}
-
-.resource-add-stage:disabled {
-  border-color: #5b525d;
-  background: var(--night-raised);
-  box-shadow: none;
-  color: #8f8592;
-  cursor: not-allowed;
+.overview-stat.edited {
+  background: rgb(255 157 69 / 16%);
 }
 
 .overview-stat.editable {
@@ -1585,7 +1584,9 @@ h2 {
 }
 
 .stat-edit-form {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.4rem;
   margin-top: 0.2rem;
 }
@@ -1793,26 +1794,6 @@ h2 {
   }
 }
 
-.pending-doctrine-actions button {
-  border: 2px solid var(--bone);
-  border-radius: 7px 5px 8px 6px;
-  background: var(--red);
-  box-shadow: 2px 3px 0 #0d0a0b;
-  color: var(--ink);
-  cursor: pointer;
-  font-family: "Lilita One", "Arial Black", sans-serif;
-  line-height: 1.05;
-}
-
-.pending-doctrine-actions button:hover {
-  transform: translateY(-1px) rotate(-1deg);
-}
-
-.pending-doctrine-actions button:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 2px;
-}
-
 .overview-subheading {
   margin: 1rem 0 0.45rem;
   color: var(--bone);
@@ -1829,76 +1810,61 @@ h2 {
   gap: 0.4rem;
 }
 
-.pending-doctrine-changes {
+.pending-changes {
   margin: 1rem -0.25rem 1.5rem;
-  padding: 1rem 1.1rem 1.05rem;
+  padding: 0.8rem 1.1rem 0.35rem;
   border: 0;
-  background:
-    linear-gradient(
-      100deg,
-      rgb(255 157 69 / 15%),
-      rgb(255 157 69 / 4%) 68%,
-      transparent
-    );
+  border-radius: 8px 11px 7px 10px;
+  background: rgb(255 157 69 / 8%);
   box-shadow: none;
 }
 
-.pending-doctrine-changes .section-label {
-  color: var(--orange) !important;
-}
-
-.pending-doctrine-changes > header {
+.pending-changes > header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.pending-doctrine-changes h4 {
+.pending-changes h4 {
   margin: 0;
-  color: var(--bone);
+  color: var(--orange);
   font-size: 1.05rem;
 }
 
-.pending-doctrine-changes > header > strong {
-  color: var(--orange);
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.pending-doctrine-changes ol {
+.pending-changes ol {
   display: grid;
   gap: 0;
-  margin: 0.65rem 0;
+  margin: 0.4rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-.pending-doctrine-changes li {
+.pending-changes li {
   display: grid;
   grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.3fr) 30px;
   align-items: center;
   gap: 1rem;
-  padding: 0.45rem 0;
-  border-top: 1px solid rgb(245 234 208 / 14%);
+  padding: 0.42rem 0;
 }
 
-.pending-doctrine-changes li > span {
-  color: var(--orange);
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.pending-changes li + li {
+  border-top: 1px solid rgb(245 234 208 / 10%);
 }
 
-.pending-doctrine-changes li strong {
+.pending-changes li > span {
+  color: var(--bone-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.pending-changes li strong {
   color: var(--bone);
   font-size: 0.78rem;
   text-align: right;
 }
 
-.pending-doctrine-remove {
+.pending-change-remove {
   display: grid;
   width: 28px;
   height: 28px;
@@ -1913,44 +1879,19 @@ h2 {
   transform: rotate(5deg);
 }
 
-.pending-doctrine-remove svg {
+.pending-change-remove svg {
   display: block;
 }
 
-.pending-doctrine-remove:hover {
+.pending-change-remove:hover {
   transform: rotate(-7deg) scale(1.08);
 }
 
-.pending-doctrine-remove:focus-visible {
+.pending-change-remove:focus-visible {
   outline: 3px solid var(--bone);
   outline-offset: 2px;
 }
 
-.pending-doctrine-changes > p {
-  margin: 0;
-  color: var(--bone-muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.pending-doctrine-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-top: 0.8rem;
-}
-
-.pending-doctrine-actions button {
-  padding: 0.52rem 0.7rem;
-  font-size: 0.75rem;
-}
-
-.pending-doctrine-actions button {
-  border-color: var(--orange);
-  background: rgb(255 157 69 / 9%);
-  box-shadow: 2px 2px 0 #0d0a0b;
-  color: var(--bone);
-}
 
 .modified-save-check h3,
 .advanced-diagnostics h3 {
@@ -1980,7 +1921,7 @@ h2 {
 .modified-save-check button {
   flex: 0 0 auto;
   padding: 0.8rem 1rem;
-  border: 3px solid var(--bone);
+  border: 3px solid var(--ink);
   border-radius: 10px 7px 12px 8px;
   background: var(--red);
   box-shadow: 4px 5px 0 #0d0a0b;
@@ -2269,14 +2210,16 @@ h2 {
 
 .preview-copy-button {
   margin: 0.6rem 0;
-  padding: 0.3rem 0.9rem;
+  padding: 0.35rem 0.95rem;
   border: 2px solid #4d4650;
   border-radius: 999px;
   background: #0d0a0b;
   color: var(--gold);
   cursor: pointer;
-  font-size: 0.72rem;
-  font-weight: 900;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
 .preview-copy-button:hover {
@@ -2326,9 +2269,10 @@ h2 {
   background: transparent;
   color: var(--bone);
   cursor: pointer;
-  font-family: "Nunito", "Trebuchet MS", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 900;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
 .unchanged-rebuild button:hover:not(:disabled) {
@@ -2522,25 +2466,21 @@ footer {
     grid-template-columns: 1fr;
   }
 
-  .pending-doctrine-changes li {
+  .pending-changes li {
     align-items: flex-start;
     grid-template-columns: minmax(0, 1fr) 30px;
     gap: 0.15rem 0.75rem;
   }
 
-  .pending-doctrine-changes li > span,
-  .pending-doctrine-changes li strong {
+  .pending-changes li > span,
+  .pending-changes li strong {
     grid-column: 1;
     text-align: left;
   }
 
-  .pending-doctrine-remove {
+  .pending-change-remove {
     grid-column: 2;
     grid-row: 1 / 3;
-  }
-
-  .pending-doctrine-actions button {
-    flex: 1 1 150px;
   }
 
   .follower-labels {

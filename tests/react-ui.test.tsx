@@ -535,7 +535,7 @@ describe("SaveReport editing", () => {
       CultName: "Test Cult",
       Followers: [],
       UnlockedSermonsAndRituals: [],
-      items: [{ ...GOLD }],
+      items: [{ ...GOLD }, { QuantityReserved: 0, quantity: 4, type: 154 }],
     },
   );
 
@@ -566,7 +566,7 @@ describe("SaveReport editing", () => {
     });
     await user.clear(nameInput);
     await user.type(nameInput, "Chosen of the Isopod");
-    await user.click(screen.getByRole("button", { name: "Stage" }));
+    await user.click(screen.getByRole("button", { name: "Stage the cult name edit" }));
 
     expect(screen.getByText("Chosen of the Isopod")).toBeTruthy();
     expect(screen.getByText("was “Test Cult”")).toBeTruthy();
@@ -608,7 +608,7 @@ describe("SaveReport editing", () => {
     expect(
       screen.getByText(/rename screen cannot type it back in/),
     ).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Stage" }));
+    await user.click(screen.getByRole("button", { name: "Stage the cult name edit" }));
 
     expect(
       screen.getByText("Congregation of the Woolly Deep"),
@@ -644,8 +644,11 @@ describe("SaveReport editing", () => {
     await user.click(
       screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
     );
-    expect(screen.getByText("Resources · Item 20")).toBeTruthy();
-    expect(screen.getByText("Gold Coins: 123 → 400")).toBeTruthy();
+    const review = screen.getByRole("dialog");
+    expect(
+      within(review).getByText("Resources · Gold Coins"),
+    ).toBeTruthy();
+    expect(within(review).getByText("123 → 400")).toBeTruthy();
     await user.keyboard("{Escape}");
 
     await user.click(
@@ -655,6 +658,27 @@ describe("SaveReport editing", () => {
       container.querySelector(".change-count-seal")?.textContent,
     ).toBe(NO_DOCTRINE_CHANGES_LABEL);
     expect(screen.queryByText("Item 20 · edited")).toBeNull();
+  });
+
+  it("keeps a single quantity editor open at a time", async () => {
+    const user = userEvent.setup();
+    renderEditingReport();
+
+    await user.click(screen.getByText("Resources"));
+    await user.click(
+      screen.getByRole("button", { name: "Edit Gold Coins" }),
+    );
+    expect(
+      screen.getByRole("spinbutton", { name: "Gold Coins quantity" }),
+    ).toBeTruthy();
+
+    await user.click(screen.getByRole("button", { name: "Edit Sin" }));
+    expect(
+      screen.queryByRole("spinbutton", { name: "Gold Coins quantity" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("spinbutton", { name: "Sin quantity" }),
+    ).toBeTruthy();
   });
 
   it("stages an added item from the catalog picker", async () => {
@@ -694,7 +718,7 @@ describe("SaveReport editing", () => {
       screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
     );
     expect(
-      within(screen.getByRole("dialog")).getByText("Add Stone: 250"),
+      within(screen.getByRole("dialog")).getByText("Add 250"),
     ).toBeTruthy();
     await user.keyboard("{Escape}");
 
@@ -812,16 +836,19 @@ describe("CultOverview", () => {
     return (
       <CultOverview
         data={workspace.data}
-        doctrineChanges={listPendingDoctrineChanges(workspace)}
         onApplyDoctrine={apply}
-        onDiscardDoctrine={(change) =>
-          setWorkspace(discardDoctrineChange(workspace, change))
-        }
-        originalDoctrine={buildCultOverview(workspace.original).doctrine}
-        onResetDoctrines={() =>
+        onDiscardAllChanges={() =>
           setWorkspace(resetDoctrineChanges(workspace))
         }
+        originalDoctrine={buildCultOverview(workspace.original).doctrine}
         overview={buildCultOverview(workspace.data)}
+        pendingChanges={listPendingDoctrineChanges(workspace).map(
+          (change) => ({
+            ...doctrinePendingSaveChange(change),
+            onDiscard: () =>
+              setWorkspace(discardDoctrineChange(workspace, change)),
+          }),
+        )}
       />
     );
   }
@@ -865,7 +892,7 @@ describe("CultOverview", () => {
       container.querySelector(".change-count-seal")?.textContent,
     ).toBe(doctrineChangeCountLabel(1));
     expect(screen.getByText("Changed")).toBeTruthy();
-    expect(screen.getByText("Pending doctrine changes")).toBeTruthy();
+    expect(screen.getByText("Pending changes")).toBeTruthy();
     expect(screen.getByText(workReplacementLabel)).toBeTruthy();
     expect(screen.queryByText(/Catalog for game/)).toBeNull();
   });
@@ -892,7 +919,7 @@ describe("CultOverview", () => {
 
     await user.click(feast);
     expect(feast.getAttribute("aria-pressed")).toBe("false");
-    expect(screen.queryByText("Pending doctrine changes")).toBeNull();
+    expect(screen.queryByText("Pending changes")).toBeNull();
     expect(screen.queryByText("Unlocked")).toBeNull();
   });
 
@@ -939,7 +966,7 @@ describe("CultOverview", () => {
       }),
     );
 
-    expect(screen.getByText("Pending doctrine changes")).toBeTruthy();
+    expect(screen.getByText("Pending changes")).toBeTruthy();
     expect(
       container.querySelector(".change-count-seal")?.textContent,
     ).toBe(doctrineChangeCountLabel(2));
