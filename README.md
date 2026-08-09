@@ -146,3 +146,10 @@ Git, so they cannot accidentally end up in the repository. Whether you
 are running the automated tests or trying things by hand, always work
 on a copy of a save file instead of on the files in the game's actual save
 folder.
+
+## License
+
+This project is free software, released under the GNU Affero General
+Public License, version 3 or later. See [LICENSE](LICENSE) for the full
+text. If you run a modified copy as a network service, the AGPL requires
+you to offer its source to the people who use it.
