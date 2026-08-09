@@ -79,6 +79,33 @@ function CultNameStat({
     <div
       className={`overview-stat editable${editing.nameEdited ? " edited" : ""}`}
     >
+      {renaming ? null : (
+        <div className="stat-edit-controls">
+          {editing.nameEdited ? (
+            <button
+              aria-label="Discard the cult name edit"
+              className="seal-button stat-edit-discard"
+              onClick={editing.onDiscardRename}
+              title="Discard this edit"
+              type="button"
+            >
+              <X aria-hidden="true" size={18} strokeWidth={4} />
+            </button>
+          ) : null}
+          <button
+            aria-label="Rename the cult"
+            className="seal-button stat-edit-toggle"
+            onClick={() => {
+              setDraft(name ?? "");
+              setRenaming(true);
+            }}
+            title="Rename the cult"
+            type="button"
+          >
+            <Pencil aria-hidden="true" size={17} strokeWidth={3} />
+          </button>
+        </div>
+      )}
       <span className="overview-stat-label">Cult name</span>
       {renaming ? (
         <form className="stat-edit-form" onSubmit={submit}>
@@ -92,7 +119,7 @@ function CultNameStat({
           <div className="stat-edit-seals">
             <button
               aria-label="Stage the cult name edit"
-              className="resource-edit-confirm"
+              className="seal-button"
               title="Stage this edit"
               type="submit"
             >
@@ -100,7 +127,7 @@ function CultNameStat({
             </button>
             <button
               aria-label="Stop renaming the cult"
-              className="resource-edit-cancel"
+              className="seal-button resource-edit-cancel"
               onClick={() => setRenaming(false)}
               title="Cancel"
               type="button"
@@ -122,31 +149,6 @@ function CultNameStat({
           {editing.nameEdited ? (
             <small>was “{editing.originalName ?? "Unnamed"}”</small>
           ) : null}
-          <div className="stat-edit-controls">
-            {editing.nameEdited ? (
-              <button
-                aria-label="Discard the cult name edit"
-                className="stat-edit-discard"
-                onClick={editing.onDiscardRename}
-                title="Discard this edit"
-                type="button"
-              >
-                <X aria-hidden="true" size={18} strokeWidth={4} />
-              </button>
-            ) : null}
-            <button
-              aria-label="Rename the cult"
-              className="stat-edit-toggle"
-              onClick={() => {
-                setDraft(name ?? "");
-                setRenaming(true);
-              }}
-              title="Rename the cult"
-              type="button"
-            >
-              <Pencil aria-hidden="true" size={17} strokeWidth={3} />
-            </button>
-          </div>
         </>
       )}
     </div>

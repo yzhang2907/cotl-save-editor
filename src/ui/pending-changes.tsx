@@ -28,7 +28,7 @@ export function PendingChanges({
       <header>
         <h4 id="pending-changes-title">Pending changes</h4>
         <button
-          className="pending-change-discard-all"
+          className="chip-button ghost-button"
           onClick={onDiscardAll}
           type="button"
         >
@@ -38,7 +38,7 @@ export function PendingChanges({
       <ol>
         {items.map((item) => (
           <li key={item.key}>
-            <span>{item.scope}</span>
+            <span className="pending-change-scope">{item.scope}</span>
             <strong>{item.label}</strong>
             <button
               aria-label={`Discard ${item.label}`}

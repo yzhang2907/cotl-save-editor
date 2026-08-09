@@ -110,7 +110,7 @@ export function AdvancedDiagnostics({
       >
         <summary>{TECHNICAL_SAVE_PREVIEW_LABEL}</summary>
         <button
-          className="preview-copy-button"
+          className="chip-button preview-copy-button"
           onClick={() => void copyRecord()}
           type="button"
         >

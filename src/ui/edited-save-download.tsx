@@ -161,7 +161,7 @@ export function EditedSaveDownload({
           </p>
         </div>
         <button
-          className="edited-save-review-button"
+          className="cta-button edited-save-review-button"
           disabled={!hasChanges}
           onClick={() => {
             setFailure(null);
@@ -202,7 +202,7 @@ export function EditedSaveDownload({
         open={failure !== null}
       >
         <summary>If the edited save does not work</summary>
-        <div>
+        <div className="edited-save-recovery-body">
           <p>
             <strong>Stopped by this editor:</strong> no download was started
             and your original file was untouched. Review the reported error
@@ -215,7 +215,7 @@ export function EditedSaveDownload({
             restored local files.
           </p>
           <a
-            className="edited-save-issue-link"
+            className="chip-button edited-save-issue-link"
             href="https://github.com/yzhang2907/cotl-save-editor/issues"
             target="_blank"
             rel="noreferrer"
@@ -349,7 +349,7 @@ export function EditedSaveDownload({
 
             <footer className="edited-save-modal-actions">
               <button
-                className="edited-save-modal-cancel"
+                className="cta-button ghost-button"
                 disabled={busy}
                 onClick={closeReview}
                 type="button"
@@ -358,7 +358,7 @@ export function EditedSaveDownload({
               </button>
               <button
                 aria-busy={busy}
-                className="edited-save-modal-download"
+                className="cta-button"
                 disabled={!confirmationsComplete || busy}
                 onClick={() => void verifyAndDownload()}
                 type="button"

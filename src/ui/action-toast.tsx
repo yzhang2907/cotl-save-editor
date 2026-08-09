@@ -61,6 +61,7 @@ export function ActionToast({
       <p>{message}</p>
       <button
         aria-label="Dismiss notification"
+        className="action-toast-dismiss"
         onClick={() => onDismiss(id)}
         type="button"
       >

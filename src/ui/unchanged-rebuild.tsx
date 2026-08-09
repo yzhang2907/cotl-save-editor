@@ -64,6 +64,7 @@ export function UnchangedRebuild({
         </div>
         <button
           aria-busy={busy}
+          className="unchanged-rebuild-download"
           type="button"
           disabled={busy}
           onClick={() => void download()}

@@ -102,7 +102,7 @@ function ResourceRow({
           />
           <button
             aria-label={`Stage the ${resource.name} edit`}
-            className="resource-edit-confirm"
+            className="seal-button"
             title="Stage this edit"
             type="submit"
           >
@@ -110,7 +110,7 @@ function ResourceRow({
           </button>
           <button
             aria-label={`Stop editing ${resource.name}`}
-            className="resource-edit-cancel"
+            className="seal-button resource-edit-cancel"
             onClick={onStopEdit}
             title="Cancel"
             type="button"
@@ -131,7 +131,7 @@ function ResourceRow({
               {edited && onDiscardEdit !== null ? (
                 <button
                   aria-label={`Discard the ${resource.name} edit`}
-                  className="resource-edit-discard"
+                  className="seal-button resource-edit-discard"
                   onClick={() => onDiscardEdit(resource.id)}
                   title="Discard this edit"
                   type="button"
@@ -141,7 +141,7 @@ function ResourceRow({
               ) : null}
               <button
                 aria-label={`Edit ${resource.name}`}
-                className="resource-edit-toggle"
+                className="seal-button resource-edit-toggle"
                 onClick={() => {
                   setDraft(String(resource.quantity));
                   onStartEdit();
@@ -348,14 +348,14 @@ function AddItemModal({
           </label>
           <footer className="edited-save-modal-actions">
             <button
-              className="resource-add-cancel"
+              className="chip-button ghost-button"
               onClick={onClose}
               type="button"
             >
               Cancel
             </button>
             <button
-              className="resource-add-stage"
+              className="chip-button"
               disabled={selected === null}
               type="submit"
             >
@@ -424,7 +424,7 @@ export function ResourcesSection({
       {canAdd ? (
         <div className="resource-add-row">
           <button
-            className="resource-add-button"
+            className="chip-button"
             onClick={() => setAdding(true)}
             type="button"
           >
