@@ -351,7 +351,8 @@ p {
 h1,
 h2,
 h3,
-.drop-zone strong {
+.drop-zone strong,
+.save-loaded strong {
   font-family: "Lilita One", "Arial Black", sans-serif;
   font-weight: 400;
 }
@@ -764,6 +765,17 @@ h2 {
   stroke: none;
 }
 
+/* Shared row track so the circle sits at the same height in both states. */
+.drop-zone,
+.save-loaded {
+  grid-template-rows: 86px auto 3rem;
+}
+
+.drop-zone > span:last-child,
+.save-loaded .chip-button {
+  align-self: center;
+}
+
 .save-rules {
   display: flex;
   flex-wrap: wrap;
@@ -786,6 +798,87 @@ h2 {
 .save-rules svg {
   flex: 0 0 auto;
   color: var(--gold);
+}
+
+.save-loaded {
+  position: relative;
+  display: grid;
+  min-height: 285px;
+  margin-top: 2rem;
+  overflow: hidden;
+  place-items: center;
+  align-content: center;
+  gap: 0.3rem;
+  border: 3px solid var(--line-strong);
+  border-radius: 18px 12px 21px 15px;
+  background:
+    radial-gradient(circle at center, transparent 0 64px, rgb(242 201 76 / 12%) 65px 67px, transparent 68px),
+    radial-gradient(circle at center, transparent 0 93px, rgb(245 234 208 / 10%) 94px 96px, transparent 97px),
+    var(--night-raised);
+  color: var(--bone);
+}
+
+.save-loaded::before,
+.save-loaded::after {
+  position: absolute;
+  color: rgb(242 201 76 / 22%);
+  font-family: "Lilita One", sans-serif;
+  font-size: 2rem;
+  content: "✦";
+}
+
+.save-loaded::before {
+  top: 1.6rem;
+  left: 2.1rem;
+  transform: rotate(-12deg);
+}
+
+.save-loaded::after {
+  right: 2.2rem;
+  bottom: 1.5rem;
+  transform: rotate(12deg);
+}
+
+.save-loaded-mark {
+  display: grid;
+  width: 86px;
+  height: 86px;
+  place-items: center;
+  border: 4px solid var(--ink);
+  border-radius: 48% 52% 46% 54%;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--bone);
+  color: var(--ink);
+  transform: rotate(-3deg);
+}
+
+.save-loaded strong {
+  z-index: 1;
+  max-width: min(100%, 640px);
+  margin-top: 0.4rem;
+  padding: 0 1rem;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.save-loaded .chip-button {
+  z-index: 1;
+}
+
+.save-loaded-mark svg {
+  width: 58px;
+  fill: var(--bone);
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.save-loaded-mark svg .tick {
+  fill: none;
+  stroke-width: 7;
 }
 
 @keyframes toast-enter {
@@ -1198,16 +1291,6 @@ body:has(.change-dock) .action-toast {
   font-weight: 800;
 }
 
-.doctrine-edit-blockers strong {
-  display: block;
-  margin-bottom: 0.25rem;
-}
-
-.doctrine-edit-blockers ul {
-  margin: 0;
-  padding-left: 1.1rem;
-}
-
 .follower-list {
   display: grid;
 }
@@ -1592,7 +1675,6 @@ body:has(.change-dock) .action-toast {
   outline-offset: 1px;
 }
 
-
 .overview-stat.edited {
   background: var(--edited-wash);
 }
@@ -1618,209 +1700,6 @@ body:has(.change-dock) .action-toast {
   align-items: center;
   gap: 0.4rem;
   margin-top: 0.2rem;
-}
-
-.doctrine-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 1.5rem;
-  row-gap: 1.25rem;
-  margin-top: 1.15rem;
-}
-
-.doctrine-category {
-  min-width: 0;
-}
-
-.doctrine-category header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.55rem 0.2rem;
-  border-bottom: 2px solid var(--red);
-}
-
-.doctrine-category h4 {
-  margin: 0;
-  color: var(--bone);
-  font-size: 1rem;
-}
-
-.doctrine-category header span {
-  color: var(--red);
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.doctrine-pair {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: start;
-  gap: 0.55rem;
-  padding: 0.65rem 0.2rem;
-  border-bottom: 1px solid #403942;
-}
-
-.doctrine-pair:last-child {
-  border-bottom: 0;
-}
-
-.doctrine-rank {
-  display: grid;
-  width: 25px;
-  height: 25px;
-  place-items: center;
-  border: 2px solid var(--red);
-  border-radius: 50%;
-  color: var(--red);
-  font-size: 0.68rem;
-  font-weight: 900;
-}
-
-.doctrine-choice-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem;
-  min-width: 0;
-}
-
-.doctrine-choice-option {
-  position: relative;
-  min-width: 0;
-  min-height: 58px;
-  padding: 0.58rem 2.5rem 0.58rem 0.7rem;
-  border: 0;
-  border-radius: 5px 8px 4px 7px;
-  background: #2b252a;
-  box-shadow: 0 3px 0 #120e10;
-  color: var(--bone);
-  cursor: pointer;
-  text-align: left;
-}
-
-.doctrine-choice-option:hover:not(:disabled) {
-  background: #352d33;
-  transform: translateY(-1px) rotate(-0.3deg);
-}
-
-.doctrine-choice-option:focus-visible {
-  outline: 3px solid var(--gold);
-  outline-offset: 2px;
-}
-
-.doctrine-choice-option:disabled {
-  background: #2b252a;
-  box-shadow: none;
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.doctrine-choice-option.selected:disabled,
-.doctrine-choice-option.original:disabled {
-  opacity: 1;
-}
-
-.doctrine-choice-option.selected {
-  background: rgb(255 45 65 / 15%);
-  box-shadow: 0 3px 0 #120e10;
-}
-
-.doctrine-choice-option.changed {
-  background: var(--edited-wash);
-  box-shadow: 0 3px 0 #120e10;
-}
-
-.doctrine-choice-option.original {
-  background: #2a2328;
-}
-
-.doctrine-choice-check {
-  position: absolute;
-  top: 50%;
-  right: 0.55rem;
-  display: grid;
-  width: 29px;
-  height: 29px;
-  place-items: center;
-  border: 3px solid var(--ink);
-  border-radius: 52% 45% 55% 43%;
-  background: var(--red);
-  box-shadow: 2px 2px 0 var(--shadow-ink);
-  color: var(--bone);
-  transform: translateY(-50%) rotate(-8deg);
-}
-
-.doctrine-choice-check svg {
-  display: block;
-}
-
-.doctrine-choice-option.changed .doctrine-choice-check {
-  background: var(--orange);
-  color: var(--ink);
-  transform: translateY(-50%) rotate(7deg);
-}
-
-.doctrine-choice-option strong,
-.doctrine-choice-option small {
-  display: block;
-}
-
-.doctrine-choice-option strong {
-  overflow-wrap: anywhere;
-  color: var(--bone);
-  font-size: 0.78rem;
-}
-
-.doctrine-choice-option small {
-  margin-top: 0.16rem;
-  color: var(--bone-muted);
-  font-size: 0.62rem;
-}
-
-.doctrine-choice-state {
-  margin-left: 0.4rem;
-  color: var(--bone-muted);
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  opacity: 0;
-  pointer-events: none;
-  text-transform: uppercase;
-  transition: opacity 120ms ease;
-}
-
-.doctrine-choice-option:hover .doctrine-choice-state,
-.doctrine-choice-option:focus-visible .doctrine-choice-state {
-  opacity: 1;
-}
-
-.doctrine-choice-option.changed .doctrine-choice-state {
-  color: var(--orange);
-}
-
-.doctrine-pair.missing.unlockable .doctrine-rank {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-.doctrine-pair.missing.unlockable .doctrine-choice-state {
-  color: var(--gold);
-}
-
-.doctrine-pair.missing.locked .doctrine-rank {
-  border-color: var(--line-strong);
-  color: var(--disabled-fg);
-}
-
-.doctrine-pair.complete .doctrine-rank {
-  border-color: var(--orange);
-  color: var(--orange);
-}
-
-@media (hover: none) {
-  .doctrine-choice-state {
-    opacity: 1;
-  }
 }
 
 .overview-subheading {
@@ -1921,7 +1800,6 @@ body:has(.change-dock) .action-toast {
   outline: 3px solid var(--bone);
   outline-offset: 2px;
 }
-
 
 .modified-save-check h3,
 .advanced-diagnostics h3 {
@@ -2413,8 +2291,7 @@ footer {
     align-self: flex-start;
   }
 
-  .resource-grid,
-  .doctrine-grid {
+  .resource-grid {
     grid-template-columns: 1fr;
   }
 

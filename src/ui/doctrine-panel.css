@@ -1,0 +1,264 @@
+/*
+ * Styles for DoctrinePanel.
+ *
+ * Every tile's look comes from exactly one `data-state` value, so the states
+ * can never stack and fight over background, shadow, or opacity.
+ */
+
+.doctrine-edit-blockers strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.doctrine-edit-blockers ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.doctrine-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;
+  row-gap: 1.25rem;
+  margin-top: 1.15rem;
+}
+
+.doctrine-category {
+  min-width: 0;
+}
+
+.doctrine-category header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.2rem;
+  border-bottom: 2px solid var(--red);
+}
+
+.doctrine-category h4 {
+  margin: 0;
+  color: var(--bone);
+  font-size: 1rem;
+}
+
+.doctrine-category header span {
+  color: var(--red);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.doctrine-pair {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 0.55rem;
+  padding: 0.65rem 0.2rem;
+  border-bottom: 1px solid #403942;
+}
+
+.doctrine-pair:last-child {
+  border-bottom: 0;
+}
+
+.doctrine-rank {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  color: var(--red);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.doctrine-pair.missing.unlockable .doctrine-rank {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.doctrine-pair.missing.locked .doctrine-rank {
+  border-color: var(--line-strong);
+  color: var(--disabled-fg);
+}
+
+.doctrine-pair.complete .doctrine-rank {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.doctrine-choice-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+/* Shared shape. Colour belongs to the per-state rules below, nowhere else. */
+.doctrine-choice-option {
+  position: relative;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0.58rem 2.5rem 0.58rem 0.7rem;
+  border: 2px solid transparent;
+  border-radius: 5px 8px 4px 7px;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.doctrine-choice-option:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.doctrine-choice-option:hover:not(:disabled) {
+  transform: translateY(-1px) rotate(-0.3deg);
+}
+
+.doctrine-choice-option:disabled {
+  cursor: not-allowed;
+}
+
+/* Off, and selectable. */
+.doctrine-choice-option[data-state="available"] {
+  background: #2b252a;
+  box-shadow: 0 3px 0 #120e10;
+  color: var(--bone);
+}
+
+.doctrine-choice-option[data-state="available"]:hover {
+  background: #352d33;
+}
+
+/* Off, and not selectable — nothing to act on, so it recedes furthest. */
+.doctrine-choice-option[data-state="blocked"] {
+  background: #241f23;
+  box-shadow: none;
+  color: var(--disabled-fg);
+}
+
+/* On, exactly as the save shipped it. */
+.doctrine-choice-option[data-state="selected"] {
+  background: rgb(255 45 65 / 15%);
+  box-shadow: 0 3px 0 #120e10;
+  color: var(--bone);
+}
+
+/* On because of an edit. */
+.doctrine-choice-option[data-state="added"] {
+  background: var(--edited-wash);
+  box-shadow: 0 3px 0 #120e10;
+  color: var(--bone);
+}
+
+/*
+ * Was on in the original save, switched off by an edit. The dashed outline is
+ * what marks it as removed; whether it looks live or faded is decided purely
+ * by whether it can be clicked back on, exactly like every other off state.
+ */
+.doctrine-choice-option[data-state="removed"] {
+  border-color: rgb(255 45 65 / 45%);
+  border-style: dashed;
+  background: #2b252a;
+  box-shadow: 0 3px 0 #120e10;
+  color: var(--bone);
+}
+
+.doctrine-choice-option[data-state="removed"]:hover:not(:disabled) {
+  border-color: rgb(255 45 65 / 75%);
+  background: #352d33;
+}
+
+.doctrine-choice-option[data-state="removed"]:disabled {
+  border-color: rgb(255 45 65 / 22%);
+  background: #241f23;
+  box-shadow: none;
+  color: var(--disabled-fg);
+}
+
+.doctrine-choice-check {
+  position: absolute;
+  top: 50%;
+  right: 0.55rem;
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 52% 45% 55% 43%;
+  background: var(--red);
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  color: var(--bone);
+  transform: translateY(-50%) rotate(-8deg);
+}
+
+.doctrine-choice-check svg {
+  display: block;
+}
+
+.doctrine-choice-option[data-state="added"] .doctrine-choice-check {
+  background: var(--orange);
+  color: var(--ink);
+  transform: translateY(-50%) rotate(7deg);
+}
+
+.doctrine-choice-option strong,
+.doctrine-choice-option small {
+  display: block;
+}
+
+.doctrine-choice-option strong {
+  overflow-wrap: anywhere;
+  color: inherit;
+  font-size: 0.78rem;
+}
+
+.doctrine-choice-option small {
+  margin-top: 0.16rem;
+  color: var(--bone-muted);
+  font-size: 0.62rem;
+}
+
+.doctrine-choice-state {
+  margin-left: 0.4rem;
+  color: var(--bone-muted);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  pointer-events: none;
+  text-transform: uppercase;
+  transition: opacity 120ms ease;
+}
+
+.doctrine-choice-option:hover .doctrine-choice-state,
+.doctrine-choice-option:focus-visible .doctrine-choice-state {
+  opacity: 1;
+}
+
+.doctrine-choice-option[data-state="added"] .doctrine-choice-state {
+  color: var(--orange);
+}
+
+.doctrine-choice-option[data-state="removed"] .doctrine-choice-state {
+  color: var(--red);
+}
+
+.doctrine-pair.missing.unlockable .doctrine-choice-state {
+  color: var(--gold);
+}
+
+@media (hover: none) {
+  .doctrine-choice-state {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 620px) {
+  .doctrine-grid {
+    grid-template-columns: 1fr;
+  }
+}

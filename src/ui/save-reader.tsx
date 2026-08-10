@@ -9,15 +9,23 @@ import {
 import { StepHeader } from "./step-header";
 
 interface SaveReaderProps {
+  loadedFileName: string | null;
   onFile: (file: File) => void;
+  saveId: number | null;
 }
 
 function firstFile(files: FileList | null): File | null {
   return files?.item(0) ?? null;
 }
 
-export function SaveReader({ onFile }: SaveReaderProps) {
+export function SaveReader({
+  loadedFileName,
+  onFile,
+  saveId,
+}: SaveReaderProps) {
   const [dragging, setDragging] = useState(false);
+  const [dismissedSaveId, setDismissedSaveId] = useState<number | null>(null);
+  const loaded = loadedFileName !== null && saveId !== dismissedSaveId;
 
   function selectFile(event: ChangeEvent<HTMLInputElement>): void {
     const file = firstFile(event.currentTarget.files);
@@ -67,30 +75,50 @@ export function SaveReader({ onFile }: SaveReaderProps) {
         titleId="reader-title"
       />
 
-      <label
-        className={`drop-zone${dragging ? " dragging" : ""}`}
-        id="drop-zone"
-        onDragEnter={enterDropZone}
-        onDragLeave={leaveDropZone}
-        onDragOver={enterDropZone}
-        onDrop={dropFile}
-      >
-        <input
-          id="file-input"
-          type="file"
-          accept=".mp,.json,application/json"
-          onChange={selectFile}
-        />
-        <span className="drop-mark" aria-hidden="true">
-          <svg viewBox="0 0 96 96">
-            <path d="M25 15h32l16 16v50H25V15Z" />
-            <path d="M57 15v16h16M39 54c6-9 14-9 20 0-6 9-14 9-20 0Z" />
-            <ellipse cx="49" cy="54" rx="2" ry="5.5" />
-          </svg>
-        </span>
-        <strong>Choose a save</strong>
-        <span>or drop it into the circle</span>
-      </label>
+      {loaded ? (
+        <div className="save-loaded" role="status">
+          <span className="save-loaded-mark" aria-hidden="true">
+            <svg viewBox="0 0 96 96">
+              <path d="M25 15h32l16 16v50H25V15Z" />
+              <path d="M57 15v16h16" />
+              <path className="tick" d="m37 54 8 9 16-18" />
+            </svg>
+          </span>
+          <strong>{loadedFileName} successfully loaded</strong>
+          <button
+            className="chip-button"
+            onClick={() => setDismissedSaveId(saveId)}
+            type="button"
+          >
+            Choose another save
+          </button>
+        </div>
+      ) : (
+        <label
+          className={`drop-zone${dragging ? " dragging" : ""}`}
+          id="drop-zone"
+          onDragEnter={enterDropZone}
+          onDragLeave={leaveDropZone}
+          onDragOver={enterDropZone}
+          onDrop={dropFile}
+        >
+          <input
+            id="file-input"
+            type="file"
+            accept=".mp,.json,application/json"
+            onChange={selectFile}
+          />
+          <span className="drop-mark" aria-hidden="true">
+            <svg viewBox="0 0 96 96">
+              <path d="M25 15h32l16 16v50H25V15Z" />
+              <path d="M57 15v16h16M39 54c6-9 14-9 20 0-6 9-14 9-20 0Z" />
+              <ellipse cx="49" cy="54" rx="2" ry="5.5" />
+            </svg>
+          </span>
+          <strong>Choose a save</strong>
+          <span>or drop it into the circle</span>
+        </label>
+      )}
 
       <div className="save-rules" aria-label="File handling details">
         <span>

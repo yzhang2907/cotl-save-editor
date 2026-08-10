@@ -3,10 +3,7 @@ import { useCallback, useRef, useState } from "react";
 import { analyzeSave } from "./save/analyze";
 import { MAX_SAVE_BYTES, MAX_SAVE_MEBIBYTES } from "./save/limits";
 import type { DecodedSave } from "./save/types";
-import {
-  ActionToast,
-  type ToastKind,
-} from "./ui/action-toast";
+import { ActionToast, type ToastKind } from "./ui/action-toast";
 import { errorMessage } from "./ui/error-message";
 import { Hero, PageFooter, Topbar } from "./ui/page-chrome";
 import { SaveReport } from "./ui/save-report";
@@ -32,14 +29,11 @@ export function App() {
   const [openedSave, setOpenedSave] = useState<OpenedSave | null>(null);
   const [toast, setToast] = useState<AppToast | null>(null);
 
-  const showToast = useCallback(
-    (message: string, kind: ToastKind): void => {
-      const id = toastId.current + 1;
-      toastId.current = id;
-      setToast({ id, kind, message });
-    },
-    [],
-  );
+  const showToast = useCallback((message: string, kind: ToastKind): void => {
+    const id = toastId.current + 1;
+    toastId.current = id;
+    setToast({ id, kind, message });
+  }, []);
 
   const dismissToast = useCallback((id: number): void => {
     setToast((current) => (current?.id === id ? null : current));
@@ -94,7 +88,11 @@ export function App() {
       <Topbar />
       <main className="shell">
         <Hero />
-        <SaveReader onFile={(file) => void inspectFile(file)} />
+        <SaveReader
+          loadedFileName={openedSave?.file.name ?? null}
+          onFile={(file) => void inspectFile(file)}
+          saveId={openedSave?.id ?? null}
+        />
 
         {openedSave ? (
           <SaveReport

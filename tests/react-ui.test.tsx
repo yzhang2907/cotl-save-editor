@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
 
-import {
-  act,
-  cleanup,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+import { act, cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -26,10 +20,7 @@ import {
 } from "../src/save/doctrine-workspace";
 import { buildCultOverview } from "../src/save/overview";
 import type { SaveRecord } from "../src/save/types";
-import {
-  ActionToast,
-  TOAST_DISMISS_AFTER_MS,
-} from "../src/ui/action-toast";
+import { ActionToast, TOAST_DISMISS_AFTER_MS } from "../src/ui/action-toast";
 import { AdvancedDiagnostics } from "../src/ui/advanced-diagnostics";
 import { CultOverview } from "../src/ui/cult-overview";
 import { EditedSaveDownload } from "../src/ui/edited-save-download";
@@ -109,9 +100,7 @@ describe("ActionToast", () => {
       />,
     );
 
-    act(() =>
-      vi.advanceTimersByTime(TOAST_DISMISS_AFTER_MS.info ?? 0),
-    );
+    act(() => vi.advanceTimersByTime(TOAST_DISMISS_AFTER_MS.info ?? 0));
 
     expect(onDismiss).toHaveBeenCalledWith(TEMPORARY_NOTICE_ID);
   });
@@ -178,13 +167,46 @@ describe("App", () => {
     ).toBeTruthy();
     expect(readFile).not.toHaveBeenCalled();
   });
+
+  it("swaps the drop zone for a loaded state and back", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    const input = container.querySelector<HTMLInputElement>("#file-input");
+    const file = new File(
+      [
+        JSON.stringify({
+          CultName: "Test",
+          DoctrineUnlockedUpgrades: [],
+          Followers: [],
+        }),
+      ],
+      "slot_2.json",
+      { type: "application/json" },
+    );
+
+    await user.upload(input as HTMLInputElement, file);
+    await screen.findByText("slot_2.json successfully loaded");
+
+    expect(container.querySelectorAll(".reader")).toHaveLength(1);
+    expect(container.querySelectorAll(".drop-zone")).toHaveLength(0);
+
+    await user.click(
+      screen.getByRole("button", { name: /choose another save/i }),
+    );
+
+    expect(container.querySelectorAll(".reader")).toHaveLength(1);
+    expect(container.querySelectorAll(".save-loaded")).toHaveLength(0);
+    expect(container.querySelectorAll(".drop-zone")).toHaveLength(1);
+  });
 });
 
 describe("SaveReader", () => {
   it("passes the selected local file to the application", async () => {
     const user = userEvent.setup();
     const onFile = vi.fn<(file: File) => void>();
-    const { container } = render(<SaveReader onFile={onFile} />);
+    const { container } = render(
+      <SaveReader loadedFileName={null} onFile={onFile} saveId={null} />,
+    );
     const input = container.querySelector<HTMLInputElement>("#file-input");
     const file = new File(["save"], "slot_0.mp", {
       type: "application/octet-stream",
@@ -207,7 +229,11 @@ describe("step headers", () => {
     };
     const { container } = render(
       <>
-        <SaveReader onFile={() => undefined} />
+        <SaveReader
+          loadedFileName={null}
+          onFile={() => undefined}
+          saveId={null}
+        />
         <SaveReport
           decoded={{
             data,
@@ -221,9 +247,7 @@ describe("step headers", () => {
       </>,
     );
     const markers = [
-      ...container.querySelectorAll<HTMLElement>(
-        ".step-header > .step",
-      ),
+      ...container.querySelectorAll<HTMLElement>(".step-header > .step"),
     ];
 
     expect(container.querySelectorAll(".step-header")).toHaveLength(3);
@@ -338,11 +362,7 @@ describe("EditedSaveDownload", () => {
     expect(download.hasAttribute("disabled")).toBe(false);
 
     await user.click(download);
-    expect(currentSaveWriter).toHaveBeenCalledWith(
-      source,
-      original,
-      working,
-    );
+    expect(currentSaveWriter).toHaveBeenCalledWith(source, original, working);
     expect(localFileDownload).toHaveBeenCalledWith(
       verifiedSaveBytes,
       "slot_0.edited.mp",
@@ -490,13 +510,11 @@ describe("AdvancedDiagnostics", () => {
       .closest("details") as HTMLDetailsElement;
     expect(preview.open).toBe(false);
     expect(rebuild.open).toBe(false);
-    expect(
-      rebuild.querySelector("button")?.textContent,
-    ).toBe(UNCHANGED_REBUILD_DOWNLOAD_LABEL);
-
-    await user.click(
-      screen.getByText(UNCHANGED_REBUILD_DISCLOSURE_LABEL),
+    expect(rebuild.querySelector("button")?.textContent).toBe(
+      UNCHANGED_REBUILD_DOWNLOAD_LABEL,
     );
+
+    await user.click(screen.getByText(UNCHANGED_REBUILD_DISCLOSURE_LABEL));
     expect(rebuild.open).toBe(true);
   });
 
@@ -560,21 +578,21 @@ describe("SaveReport editing", () => {
     const user = userEvent.setup();
     const { container } = renderEditingReport();
 
-    await user.click(
-      screen.getByRole("button", { name: "Rename the cult" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Rename the cult" }));
     const nameInput = screen.getByRole("textbox", {
       name: "New cult name",
     });
     await user.clear(nameInput);
     await user.type(nameInput, "Chosen of the Isopod");
-    await user.click(screen.getByRole("button", { name: "Stage the cult name edit" }));
+    await user.click(
+      screen.getByRole("button", { name: "Stage the cult name edit" }),
+    );
 
     expect(screen.getByText("Chosen of the Isopod")).toBeTruthy();
     expect(screen.getByText("was “Test Cult”")).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
 
     await user.click(
       screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
@@ -590,9 +608,9 @@ describe("SaveReport editing", () => {
       screen.getByRole("button", { name: "Discard the cult name edit" }),
     );
     expect(screen.getByText("Test Cult")).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
   });
 
   it("shows jump shortcuts only while changes are staged", async () => {
@@ -607,9 +625,7 @@ describe("SaveReport editing", () => {
       screen.queryByRole("button", { name: GO_TO_DOWNLOAD_LABEL }),
     ).toBeNull();
 
-    await user.click(
-      screen.getByRole("button", { name: "Rename the cult" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Rename the cult" }));
     const nameInput = screen.getByRole("textbox", {
       name: "New cult name",
     });
@@ -639,9 +655,7 @@ describe("SaveReport editing", () => {
     const user = userEvent.setup();
     const { container } = renderEditingReport();
 
-    await user.click(
-      screen.getByRole("button", { name: "Rename the cult" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Rename the cult" }));
     const nameInput = screen.getByRole("textbox", {
       name: "New cult name",
     });
@@ -650,14 +664,14 @@ describe("SaveReport editing", () => {
     expect(
       screen.getByText(/rename screen cannot type it back in/),
     ).toBeTruthy();
-    await user.click(screen.getByRole("button", { name: "Stage the cult name edit" }));
+    await user.click(
+      screen.getByRole("button", { name: "Stage the cult name edit" }),
+    );
 
-    expect(
-      screen.getByText("Congregation of the Woolly Deep"),
-    ).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(screen.getByText("Congregation of the Woolly Deep")).toBeTruthy();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
   });
 
   it("stages, lists, and discards a resource edit", async () => {
@@ -665,9 +679,7 @@ describe("SaveReport editing", () => {
     const { container } = renderEditingReport();
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Edit Gold Coins" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Edit Gold Coins" }));
     const quantityInput = screen.getByRole("spinbutton", {
       name: "Gold Coins quantity",
     });
@@ -679,26 +691,24 @@ describe("SaveReport editing", () => {
 
     expect(screen.getByText("Item 20 · edited")).toBeTruthy();
     expect(screen.getByText("400")).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
 
     await user.click(
       screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
     );
     const review = screen.getByRole("dialog");
-    expect(
-      within(review).getByText("Resources · Gold Coins"),
-    ).toBeTruthy();
+    expect(within(review).getByText("Resources · Gold Coins")).toBeTruthy();
     expect(within(review).getByText("123 → 400")).toBeTruthy();
     await user.keyboard("{Escape}");
 
     await user.click(
       screen.getByRole("button", { name: "Discard the Gold Coins edit" }),
     );
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
     expect(screen.queryByText("Item 20 · edited")).toBeNull();
   });
 
@@ -707,9 +717,7 @@ describe("SaveReport editing", () => {
     renderEditingReport();
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Edit Gold Coins" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Edit Gold Coins" }));
     expect(
       screen.getByRole("spinbutton", { name: "Gold Coins quantity" }),
     ).toBeTruthy();
@@ -728,9 +736,7 @@ describe("SaveReport editing", () => {
     const { container } = renderEditingReport();
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Add an item" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Add an item" }));
     const picker = screen.getByRole("dialog");
     await user.type(
       within(picker).getByRole("searchbox", {
@@ -746,15 +752,13 @@ describe("SaveReport editing", () => {
     });
     await user.clear(quantityInput);
     await user.type(quantityInput, "250");
-    await user.click(
-      within(picker).getByRole("button", { name: "Add Stone" }),
-    );
+    await user.click(within(picker).getByRole("button", { name: "Add Stone" }));
 
     expect(screen.getByText("Stone")).toBeTruthy();
     expect(screen.getByText("Item 2 · edited")).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
 
     await user.click(
       screen.getByRole("button", { name: EDITED_SAVE_REVIEW_LABEL }),
@@ -767,9 +771,9 @@ describe("SaveReport editing", () => {
     await user.click(
       screen.getByRole("button", { name: "Discard the Stone edit" }),
     );
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
     expect(screen.queryByText("Item 2 · edited")).toBeNull();
   });
 
@@ -778,9 +782,7 @@ describe("SaveReport editing", () => {
     renderEditingReport();
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Add an item" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Add an item" }));
     const picker = screen.getByRole("dialog");
     await user.type(
       within(picker).getByRole("searchbox", {
@@ -800,9 +802,7 @@ describe("SaveReport editing", () => {
     renderEditingReport();
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Add an item" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Add an item" }));
     const picker = screen.getByRole("dialog");
     await user.type(
       within(picker).getByRole("searchbox", {
@@ -827,9 +827,7 @@ describe("SaveReport editing", () => {
     const { container } = renderEditingReport(onNotice);
 
     await user.click(screen.getByText("Resources"));
-    await user.click(
-      screen.getByRole("button", { name: "Edit Gold Coins" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Edit Gold Coins" }));
     const quantityInput = screen.getByRole("spinbutton", {
       name: "Gold Coins quantity",
     });
@@ -843,25 +841,24 @@ describe("SaveReport editing", () => {
       expect.stringContaining("The resource edit was not staged"),
       "error",
     );
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(NO_DOCTRINE_CHANGES_LABEL);
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
   });
 });
 
 describe("CultOverview", () => {
   const workReplacementLabel = `${FAITHFUL.name} → ${INDUSTRIOUS.name}`;
   const sustenanceUnlockLabel = `Unlock ${FEASTING_RITUAL.name}`;
-  const afterlifeReplacementLabel =
-    `${FUNERAL.name} → ${RITUAL_OF_RESURRECTION.name}`;
+  const afterlifeReplacementLabel = `${FUNERAL.name} → ${RITUAL_OF_RESURRECTION.name}`;
   const save: SaveRecord = doctrineSaveFromChoices(
     [FAITHFUL, BELIEF_IN_AFTERLIFE, FUNERAL],
     {
-    BaseStructures: [],
-    CultName: "Test Cult",
-    Followers: [],
-    UnlockedSermonsAndRituals: [],
-    items: [],
+      BaseStructures: [],
+      CultName: "Test Cult",
+      Followers: [],
+      UnlockedSermonsAndRituals: [],
+      items: [],
     },
   );
 
@@ -884,13 +881,11 @@ describe("CultOverview", () => {
         }
         originalDoctrine={buildCultOverview(workspace.original).doctrine}
         overview={buildCultOverview(workspace.data)}
-        pendingChanges={listPendingDoctrineChanges(workspace).map(
-          (change) => ({
-            ...doctrinePendingSaveChange(change),
-            onDiscard: () =>
-              setWorkspace(discardDoctrineChange(workspace, change)),
-          }),
-        )}
+        pendingChanges={listPendingDoctrineChanges(workspace).map((change) => ({
+          ...doctrinePendingSaveChange(change),
+          onDiscard: () =>
+            setWorkspace(discardDoctrineChange(workspace, change)),
+        }))}
       />
     );
   }
@@ -930,9 +925,9 @@ describe("CultOverview", () => {
     await user.click(industrious);
 
     expect(industrious.getAttribute("aria-pressed")).toBe("true");
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
     expect(screen.getByText("Changed")).toBeTruthy();
     expect(screen.getByText("Pending changes")).toBeTruthy();
     expect(screen.getByText(workReplacementLabel)).toBeTruthy();
@@ -1009,13 +1004,11 @@ describe("CultOverview", () => {
     );
 
     expect(screen.getByText("Pending changes")).toBeTruthy();
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(2));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(2),
+    );
     expect(screen.getByText(workReplacementLabel)).toBeTruthy();
-    expect(
-      screen.getByText(afterlifeReplacementLabel),
-    ).toBeTruthy();
+    expect(screen.getByText(afterlifeReplacementLabel)).toBeTruthy();
 
     await user.click(
       screen.getByRole("button", {
@@ -1023,16 +1016,16 @@ describe("CultOverview", () => {
       }),
     );
 
-    expect(
-      container.querySelector(".change-count-seal")?.textContent,
-    ).toBe(doctrineChangeCountLabel(1));
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(1),
+    );
     expect(screen.queryByText(afterlifeReplacementLabel)).toBeNull();
     expect(
-      screen.getByRole("button", {
-        name: new RegExp(FUNERAL.name),
-      }).getAttribute(
-        "aria-pressed",
-      ),
+      screen
+        .getByRole("button", {
+          name: new RegExp(FUNERAL.name),
+        })
+        .getAttribute("aria-pressed"),
     ).toBe("true");
   });
 });

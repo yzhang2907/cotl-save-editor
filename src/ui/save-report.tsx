@@ -187,16 +187,18 @@ export function SaveReport({
     }
   }
 
-  const presentItemTypes = new Set(
-    overview.resources.map((resource) => resource.id),
+  const presentItems = new Map(
+    overview.resources.map((resource) => [resource.id, resource]),
   );
   const editing: CultEditingProps | undefined = showEditedSaveDownload
     ? {
         addableItems: Object.entries(ITEM_NAMES)
           .map(([id, name]) => {
             const itemType = Number(id);
+            const present = presentItems.get(itemType);
             const requiredDlc = itemRequiredDlc(itemType);
             const locked =
+              present === undefined &&
               requiredDlc !== null &&
               !saveHasActivatedDlc(workspace.original, requiredDlc);
             return {
@@ -205,10 +207,16 @@ export function SaveReport({
                 ? `needs ${dlcDefinition(requiredDlc).displayName}`
                 : null,
               name,
+              owned:
+                present === undefined
+                  ? null
+                  : {
+                      quantity: present.quantity,
+                      reserved: present.reserved,
+                    },
               unobtainable: UNOBTAINABLE_ITEM_TYPES.has(itemType),
             };
           })
-          .filter((item) => !presentItemTypes.has(item.id))
           .sort((left, right) => left.name.localeCompare(right.name)),
         editedResourceTypes: new Set([
           ...cultEdits.resources.map((edit) => edit.type),

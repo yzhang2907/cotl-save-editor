@@ -236,11 +236,6 @@ export function CultOverview({
         )}
       </div>
 
-      <PendingChanges
-        items={pendingChanges}
-        onDiscardAll={onDiscardAllChanges}
-      />
-
       <div className="overview-panels">
         {overview.followerCount === null ? null : (
           <FollowersSection
@@ -275,6 +270,11 @@ export function CultOverview({
           sermonsAndRites={overview.sermonsAndRites}
         />
       </div>
+
+      <PendingChanges
+        items={pendingChanges}
+        onDiscardAll={onDiscardAllChanges}
+      />
     </section>
   );
 }

@@ -163,6 +163,7 @@ export interface AddableItem {
   id: number;
   lockedReason?: string | null;
   name: string;
+  owned?: { quantity: number; reserved: number } | null;
   unobtainable?: boolean;
 }
 
@@ -177,6 +178,7 @@ function AddItemOption({
 }) {
   const locked =
     item.lockedReason !== undefined && item.lockedReason !== null;
+  const owned = item.owned ?? null;
   return (
     <button
       aria-label={`${item.name} (Item ${item.id})`}
@@ -192,6 +194,9 @@ function AddItemOption({
         <small>
           Item {item.id}
           {locked ? ` · ${item.lockedReason}` : ""}
+          {owned === null
+            ? ""
+            : ` · ${displayNumber(owned.quantity)} owned`}
         </small>
       </span>
     </button>
@@ -202,14 +207,22 @@ function AddItemModal({
   addableItems,
   onAdd,
   onClose,
+  onEdit,
 }: {
   addableItems: AddableItem[];
   onAdd: (edit: ResourceEditRequest) => boolean;
   onClose: () => void;
+  onEdit: ((edit: ResourceEditRequest) => boolean) | null;
 }) {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [quantity, setQuantity] = useState("1");
+
+  function select(id: number): void {
+    setSelectedId(id);
+    const item = addableItems.find((candidate) => candidate.id === id);
+    setQuantity(String(item?.owned?.quantity ?? 1));
+  }
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent): void {
@@ -237,11 +250,23 @@ function AddItemModal({
     if (selected === null) {
       return;
     }
-    const staged = onAdd({
-      quantity: Number(quantity),
-      reserved: 0,
-      type: selected.id,
-    });
+    const owned = selected.owned ?? null;
+    const quantityNumber = Number(quantity);
+    const staged =
+      owned === null
+        ? onAdd({
+            quantity: quantityNumber,
+            reserved: 0,
+            type: selected.id,
+          })
+        : onEdit !== null &&
+          onEdit({
+            quantity: quantityNumber,
+            // Reserved amounts are staged untouched, only clamped down
+            // so a smaller quantity never strands a larger reservation.
+            reserved: Math.min(owned.reserved, quantityNumber),
+            type: selected.id,
+          });
     if (staged) {
       onClose();
     }
@@ -265,7 +290,7 @@ function AddItemModal({
         <header>
           <div>
             <p className="section-label">Resources</p>
-            <h3 id="add-item-title">Add an item</h3>
+            <h3 id="add-item-title">Add or edit an item</h3>
           </div>
           <button
             aria-label="Close the item picker"
@@ -289,7 +314,7 @@ function AddItemModal({
           />
           {matches.length === 0 ? (
             <p className="empty-overview">
-              No addable catalog items match “{query}”.
+              No catalog items match “{query}”.
             </p>
           ) : (
             <div className="resource-add-results">
@@ -301,7 +326,7 @@ function AddItemModal({
                       <AddItemOption
                         item={item}
                         key={item.id}
-                        onSelect={setSelectedId}
+                        onSelect={select}
                         selected={item.id === selectedId}
                       />
                     ))}
@@ -327,7 +352,7 @@ function AddItemModal({
                         <AddItemOption
                           item={item}
                           key={item.id}
-                          onSelect={setSelectedId}
+                          onSelect={select}
                           selected={item.id === selectedId}
                         />
                       ))}
@@ -337,7 +362,12 @@ function AddItemModal({
             </div>
           )}
           <label className="resource-add-quantity">
-            <span>Quantity</span>
+            <span>
+              Quantity
+              {selected?.owned == null
+                ? ""
+                : ` · currently ${displayNumber(selected.owned.quantity)}`}
+            </span>
             <input
               inputMode="numeric"
               min={0}
@@ -360,8 +390,10 @@ function AddItemModal({
               type="submit"
             >
               {selected === null
-                ? "Select an item to add"
-                : `Add ${selected.name}`}
+                ? "Select an item"
+                : selected.owned == null
+                  ? `Add ${selected.name}`
+                  : `Update ${selected.name}`}
             </button>
           </footer>
         </form>
@@ -438,6 +470,7 @@ export function ResourcesSection({
           addableItems={addableItems}
           onAdd={onAdd}
           onClose={() => setAdding(false)}
+          onEdit={onEdit ?? null}
         />
       ) : null}
     </OverviewSection>

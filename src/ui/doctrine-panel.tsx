@@ -12,6 +12,18 @@ import type {
   DoctrinePairOverview,
 } from "../save/overview";
 import type { SaveRecord } from "../save/types";
+import "./doctrine-panel.css";
+
+/**
+ * The one visual state a choice tile is in. Kept mutually exclusive so the
+ * stylesheet never has to resolve a pile-up of overlapping modifiers.
+ */
+type ChoiceState =
+  | "added"
+  | "available"
+  | "blocked"
+  | "removed"
+  | "selected";
 
 interface DoctrinePairProps {
   data: SaveRecord;
@@ -81,22 +93,29 @@ function DoctrinePair({
           ) ?? false;
           const activePlan = isSelected ? removalPlan : selectionPlan;
           const canActivate = activePlan.state === "ready";
-          const isUnlock =
-            isSelected && originalPair?.state === "missing";
-          const stateLabel = isSelected
-            ? isUnlock
-              ? "Unlocked"
-              : changed
-                ? "Changed"
-                : removalPlan.state === "ready"
-                  ? "Remove"
-                  : null
-            : changed && isOriginal
-              ? "Original"
-              : pair.state === "missing" &&
-                  selectionPlan.state === "ready"
-                ? "Unlock"
-                : null;
+          const state: ChoiceState = isSelected
+            ? isOriginal
+              ? "selected"
+              : "added"
+            : isOriginal
+              ? "removed"
+              : canActivate
+                ? "available"
+                : "blocked";
+          const stateLabel: string | null =
+            state === "added"
+              ? originalPair?.state === "missing"
+                ? "Unlocked"
+                : "Changed"
+              : state === "removed"
+                ? "Original"
+                : state === "selected"
+                  ? removalPlan.state === "ready"
+                    ? "Remove"
+                    : null
+                  : state === "available"
+                    ? "Unlock"
+                    : null;
           const title =
             isSelected
               ? removalPlan.state === "ready"
@@ -113,16 +132,10 @@ function DoctrinePair({
           return (
             <button
               aria-pressed={isSelected}
-              className={[
-                "doctrine-choice-option",
-                isSelected ? "selected" : "",
-                changed && isSelected ? "changed" : "",
-                changed && isOriginal ? "original" : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
+              className="doctrine-choice-option"
               disabled={!canActivate}
               data-doctrine-id={choice.doctrineId}
+              data-state={state}
               key={choice.doctrineId}
               onClick={(event) =>
                 onChange(
