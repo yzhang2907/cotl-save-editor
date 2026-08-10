@@ -165,7 +165,7 @@ h1 span {
   height: 320px;
   place-items: center;
   justify-self: end;
-  filter: drop-shadow(8px 11px 0 rgb(23 18 20 / 24%));
+  filter: drop-shadow(8px 11px 0 rgb(23 18 20 / 25%));
 }
 
 .save-emblem::before {

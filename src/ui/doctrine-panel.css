@@ -5,6 +5,15 @@
  * can never stack and fight over background, shadow, or opacity.
  */
 
+/* The tiles' three-step depth ladder: resting, lifted on hover, and
+   receded when there is nothing to act on. Deliberately warmer than
+   --night-raised; keep all three distinct. */
+:root {
+  --tile: #2b252a;
+  --tile-hover: #352d33;
+  --tile-sunk: #241f23;
+}
+
 .doctrine-edit-blockers strong {
   display: block;
   margin-bottom: 0.25rem;
@@ -55,7 +64,7 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.65rem 0.2rem;
-  border-bottom: 1px solid #403942;
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .doctrine-pair:last-child {
@@ -126,33 +135,33 @@
 
 /* Off, and selectable. */
 .doctrine-choice-option[data-state="available"] {
-  background: #2b252a;
-  box-shadow: 0 3px 0 #120e10;
+  background: var(--tile);
+  box-shadow: 0 3px 0 var(--shadow-ink);
   color: var(--bone);
 }
 
 .doctrine-choice-option[data-state="available"]:hover {
-  background: #352d33;
+  background: var(--tile-hover);
 }
 
 /* Off, and not selectable — nothing to act on, so it recedes furthest. */
 .doctrine-choice-option[data-state="blocked"] {
-  background: #241f23;
+  background: var(--tile-sunk);
   box-shadow: none;
   color: var(--disabled-fg);
 }
 
 /* On, exactly as the save shipped it. */
 .doctrine-choice-option[data-state="selected"] {
-  background: rgb(255 45 65 / 15%);
-  box-shadow: 0 3px 0 #120e10;
+  background: rgb(from var(--red) r g b / 15%);
+  box-shadow: 0 3px 0 var(--shadow-ink);
   color: var(--bone);
 }
 
 /* On because of an edit. */
 .doctrine-choice-option[data-state="added"] {
   background: var(--edited-wash);
-  box-shadow: 0 3px 0 #120e10;
+  box-shadow: 0 3px 0 var(--shadow-ink);
   color: var(--bone);
 }
 
@@ -162,21 +171,21 @@
  * by whether it can be clicked back on, exactly like every other off state.
  */
 .doctrine-choice-option[data-state="removed"] {
-  border-color: rgb(255 45 65 / 45%);
+  border-color: rgb(from var(--red) r g b / 45%);
   border-style: dashed;
-  background: #2b252a;
-  box-shadow: 0 3px 0 #120e10;
+  background: var(--tile);
+  box-shadow: 0 3px 0 var(--shadow-ink);
   color: var(--bone);
 }
 
 .doctrine-choice-option[data-state="removed"]:hover:not(:disabled) {
-  border-color: rgb(255 45 65 / 75%);
-  background: #352d33;
+  border-color: rgb(from var(--red) r g b / 75%);
+  background: var(--tile-hover);
 }
 
 .doctrine-choice-option[data-state="removed"]:disabled {
-  border-color: rgb(255 45 65 / 22%);
-  background: #241f23;
+  border-color: rgb(from var(--red) r g b / 22%);
+  background: var(--tile-sunk);
   box-shadow: none;
   color: var(--disabled-fg);
 }
@@ -256,7 +265,7 @@
   margin: 0.65rem 0 0;
   padding: 0.65rem 0.8rem;
   border-left: 4px solid var(--gold);
-  background: rgb(242 201 76 / 9%);
+  background: var(--wash-gold);
   color: var(--gold);
   font-weight: 800;
 }

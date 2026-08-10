@@ -4,7 +4,7 @@
  */
 
 .overview-panel {
-  border-bottom: 1px solid #504853;
+  border-bottom: 1px solid var(--line);
 }
 
 .overview-panel > summary {
@@ -61,7 +61,7 @@
 }
 
 .overview-panel[open] > summary {
-  border-bottom: 1px solid #504853;
+  border-bottom: 1px solid var(--line);
 }
 
 .overview-panel[open] > summary::after {
@@ -79,7 +79,7 @@
 
 .overview-panel.read-only > summary::before,
 .overview-panel.read-only > summary::after {
-  color: #8d8478;
+  color: var(--disabled-fg);
 }
 
 .overview-panel.read-only > summary:hover,

@@ -6,7 +6,7 @@
   padding: 0.8rem 1.1rem 0.35rem;
   border: 0;
   border-radius: 8px 11px 7px 10px;
-  background: rgb(255 157 69 / 8%);
+  background: var(--edited-wash-soft);
   box-shadow: none;
 }
 
@@ -40,7 +40,7 @@
 }
 
 .pending-changes li + li {
-  border-top: 1px solid rgb(245 234 208 / 10%);
+  border-top: 1px solid var(--wash-bone-strong);
 }
 
 .pending-change-scope {

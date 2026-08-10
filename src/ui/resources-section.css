@@ -16,7 +16,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.65rem 0.55rem;
-  border-bottom: 1px solid #403942;
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .resource-row > div:first-child {
@@ -38,7 +38,7 @@
   height: 48px;
   flex: 0 0 auto;
   object-fit: contain;
-  filter: drop-shadow(2px 3px 0 rgb(0 0 0 / 28%));
+  filter: drop-shadow(2px 3px 0 rgb(0 0 0 / 26%));
 }
 
 .resource-icon-fallback {
@@ -116,7 +116,7 @@
   appearance: textfield;
   border: 2px solid var(--bone-muted);
   border-radius: 7px 5px 8px 6px;
-  background: rgb(245 234 208 / 8%);
+  background: var(--wash-bone);
   color: var(--bone);
   font-family: "Lilita One", "Arial Black", sans-serif;
   font-size: 1rem;
@@ -152,7 +152,7 @@
   padding: 0.5rem 0.7rem;
   border: 2px solid var(--bone-muted);
   border-radius: 8px 6px 9px 7px;
-  background: rgb(245 234 208 / 8%);
+  background: var(--wash-bone);
   color: var(--bone);
   font: inherit;
 }
@@ -266,7 +266,7 @@
   appearance: textfield;
   border: 2px solid var(--bone-muted);
   border-radius: 7px 5px 8px 6px;
-  background: rgb(245 234 208 / 8%);
+  background: var(--wash-bone);
   color: var(--bone);
   font-family: "Lilita One", "Arial Black", sans-serif;
   font-size: 0.95rem;

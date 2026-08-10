@@ -16,17 +16,28 @@
   --bone: #f5ead0;
   --bone-muted: #c8bba2;
   --red: #fa2d3d;
-  --red-dark: #a91425;
   --gold: #f2c94c;
   --orange: #ff9d45;
   --line: #4d4650;
   --line-mid: #5b525d;
   --line-strong: #736975;
+  /* Quieter than --line: the hairline between rows and stat cells. */
+  --line-soft: #423b44;
   --disabled-fg: #8f8592;
   --shadow-ink: #0d0a0b;
+  --wash-bone: rgb(245 234 208 / 8%);
+  --wash-bone-strong: var(--wash-bone-strong);
+  --wash-gold: rgb(242 201 76 / 8%);
   --edited-wash: rgb(255 157 69 / 16%);
+  /* Half-strength edit highlight for large surfaces. */
+  --edited-wash-soft: rgb(255 157 69 / 8%);
   --bar-height: 68px;
   --field-split: 440px;
+  /* Corner shared by the toast and the change dock; --toast-stack is the
+     toast height the dock-aware toast offset in change-dock.css assumes. */
+  --corner-inset-x: clamp(1rem, 3vw, 2rem);
+  --corner-inset-y: max(1rem, env(safe-area-inset-bottom));
+  --toast-stack: 3.4rem;
 }
 
 * {
@@ -94,7 +105,7 @@ input {
 code {
   padding: 0.08em 0.3em;
   border-radius: 0.25em;
-  background: rgb(245 234 208 / 10%);
+  background: var(--wash-bone-strong);
   color: var(--gold);
   font-family: ui-monospace, "Cascadia Code", monospace;
   font-size: 0.88em;
@@ -309,7 +320,7 @@ h3 {
   overflow-y: auto;
   padding: clamp(1rem, 5vw, 4rem);
   place-items: center;
-  background: rgb(13 10 11 / 82%);
+  background: rgb(from var(--shadow-ink) r g b / 82%);
 }
 
 .edited-save-modal {
@@ -354,7 +365,7 @@ h3 {
 }
 
 .edited-save-modal-close:hover:not(:disabled) {
-  background: rgb(245 234 208 / 10%);
+  background: var(--wash-bone-strong);
   transform: rotate(5deg);
 }
 

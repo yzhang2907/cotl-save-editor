@@ -3,7 +3,7 @@
 .warnings {
   padding: 0.8rem 1.1rem 0.85rem;
   border-radius: 8px 11px 7px 10px;
-  background: rgb(242 201 76 / 8%);
+  background: var(--wash-gold);
   color: var(--bone);
 }
 

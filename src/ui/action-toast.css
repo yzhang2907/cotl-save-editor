@@ -10,8 +10,8 @@
 .action-toast {
   position: fixed;
   z-index: 20;
-  right: clamp(1rem, 3vw, 2rem);
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  right: var(--corner-inset-x);
+  bottom: var(--corner-inset-y);
   display: grid;
   width: min(430px, calc(100vw - 2rem));
   grid-template-columns: 34px minmax(0, 1fr) 28px;

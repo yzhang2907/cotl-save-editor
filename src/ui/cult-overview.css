@@ -49,13 +49,13 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   margin: 1.25rem 0;
-  border-block: 1px solid #453e47;
+  border-block: 1px solid var(--line-soft);
 }
 
 .overview-stat {
   min-width: 0;
   padding: 0.8rem 0.95rem;
-  border-right: 1px solid #453e47;
+  border-right: 1px solid var(--line-soft);
 }
 
 .overview-stat:nth-child(4n) {
@@ -145,7 +145,7 @@
   padding: 0.3rem 0.5rem;
   border: 2px solid var(--bone-muted);
   border-radius: 7px 5px 8px 6px;
-  background: rgb(245 234 208 / 8%);
+  background: var(--wash-bone);
   color: var(--bone);
 }
 
@@ -175,7 +175,7 @@
   }
 
   .overview-stat:nth-child(4n) {
-    border-right: 1px solid #453e47;
+    border-right: 1px solid var(--line-soft);
   }
 
   .overview-stat:nth-child(2n) {

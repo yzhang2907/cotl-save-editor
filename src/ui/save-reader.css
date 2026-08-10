@@ -2,13 +2,18 @@
    card frame the reader sits in is the shared .reader/.report recipe. */
 
 .reader {
+  /* The empty drop zone and the loaded state are the same box: identical
+     height and mark size, so swapping states never shifts the layout. */
+  --drop-zone-height: 285px;
+  --drop-mark: 86px;
+
   padding: clamp(1.4rem, 4vw, 2.7rem);
 }
 
 .drop-zone {
   position: relative;
   display: grid;
-  min-height: 285px;
+  min-height: var(--drop-zone-height);
   margin-top: 2rem;
   overflow: hidden;
   place-items: center;
@@ -18,7 +23,7 @@
   border-radius: 18px 12px 21px 15px;
   background:
     radial-gradient(circle at center, transparent 0 64px, rgb(250 45 61 / 11%) 65px 67px, transparent 68px),
-    radial-gradient(circle at center, transparent 0 93px, rgb(245 234 208 / 10%) 94px 96px, transparent 97px),
+    radial-gradient(circle at center, transparent 0 93px, var(--wash-bone-strong) 94px 96px, transparent 97px),
     var(--night-raised);
   color: var(--bone);
   cursor: pointer;
@@ -96,8 +101,8 @@
 
 .drop-mark {
   display: grid;
-  width: 86px;
-  height: 86px;
+  width: var(--drop-mark);
+  height: var(--drop-mark);
   place-items: center;
   border: 4px solid var(--ink);
   border-radius: 48% 52% 46% 54%;
@@ -123,7 +128,7 @@
 /* Shared row track so the circle sits at the same height in both states. */
 .drop-zone,
 .save-loaded {
-  grid-template-rows: 86px auto 3rem;
+  grid-template-rows: var(--drop-mark) auto 3rem;
 }
 
 .drop-zone > span:last-child,
@@ -158,7 +163,7 @@
 .save-loaded {
   position: relative;
   display: grid;
-  min-height: 285px;
+  min-height: var(--drop-zone-height);
   margin-top: 2rem;
   overflow: hidden;
   place-items: center;
@@ -168,7 +173,7 @@
   border-radius: 18px 12px 21px 15px;
   background:
     radial-gradient(circle at center, transparent 0 64px, rgb(242 201 76 / 12%) 65px 67px, transparent 68px),
-    radial-gradient(circle at center, transparent 0 93px, rgb(245 234 208 / 10%) 94px 96px, transparent 97px),
+    radial-gradient(circle at center, transparent 0 93px, var(--wash-bone-strong) 94px 96px, transparent 97px),
     var(--night-raised);
   color: var(--bone);
 }
@@ -196,8 +201,8 @@
 
 .save-loaded-mark {
   display: grid;
-  width: 86px;
-  height: 86px;
+  width: var(--drop-mark);
+  height: var(--drop-mark);
   place-items: center;
   border: 4px solid var(--ink);
   border-radius: 48% 52% 46% 54%;
@@ -237,8 +242,10 @@
 }
 
 @media (max-width: 620px) {
+  /* Only the empty state shortens on small screens; the loaded state keeps
+     its height so a long file name has room. */
   .drop-zone {
-    min-height: 260px;
+    --drop-zone-height: 260px;
   }
 }
 
