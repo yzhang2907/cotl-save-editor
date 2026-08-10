@@ -126,6 +126,65 @@ const overviewSave: SaveRecord = {
 };
 
 describe("buildCultOverview", () => {
+  it("builds full follower detail and dead followers", () => {
+    const overview = buildCultOverview({
+      Followers: [
+        {
+          Clothing: 23,
+          Faction: 3,
+          FollowerRole: 3,
+          Hat: 0,
+          ID: 7,
+          Necklace: 47,
+          Outfit: 7,
+          ShowingNecklace: false,
+          SkinColour: 17,
+          SkinName: "Seahorse3",
+          SkinVariation: 2,
+          SpouseFollowerID: 9,
+          Traits: [6],
+          _name: "Webb",
+        },
+      ],
+      Followers_Dead: [
+        {
+          DiedOfOldAge: true,
+          HadFuneral: true,
+          HasBeenBuried: true,
+          ID: 9,
+          MurderedBy: 7,
+          _name: "Mola",
+        },
+      ],
+    });
+
+    expect(overview.followers[0]).toMatchObject({
+      appearance: {
+        colour: 17,
+        hat: null,
+        necklace: "Skull Necklace",
+        necklaceHidden: true,
+        skinName: "Seahorse",
+        skinVariation: 2,
+      },
+      death: null,
+      role: "Farmer",
+      spouse: "Mola",
+      traits: ["Grass Eater"],
+    });
+    expect(overview.followers[0]?.appearance.outfit).not.toBeNull();
+    expect(overview.deadFollowers[0]).toMatchObject({
+      death: {
+        buried: true,
+        cause: "Old age",
+        funeral: true,
+        murderedBy: "Webb",
+      },
+      name: "Mola",
+      statuses: [],
+    });
+  });
+
   it("extracts identity, follower, base, and resource data", () => {
     const overview = buildCultOverview(overviewSave);
 
@@ -145,8 +204,8 @@ describe("buildCultOverview", () => {
       level: FOLLOWERS.BAAL.XPLevel,
       name: FOLLOWERS.BAAL._name,
       satiation: FOLLOWERS.BAAL._satiation,
-      statuses: ["Imprisoned", "Cursed"],
-      traitCount: FOLLOWERS.BAAL.Traits.length,
+      statuses: ["Imprisoned"],
+      traits: ["Belief in Afterlife"],
     });
     expect(overview.resources).toEqual([
       {

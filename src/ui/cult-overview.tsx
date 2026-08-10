@@ -241,6 +241,7 @@ export function CultOverview({
         {overview.followerCount === null ? null : (
           <FollowersSection
             count={overview.followerCount}
+            deadFollowers={overview.deadFollowers}
             followers={overview.followers}
           />
         )}

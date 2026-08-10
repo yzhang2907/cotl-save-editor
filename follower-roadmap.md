@@ -88,15 +88,18 @@ Learned along the way:
 `COTL_SAVE_COPY` is set, cross-checks every trait, outfit, and skin
 pair in the real save.
 
-### 2. Read side: full detail and dead followers
+### 2. Read side: full detail and dead followers — DONE
 
-- Widen `FollowerOverview` into a full record view: identity, needs,
-  appearance, traits, relationships, work, death.
-- Add `deadFollowers` from `Followers_Dead` under its own dropdown,
-  closed by default, so the living list stays primary. Recruit,
-  possessed, and dissented can follow the same pattern.
-- Appearance card: skin name and variation, colour swatch, worn items
-  by name.
+- `FollowerOverview` now carries appearance, named traits, role,
+  faction, faith, adoration, family (spouse and parents resolved to
+  names), day joined, life expectancy, and a `death` block (cause
+  from the `DiedOf*` flags, burial, funeral, murderer).
+- Each follower row expands to a detail panel; dead followers render
+  in their own closed-by-default section with the cause as the chip.
+  Recruit, possessed, and dissented still pending the same pattern.
+- The bogus "Cursed" status is gone: `CursedState` is surfaced as
+  "State of mind" via `FOLLOWER_THOUGHTS` (146 = Old Age, 392 = Just
+  Hatched), confirming the loose end below.
 
 ### 3. Write side: positional raw mapping
 
@@ -134,8 +137,7 @@ then a combined edit, then save, reload, and restart.
 
 ## Loose ends noticed along the way
 
-- `overview.ts:138` marks any nonzero `CursedState` as "Cursed", but
-  the observed values (146, 392) look like they share the Thought-type
-  ID space, so that flag may be misreading the field.
-- `traitCount` discards trait data that the UI can show properly once
-  the trait catalog exists.
+- ~~`overview.ts` marked any nonzero `CursedState` as "Cursed"~~ —
+  confirmed to be Thought ids and fixed in item 2.
+- ~~`traitCount` discards trait data~~ — replaced with named `traits`
+  in item 2.
