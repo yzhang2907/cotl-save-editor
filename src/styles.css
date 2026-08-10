@@ -886,12 +886,19 @@ h2 {
 .change-dock {
   position: fixed;
   z-index: 15;
+  right: clamp(1rem, 3vw, 2rem);
   bottom: max(1rem, env(safe-area-inset-bottom));
-  left: clamp(1rem, 3vw, 2rem);
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.6rem;
   animation: toast-enter 160ms ease-out both;
+}
+
+/* The dock and toasts share the bottom-right corner; while the dock
+   is up, toasts slide above it instead of covering it. */
+body:has(.change-dock) .action-toast {
+  bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 3.4rem);
 }
 
 .change-dock-view {
