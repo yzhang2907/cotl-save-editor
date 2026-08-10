@@ -7,8 +7,9 @@
 .follower-row {
   display: grid;
   grid-template-columns:
-    minmax(140px, 1.5fr) minmax(50px, 0.5fr) minmax(70px, 0.65fr)
-    minmax(55px, 0.5fr) minmax(55px, 0.5fr) minmax(110px, 1fr);
+    minmax(140px, 1.5fr) minmax(40px, 0.4fr) minmax(50px, 0.5fr)
+    minmax(70px, 0.65fr) minmax(55px, 0.5fr) minmax(55px, 0.5fr)
+    minmax(110px, 1fr);
   align-items: center;
   gap: 0.65rem;
   min-width: 0;
@@ -26,7 +27,6 @@
 .follower-entry > summary {
   position: relative;
   padding-right: 1.5rem;
-  border-radius: 6px;
   cursor: pointer;
   list-style: none;
 }
@@ -35,16 +35,11 @@
   display: none;
 }
 
-.follower-entry > summary::after {
-  content: "›";
+.follower-entry > summary .follower-chevron {
   position: absolute;
   top: 50%;
-  right: 0.45rem;
+  right: 0.35rem;
   color: var(--bone-muted);
-  font-family: Arial, sans-serif;
-  font-size: 1.1rem;
-  font-weight: 900;
-  line-height: 0;
   transform: translateY(-50%) rotate(0);
   transition: transform 140ms ease;
 }
@@ -54,24 +49,22 @@
   background: var(--night-raised);
 }
 
-.follower-entry > summary:hover::after,
-.follower-entry > summary:focus-visible::after {
+.follower-entry > summary:hover .follower-chevron,
+.follower-entry > summary:focus-visible .follower-chevron {
   color: var(--red);
 }
 
-.follower-entry[open] > summary::after {
+.follower-entry[open] > summary .follower-chevron {
   transform: translateY(-50%) rotate(90deg);
   color: var(--red);
 }
 
-.follower-entry[open] > summary .follower-name strong {
-  color: var(--red);
+.follower-entry[open] > summary.follower-row {
+  border-bottom: 0;
 }
 
-.follower-hint {
-  margin: 0 0 0.6rem;
-  color: var(--bone-muted);
-  font-size: 0.72rem;
+.follower-entry[open] > summary .follower-name strong {
+  color: var(--red);
 }
 
 .follower-subsection {
@@ -96,7 +89,11 @@
 
 .follower-subsection > summary strong {
   margin-right: auto;
-  font-size: 0.9rem;
+  color: var(--red);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .follower-subsection > summary span {
@@ -106,13 +103,8 @@
   text-transform: uppercase;
 }
 
-.follower-subsection > summary::after {
-  content: "›";
+.follower-subsection > summary .follower-chevron {
   color: var(--bone-muted);
-  font-family: Arial, sans-serif;
-  font-size: 1.25rem;
-  font-weight: 900;
-  line-height: 0.8;
   transition: transform 140ms ease;
 }
 
@@ -121,24 +113,25 @@
   color: var(--bone);
 }
 
-.follower-subsection > summary:hover::after,
-.follower-subsection > summary:focus-visible::after {
+.follower-subsection > summary:hover .follower-chevron,
+.follower-subsection > summary:focus-visible .follower-chevron {
   color: var(--red);
 }
 
-.follower-subsection[open] > summary::after {
+.follower-subsection[open] > summary .follower-chevron {
   transform: rotate(90deg);
 }
 
 .follower-detail {
   display: grid;
   gap: 0.35rem;
-  margin: 0 0.4rem 0.7rem;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: var(--night-raised);
+  padding: 0.2rem 0.4rem 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--line-soft);
   font-size: 0.78rem;
+}
+
+.follower-entry:last-child .follower-detail {
+  border-bottom: 0;
 }
 
 .follower-detail-row {
@@ -160,47 +153,38 @@
 .follower-labels {
   padding-top: 0;
   padding-right: 1.5rem;
+}
+
+.follower-labels button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--red);
+  cursor: pointer;
   font-size: 0.62rem;
   font-weight: 900;
   letter-spacing: 0.08em;
+  text-align: left;
   text-transform: uppercase;
+}
+
+.follower-labels button:hover,
+.follower-labels button:focus-visible {
+  color: var(--bone);
 }
 
 .follower-name {
   min-width: 0;
 }
 
-.follower-name strong,
-.follower-name small {
-  display: block;
-}
-
 .follower-name strong {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.follower-name small {
-  color: var(--bone-muted);
-  font-size: 0.68rem;
-}
-
-.follower-statuses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.follower-statuses span {
-  padding: 0.24rem 0.48rem;
-  border: 1px solid var(--line-mid);
-  border-radius: 999px;
-  background: var(--night-raised);
-  color: var(--bone);
-  font-size: 0.68rem;
-  font-weight: 800;
 }
 
 @media (max-width: 620px) {
@@ -213,8 +197,7 @@
     gap: 0.45rem;
   }
 
-  .follower-row .follower-name,
-  .follower-row .follower-statuses {
+  .follower-row .follower-name {
     grid-column: 1 / -1;
   }
 }

@@ -153,6 +153,7 @@ describe("buildCultOverview", () => {
           HasBeenBuried: true,
           ID: 9,
           MurderedBy: 7,
+          TimeOfDeath: 66,
           _name: "Mola",
         },
       ],
@@ -177,6 +178,7 @@ describe("buildCultOverview", () => {
       death: {
         buried: true,
         cause: "Old age",
+        day: 66,
         funeral: true,
         murderedBy: "Webb",
       },

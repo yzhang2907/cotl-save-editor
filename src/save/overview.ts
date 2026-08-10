@@ -42,6 +42,7 @@ export interface FollowerAppearance {
 export interface FollowerDeath {
   buried: boolean;
   cause: string | null;
+  day: number | null;
   funeral: boolean;
   murderedBy: string | null;
 }
@@ -207,29 +208,29 @@ function positiveInteger(value: unknown): number | null {
   return parsed !== null && parsed > 0 ? parsed : null;
 }
 
-function wornName(value: unknown, catalog: FollowerCatalog): string | null {
+function wornName(
+  value: unknown,
+  catalog: FollowerCatalog,
+  kind: string,
+): string | null {
+  // Zero is the "nothing worn" sentinel in every clothing category;
+  // other "None"-keyed entries (outfit 18, Acolyte Robes) are real.
   const id = positiveInteger(value);
-  if (id === null) {
-    return null;
-  }
-  const entry = catalog[id];
-  return entry !== undefined && entry.key !== "None"
-    ? entry.name
-    : `Unknown item ${id}`;
+  return id === null ? null : catalogName(catalog, id, kind);
 }
 
 function buildAppearance(follower: SaveRecord): FollowerAppearance {
   const necklace = positiveInteger(follower.Necklace);
   return {
-    clothing: wornName(follower.Clothing, FOLLOWER_CLOTHING),
+    clothing: wornName(follower.Clothing, FOLLOWER_CLOTHING, "clothing"),
     colour: integer(follower.SkinColour),
-    hat: wornName(follower.Hat, FOLLOWER_HATS),
+    hat: wornName(follower.Hat, FOLLOWER_HATS, "hat"),
     necklace:
       necklace === null
         ? null
         : (ITEM_NAMES[necklace] ?? `Unknown item ${necklace}`),
     necklaceHidden: necklace !== null && follower.ShowingNecklace === false,
-    outfit: wornName(follower.Outfit, FOLLOWER_OUTFITS),
+    outfit: wornName(follower.Outfit, FOLLOWER_OUTFITS, "outfit"),
     skinName: stringValue(follower.SkinName)?.replace(/\d+$/, "") ?? null,
     skinVariation: integer(follower.SkinVariation),
   };
@@ -244,6 +245,8 @@ function buildDeath(
     buried: follower.HasBeenBuried === true,
     cause:
       DEATH_CAUSES.find(([flag]) => follower[flag] === true)?.[1] ?? null,
+    // Ritual deaths leave TimeOfDeath at zero, so zero means unrecorded.
+    day: positiveInteger(follower.TimeOfDeath),
     funeral: follower.HadFuneral === true,
     murderedBy:
       murderer === null

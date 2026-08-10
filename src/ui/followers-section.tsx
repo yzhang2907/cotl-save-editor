@@ -1,3 +1,9 @@
+import {
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide,
+  ChevronRight,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import type {
   FollowerAppearance,
   FollowerOverview,
@@ -23,8 +29,10 @@ function appearanceSummary(appearance: FollowerAppearance): string {
 
 function wornItems(appearance: FollowerAppearance): string[] {
   const items: string[] = [];
+  // Outfit names like "Old" or "Follower" read as nonsense without
+  // their category.
   if (appearance.outfit !== null) {
-    items.push(appearance.outfit);
+    items.push(`${appearance.outfit} (Outfit)`);
   }
   if (appearance.clothing !== null) {
     items.push(appearance.clothing);
@@ -118,7 +126,15 @@ function FollowerDetail({ follower }: { follower: FollowerOverview }) {
         <>
           <DetailRow
             label="Cause of death"
-            value={follower.death.cause ?? "Unknown"}
+            value={follower.death.cause ?? "Ritual"}
+          />
+          <DetailRow
+            label="Died"
+            value={
+              follower.death.day === null
+                ? null
+                : `Day ${follower.death.day}`
+            }
           />
           <DetailRow label="Murdered by" value={follower.death.murderedBy} />
           <DetailRow
@@ -143,24 +159,68 @@ function FollowerRow({ follower }: { follower: FollowerOverview }) {
       <summary className="follower-row">
         <div className="follower-name">
           <strong>{follower.name}</strong>
-          {follower.id === null ? null : <small>ID {follower.id}</small>}
         </div>
+        <span>{follower.id === null ? "—" : follower.id}</span>
         <span>{follower.level === null ? "—" : `Lv ${follower.level}`}</span>
         <span>{follower.age === null ? "—" : `${follower.age} days`}</span>
         <span>{displayPercent(follower.happiness)}</span>
         <span>{displayPercent(follower.satiation)}</span>
-        <div className="follower-statuses">
-          {(follower.death === null
-            ? follower.statuses
-            : [follower.death.cause ?? "Dead"]
-          ).map((status) => (
-            <span key={status}>{status}</span>
-          ))}
-        </div>
+        <span>
+          {follower.death === null
+            ? follower.statuses.join(", ")
+            : (follower.death.cause ?? "Ritual")}
+        </span>
+        <ChevronRight
+          aria-hidden="true"
+          className="follower-chevron"
+          size={15}
+          strokeWidth={3}
+        />
       </summary>
       <FollowerDetail follower={follower} />
     </details>
   );
+}
+
+type SortValue = number | string | null;
+
+const SORT_COLUMNS: ReadonlyArray<{
+  label: string;
+  value: (follower: FollowerOverview) => SortValue;
+}> = [
+  { label: "Name", value: (follower) => follower.name.toLowerCase() },
+  { label: "ID", value: (follower) => follower.id },
+  { label: "Level", value: (follower) => follower.level },
+  { label: "Age", value: (follower) => follower.age },
+  { label: "Happy", value: (follower) => follower.happiness },
+  { label: "Fed", value: (follower) => follower.satiation },
+];
+
+function stateValue(follower: FollowerOverview): SortValue {
+  return follower.death === null
+    ? follower.statuses.join(", ")
+    : (follower.death.cause ?? "Ritual");
+}
+
+function compareValues(left: SortValue, right: SortValue): number {
+  if (left === right) {
+    return 0;
+  }
+  if (left === null) {
+    return 1;
+  }
+  if (right === null) {
+    return -1;
+  }
+  if (typeof left === "string" || typeof right === "string") {
+    return String(left).localeCompare(String(right));
+  }
+  return left - right;
+}
+
+interface SortOrder {
+  column: number;
+  descending: boolean;
 }
 
 function FollowerList({
@@ -170,21 +230,69 @@ function FollowerList({
   dead: boolean;
   followers: FollowerOverview[];
 }) {
+  const [order, setOrder] = useState<SortOrder | null>(null);
+  const columns = useMemo(
+    () => [
+      ...SORT_COLUMNS,
+      { label: dead ? "Death" : "State", value: stateValue },
+    ],
+    [dead],
+  );
+  const sorted = useMemo(() => {
+    if (order === null) {
+      return followers;
+    }
+    const value = columns[order.column]?.value;
+    if (value === undefined) {
+      return followers;
+    }
+    const sign = order.descending ? -1 : 1;
+    return followers
+      .slice()
+      .sort(
+        (left, right) => sign * compareValues(value(left), value(right)),
+      );
+  }, [columns, followers, order]);
+
+  function toggleOrder(column: number) {
+    setOrder((previous) =>
+      previous?.column === column
+        ? previous.descending
+          ? null
+          : { column, descending: true }
+        : { column, descending: false },
+    );
+  }
+
   return (
     <div className="follower-list">
       <div className="follower-row follower-labels">
-        {[
-          "Follower",
-          "Level",
-          "Age",
-          "Happy",
-          "Fed",
-          dead ? "Death" : "State",
-        ].map((label) => (
-          <span key={label}>{label}</span>
+        {columns.map((column, index) => (
+          <button
+            key={column.label}
+            onClick={() => toggleOrder(index)}
+            type="button"
+          >
+            {column.label}
+            {order?.column === index ? (
+              order.descending ? (
+                <ArrowDownWideNarrow
+                  aria-hidden="true"
+                  size={12}
+                  strokeWidth={3}
+                />
+              ) : (
+                <ArrowUpNarrowWide
+                  aria-hidden="true"
+                  size={12}
+                  strokeWidth={3}
+                />
+              )
+            ) : null}
+          </button>
         ))}
       </div>
-      {followers.map((follower, index) => (
+      {sorted.map((follower, index) => (
         <FollowerRow
           follower={follower}
           key={follower.id ?? `${follower.name}-${index}`}
@@ -207,9 +315,6 @@ export function FollowersSection({
 }: FollowersSectionProps) {
   return (
     <OverviewSection count={`${count} living`} readOnly title="Followers">
-      <p className="follower-hint">
-        Click a follower to see their full record.
-      </p>
       {followers.length === 0 ? (
         <p className="empty-overview">No living follower records were found.</p>
       ) : (
@@ -220,6 +325,12 @@ export function FollowersSection({
           <summary>
             <strong>Dead followers</strong>
             <span>{deadFollowers.length} dead</span>
+            <ChevronRight
+              aria-hidden="true"
+              className="follower-chevron"
+              size={17}
+              strokeWidth={3}
+            />
           </summary>
           <FollowerList dead followers={deadFollowers} />
         </details>
