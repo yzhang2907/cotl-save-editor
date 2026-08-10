@@ -205,7 +205,12 @@ describe("SaveReader", () => {
     const user = userEvent.setup();
     const onFile = vi.fn<(file: File) => void>();
     const { container } = render(
-      <SaveReader loadedFileName={null} onFile={onFile} saveId={null} />,
+      <SaveReader
+        loadedFileName={null}
+        onFile={onFile}
+        onRemove={() => undefined}
+        saveId={null}
+      />,
     );
     const input = container.querySelector<HTMLInputElement>("#file-input");
     const file = new File(["save"], "slot_0.mp", {
@@ -232,6 +237,7 @@ describe("step headers", () => {
         <SaveReader
           loadedFileName={null}
           onFile={() => undefined}
+          onRemove={() => undefined}
           saveId={null}
         />
         <SaveReport

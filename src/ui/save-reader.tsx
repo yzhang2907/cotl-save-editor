@@ -1,4 +1,4 @@
-import { FileLock2, Save, UserX } from "lucide-react";
+import { FileLock2, Save, Trash2, UserX } from "lucide-react";
 import { useState, type ChangeEvent, type DragEvent } from "react";
 
 import {
@@ -12,6 +12,7 @@ import "./save-reader.css";
 interface SaveReaderProps {
   loadedFileName: string | null;
   onFile: (file: File) => void;
+  onRemove: () => void;
   saveId: number | null;
 }
 
@@ -22,6 +23,7 @@ function firstFile(files: FileList | null): File | null {
 export function SaveReader({
   loadedFileName,
   onFile,
+  onRemove,
   saveId,
 }: SaveReaderProps) {
   const [dragging, setDragging] = useState(false);
@@ -86,13 +88,23 @@ export function SaveReader({
             </svg>
           </span>
           <strong>{loadedFileName} successfully loaded</strong>
-          <button
-            className="chip-button"
-            onClick={() => setDismissedSaveId(saveId)}
-            type="button"
-          >
-            Choose another save
-          </button>
+          <div className="save-loaded-actions">
+            <button
+              className="chip-button"
+              onClick={() => setDismissedSaveId(saveId)}
+              type="button"
+            >
+              Choose another save
+            </button>
+            <button
+              className="chip-button ghost-button"
+              onClick={onRemove}
+              type="button"
+            >
+              <Trash2 aria-hidden="true" size={13} strokeWidth={3} />
+              Remove
+            </button>
+          </div>
         </div>
       ) : (
         <label

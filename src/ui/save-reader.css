@@ -132,8 +132,15 @@
 }
 
 .drop-zone > span:last-child,
-.save-loaded .chip-button {
+.save-loaded-actions {
   align-self: center;
+}
+
+.save-loaded-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
 }
 
 .save-rules {
@@ -223,7 +230,7 @@
   text-align: center;
 }
 
-.save-loaded .chip-button {
+.save-loaded-actions {
   z-index: 1;
 }
 

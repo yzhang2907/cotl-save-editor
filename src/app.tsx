@@ -105,6 +105,17 @@ export function App() {
    * can be moved or deleted on disk between the edit and the refresh, and a
    * restored session still has to work.
    */
+  const removeSave = useCallback((): void => {
+    const opened = openedSaveRef.current;
+    if (opened === null) {
+      return;
+    }
+    requestId.current += 1;
+    setOpenedSave(null);
+    void clearCachedSession();
+    showToast(`Removed ${opened.file.name}.`, "ready");
+  }, [showToast]);
+
   const rememberEdits = useCallback(
     (edits: {
       cultEdits: CultEdits;
@@ -177,6 +188,7 @@ export function App() {
         <SaveReader
           loadedFileName={openedSave?.file.name ?? null}
           onFile={(file) => void inspectFile(file)}
+          onRemove={removeSave}
           saveId={openedSave?.id ?? null}
         />
 
