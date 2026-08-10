@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { MessagePackSource } from "../save/types";
 import type { ToastKind } from "./action-toast";
@@ -6,6 +6,7 @@ import {
   UNCHANGED_REBUILD_DISCLOSURE_LABEL,
   UNCHANGED_REBUILD_DOWNLOAD_LABEL,
 } from "./copy";
+import { errorMessage } from "./error-message";
 import { downloadLocalFile } from "./local-download";
 
 interface UnchangedRebuildProps {
@@ -29,6 +30,12 @@ export function UnchangedRebuild({
 }: UnchangedRebuildProps) {
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    // Warm the encoder module so a redeploy cannot delete its chunk
+    // out from under an already-open tab.
+    void import("../save/encode").catch(() => undefined);
+  }, []);
+
   async function download(): Promise<void> {
     setBusy(true);
     onNotice("Rebuilding the save locally…", "loading");
@@ -39,9 +46,10 @@ export function UnchangedRebuild({
       downloadLocalFile(encoded, outputName);
       onNotice(`Downloaded ${outputName}.`, "ready");
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown error.";
-      onNotice(`The test copy could not be created: ${message}`, "error");
+      onNotice(
+        `The test copy could not be created: ${errorMessage(error)}`,
+        "error",
+      );
     } finally {
       setBusy(false);
     }

@@ -16,6 +16,7 @@ import {
   EDITED_SAVE_SUBSECTION_TITLE,
   NO_EDITED_SAVE_CHANGES_LABEL,
 } from "./copy";
+import { errorMessage } from "./error-message";
 import { downloadLocalFile } from "./local-download";
 import type { PendingSaveChange } from "./pending-save-changes";
 import { StepHeader } from "./step-header";
@@ -61,6 +62,12 @@ export function EditedSaveDownload({
     backupConfirmed &&
     gameClosed &&
     requiredDlcKeys.every((key) => confirmedDlcs[key] === true);
+
+  useEffect(() => {
+    // Warm the export module so a redeploy cannot delete its chunk out
+    // from under a tab that already has changes staged.
+    void import("../save/current-save").catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     requestId.current += 1;
@@ -128,8 +135,7 @@ export function EditedSaveDownload({
       if (requestId.current !== currentRequest) {
         return;
       }
-      const message =
-        error instanceof Error ? error.message : "Unknown error.";
+      const message = errorMessage(error);
       setFailure(message);
       onNotice(`The download was stopped: ${message}`, "error");
     } finally {

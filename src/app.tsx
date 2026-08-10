@@ -7,6 +7,7 @@ import {
   ActionToast,
   type ToastKind,
 } from "./ui/action-toast";
+import { errorMessage } from "./ui/error-message";
 import { Hero, PageFooter, Topbar } from "./ui/page-chrome";
 import { SaveReport } from "./ui/save-report";
 import { SaveReader } from "./ui/save-reader";
@@ -80,9 +81,7 @@ export function App() {
         if (requestId.current !== currentRequest) {
           return;
         }
-        const message =
-          error instanceof Error ? error.message : "Unknown error.";
-        showToast(message, "error");
+        showToast(errorMessage(error), "error");
       } finally {
         window.clearTimeout(loadingTimer);
       }
