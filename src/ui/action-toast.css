@@ -18,27 +18,43 @@
   align-items: center;
   gap: 0.7rem;
   padding: 0.8rem 0.85rem;
-  border: 3px solid var(--ink);
+  border: 3px solid var(--orange);
   border-radius: 8px 5px 10px 6px;
-  background: var(--orange);
+  background: var(--ink);
   box-shadow: 5px 6px 0 var(--shadow-ink);
-  color: var(--ink);
+  color: var(--bone);
   animation: toast-enter 160ms ease-out both;
   font-weight: 900;
   transform: rotate(-1deg);
 }
 
+/* The dark card body stays constant; the border and icon carry the state. */
+.action-toast .action-toast-icon {
+  color: var(--orange);
+}
+
 .action-toast.loading {
-  background: var(--gold);
+  border-color: var(--gold);
+}
+
+.action-toast.loading .action-toast-icon {
+  color: var(--gold);
 }
 
 .action-toast.ready {
-  background: var(--bone);
+  border-color: var(--bone);
+}
+
+.action-toast.ready .action-toast-icon {
+  color: var(--bone);
 }
 
 .action-toast.error {
-  background: var(--red);
-  color: var(--bone);
+  border-color: var(--red);
+}
+
+.action-toast.error .action-toast-icon {
+  color: var(--red);
 }
 
 .action-toast-icon {
@@ -75,7 +91,7 @@
 }
 
 .action-toast-dismiss:hover {
-  background: rgb(23 18 20 / 14%);
+  background: var(--wash-bone-strong);
   transform: rotate(7deg) scale(1.08);
 }
 
