@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { analyzeSave } from "../src/save/analyze";
+import { encodeVerifiedModifiedCurrentSave } from "../src/save/current-save";
 import { decodeSave } from "../src/save/decode";
 import {
   assessDoctrineEditing,
@@ -110,6 +111,55 @@ describeSaveCopy("real save copy", () => {
             ],
       ),
     ).toEqual([]);
+  });
+
+  it("writes a follower field edit and reopens it intact", async () => {
+    const decoded = await decodeSave(
+      await readSaveCopy(saveCopyPath as string),
+    );
+    if (!decoded.messagePack) {
+      throw new Error("Expected raw MessagePack source data.");
+    }
+    const original = decoded.data;
+    const originalFollowers = original.Followers as Array<
+      Record<string, unknown>
+    >;
+    if (originalFollowers[0] === undefined) {
+      throw new Error("The save copy has no followers to edit.");
+    }
+    const followers = originalFollowers.map((follower, index) =>
+      index === 0
+        ? {
+            ...follower,
+            XPLevel: 9,
+            _happiness: 100,
+            _name: "Roundtrip",
+          }
+        : follower,
+    );
+    const working = { ...original, Followers: followers };
+    const first = followers[0] as Record<string, unknown>;
+
+    const written = await encodeVerifiedModifiedCurrentSave(
+      decoded.messagePack,
+      original,
+      working,
+    );
+    const reopened = await decodeSave(
+      new Uint8Array(written).slice().buffer,
+    );
+    const reopenedFollowers = reopened.data.Followers as Array<
+      Record<string, unknown>
+    >;
+
+    expect(reopenedFollowers[0]).toMatchObject({
+      XPLevel: 9,
+      _happiness: 100,
+      _name: "Roundtrip",
+    });
+    expect(reopenedFollowers[0]?.ID).toBe(first.ID);
+    expect(reopenedFollowers.length).toBe(followers.length);
+    expect(reopened.data.Followers_Dead).toEqual(original.Followers_Dead);
   });
 
   it.runIf(rebuiltSaveCopyPath)(

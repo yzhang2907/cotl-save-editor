@@ -101,17 +101,24 @@ pair in the real save.
   "State of mind" via `FOLLOWER_THOUGHTS` (146 = Old Age, 392 = Just
   Hatched), confirming the loose end below.
 
-### 3. Write side: positional raw mapping
+### 3. Write side: positional raw mapping — DONE
 
-- `messagePackSubfieldIndex("slot", "Followers", …)` already exists —
-  the same mechanism `items` uses.
-- Extend `current-save.ts` with a `Followers` position and a
-  per-entry subfield allowlist, mirroring `plannedItemsValue`: fixed
-  entry count, unapproved subfields rejected, raw layout asserted
+- `current-save.ts` maps a `Followers` position and plans per-entry
+  replacements via `plannedFollowersValue`, mirroring
+  `plannedItemsValue`: fixed entry count (add/remove/resurrect
+  rejected), unapproved subfields rejected, raw layout asserted
   before replacement.
-- Start with a deliberately narrow allowlist — name, `XPLevel`, `Age`,
-  `_happiness`, `_satiation`, `_illness`, appearance fields, traits —
-  and grow it only after in-game checks pass.
+- Allowlist (`FOLLOWER_EDITABLE_SUBFIELDS`): `_name`, `XPLevel`,
+  `Age`, `_happiness`, `_satiation`, `_illness`, appearance fields
+  (skin variation/colour, hat, outfit, clothing and variants,
+  necklace, customisation, special), and `Traits` — each validated
+  against the follower catalogs or value ranges.
+- Nested keyed subfields (Thoughts, Relationships, Inventory, …)
+  decode into records, so the layout assertion skips them
+  (`messagePackNestedSubfields`); they are never editable and pass
+  through raw untouched.
+- Covered by unit tests and a gated real-save roundtrip that edits a
+  follower, re-encrypts, and reopens the file.
 
 ### 4. Edit staging and UI
 

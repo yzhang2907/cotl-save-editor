@@ -22,6 +22,7 @@ import {
 import {
   decodeMessagePackPayload,
   messagePackFieldPosition,
+  messagePackSubfieldIndex,
   replaceMessagePackPositions,
   verifyMessagePackPositions,
 } from "../src/save/messagepack";
@@ -70,6 +71,7 @@ const numericKeyMap = Uint8Array.of(
 async function currentSource(options: {
   cultTraits?: number[];
   doctrineIds?: number[];
+  followers?: unknown[];
   items?: unknown[];
   postgameDualChoice?: boolean;
   upgradeIds?: number[];
@@ -105,6 +107,9 @@ async function currentSource(options: {
   rawData[requiredSlotPosition("CultName")] = TEST_CULT_NAME;
   if (options.items !== undefined) {
     rawData[requiredSlotPosition("items")] = options.items;
+  }
+  if (options.followers !== undefined) {
+    rawData[requiredSlotPosition("Followers")] = options.followers;
   }
   rawData[UNKNOWN_SLOT_POSITION] = [];
 
@@ -541,5 +546,204 @@ describe("modified current save writer", () => {
     await expect(
       encodeVerifiedModifiedCurrentSave(source, original, original),
     ).rejects.toThrow("There are no current-save changes to write");
+  });
+});
+
+const RAW_FOLLOWER_LENGTH = 192;
+
+function followerIndex(subfield: string): number {
+  const index = messagePackSubfieldIndex("slot", "Followers", subfield);
+  if (index === null) {
+    throw new Error(`Followers.${subfield} has no raw index.`);
+  }
+  return index;
+}
+
+function rawFollower(fields: Record<string, unknown>): unknown[] {
+  const entry = Array.from<unknown>({
+    length: RAW_FOLLOWER_LENGTH,
+  }).fill(null);
+  for (const [subfield, value] of Object.entries(fields)) {
+    entry[followerIndex(subfield)] = value;
+  }
+  return entry;
+}
+
+const TEST_FOLLOWERS = [
+  rawFollower({
+    Age: 20,
+    Hat: 0,
+    ID: 7,
+    Necklace: 47,
+    Outfit: 7,
+    Traits: [6, 16],
+    XPLevel: 3,
+    _happiness: 60,
+    _name: "Webb",
+    _satiation: 80,
+  }),
+  rawFollower({
+    Age: 44,
+    Hat: 0,
+    ID: 9,
+    Necklace: 0,
+    Outfit: 7,
+    Traits: [2],
+    XPLevel: 1,
+    _happiness: 40,
+    _name: "Mola",
+    _satiation: 30,
+  }),
+];
+
+function followerWorkingCopy(
+  original: Record<string, unknown>,
+  edit: (follower: Record<string, unknown>) => void,
+  position = 0,
+): Record<string, unknown> {
+  const working = structuredClone(original);
+  const followers = working.Followers as Array<Record<string, unknown>>;
+  const follower = followers[position];
+  if (follower === undefined) {
+    throw new Error(`No follower fixture at position ${position}.`);
+  }
+  edit(follower);
+  return working;
+}
+
+describe("modified current save follower writer", () => {
+  it("writes allowed follower field edits and keeps other entries", async () => {
+    const { original, source } = await currentSource({
+      followers: TEST_FOLLOWERS,
+    });
+    const working = followerWorkingCopy(original, (follower) => {
+      follower._name = "Webbington";
+      follower.XPLevel = 10;
+      follower._happiness = 100;
+      follower.Traits = [6, 16, 32];
+      follower.Hat = 3;
+    });
+
+    const written = await encodeVerifiedModifiedCurrentSave(
+      source,
+      original,
+      working,
+      { key: TEST_AES_KEY, iv: TEST_AES_IV },
+    );
+    const reopened = await decodeSave(exactBuffer(written));
+    const followers = reopened.data.Followers as Array<
+      Record<string, unknown>
+    >;
+
+    expect(followers[0]).toMatchObject({
+      Hat: 3,
+      Traits: [6, 16, 32],
+      XPLevel: 10,
+      _happiness: 100,
+      _name: "Webbington",
+    });
+    expect(followers[0]?.Age).toBe(20);
+    expect(followers[1]).toMatchObject({
+      Age: 44,
+      _name: "Mola",
+    });
+  });
+
+  it("rejects a change to an unapproved follower field", async () => {
+    const { original, source } = await currentSource({
+      followers: TEST_FOLLOWERS,
+    });
+    const working = followerWorkingCopy(original, (follower) => {
+      follower.ID = 999;
+    });
+
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, working),
+    ).rejects.toThrow("unapproved follower field ID of entry 0");
+  });
+
+  it("rejects added or removed follower entries", async () => {
+    const { original, source } = await currentSource({
+      followers: TEST_FOLLOWERS,
+    });
+    const added = structuredClone(original);
+    (added.Followers as unknown[]).push(
+      structuredClone((added.Followers as unknown[])[0]),
+    );
+    const removed = structuredClone(original);
+    (removed.Followers as unknown[]).pop();
+
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, added),
+    ).rejects.toThrow("changed the number of follower entries");
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, removed),
+    ).rejects.toThrow("changed the number of follower entries");
+  });
+
+  it("rejects values outside the allowlist rules", async () => {
+    const { original, source } = await currentSource({
+      followers: TEST_FOLLOWERS,
+    });
+
+    const unknownTrait = followerWorkingCopy(original, (follower) => {
+      follower.Traits = [6, 424242];
+    });
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, unknownTrait),
+    ).rejects.toThrow(
+      "field Traits must be a list of catalogued trait ids",
+    );
+
+    const overfedHappiness = followerWorkingCopy(original, (follower) => {
+      follower._happiness = 150;
+    });
+    await expect(
+      encodeVerifiedModifiedCurrentSave(
+        source,
+        original,
+        overfedHappiness,
+      ),
+    ).rejects.toThrow(
+      "field _happiness must be a number between 0 and 100",
+    );
+
+    const blankName = followerWorkingCopy(original, (follower) => {
+      follower._name = "   ";
+    });
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, blankName),
+    ).rejects.toThrow("field _name must be non-empty text");
+
+    const unknownHat = followerWorkingCopy(original, (follower) => {
+      follower.Hat = 4242;
+    });
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, unknownHat),
+    ).rejects.toThrow("field Hat must be a catalogued id");
+  });
+
+  it("stops when the raw follower layout no longer matches", async () => {
+    const { original, source } = await currentSource({
+      followers: TEST_FOLLOWERS,
+    });
+    const working = followerWorkingCopy(original, (follower) => {
+      follower.XPLevel = 10;
+    });
+    const followersPosition = requiredSlotPosition("Followers");
+    const tamperedRaw = structuredClone(source.rawData);
+    const entries = tamperedRaw[followersPosition] as unknown[][];
+    const firstEntry = entries[0];
+    if (firstEntry === undefined) {
+      throw new Error("Missing raw follower fixture.");
+    }
+    firstEntry[followerIndex("Age")] = 999;
+    const tampered = { ...source, rawData: tamperedRaw };
+
+    await expect(
+      encodeVerifiedModifiedCurrentSave(tampered, original, working),
+    ).rejects.toThrow(
+      "Follower entry 0 no longer matches raw MessagePack field Age",
+    );
   });
 });

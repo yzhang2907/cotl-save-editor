@@ -1,9 +1,20 @@
+import { ITEM_NAMES } from "./catalogs";
 import { decodeSave } from "./decode";
 import type { DoctrineStorageField } from "./doctrine-editor";
+import {
+  FOLLOWER_CLOTHING,
+  FOLLOWER_CUSTOMISATIONS,
+  FOLLOWER_HATS,
+  FOLLOWER_OUTFITS,
+  FOLLOWER_SPECIALS,
+  FOLLOWER_TRAITS,
+  type FollowerCatalog,
+} from "./follower-catalogs";
 import { encodeMessagePackSave } from "./encode";
 import type { EncryptionOptions } from "./encryption";
 import {
   messagePackFieldPosition,
+  messagePackNestedSubfields,
   messagePackRawValuesMatch,
   messagePackSubfieldIndex,
   replaceMessagePackPositions,
@@ -12,7 +23,11 @@ import {
 import type { MessagePackSource, SaveRecord } from "./types";
 
 type CurrentDoctrineField = Exclude<DoctrineStorageField, "CultTrait">;
-type CurrentEditableField = CurrentDoctrineField | "CultName" | "items";
+type CurrentEditableField =
+  | CurrentDoctrineField
+  | "CultName"
+  | "Followers"
+  | "items";
 
 export class CurrentSaveWriteError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -52,6 +67,7 @@ export const CURRENT_DOCTRINE_FIELD_POSITIONS = {
 export const CURRENT_EDITABLE_FIELD_POSITIONS = {
   ...CURRENT_DOCTRINE_FIELD_POSITIONS,
   CultName: requiredSlotPosition("CultName"),
+  Followers: requiredSlotPosition("Followers"),
   items: requiredSlotPosition("items"),
 } as const satisfies Record<CurrentEditableField, number>;
 
@@ -304,6 +320,232 @@ function plannedItemsValue(
   return changed ? replacement : null;
 }
 
+type FollowerSubfieldCheck = (value: unknown) => string | null;
+
+function wholeNumberCheck(value: unknown): string | null {
+  return typeof value === "number" &&
+      Number.isSafeInteger(value) &&
+      value >= 0
+    ? null
+    : "must be a whole non-negative number";
+}
+
+function percentCheck(value: unknown): string | null {
+  return typeof value === "number" &&
+      Number.isFinite(value) &&
+      value >= 0 &&
+      value <= 100
+    ? null
+    : "must be a number between 0 and 100";
+}
+
+function textCheck(value: unknown): string | null {
+  return typeof value === "string" ? null : "must be text";
+}
+
+function catalogCheck(catalog: FollowerCatalog): FollowerSubfieldCheck {
+  return (value) =>
+    typeof value === "number" && catalog[value] !== undefined
+      ? null
+      : "must be a catalogued id";
+}
+
+/**
+ * The deliberately narrow allowlist of follower fields the writer may
+ * change; it only grows after edits to a field survive in-game checks.
+ */
+const FOLLOWER_EDITABLE_SUBFIELDS: Readonly<
+  Record<string, FollowerSubfieldCheck>
+> = {
+  Age: wholeNumberCheck,
+  Clothing: catalogCheck(FOLLOWER_CLOTHING),
+  ClothingPreviousVariant: textCheck,
+  ClothingVariant: textCheck,
+  Customisation: catalogCheck(FOLLOWER_CUSTOMISATIONS),
+  Hat: catalogCheck(FOLLOWER_HATS),
+  Necklace: (value) =>
+    value === 0 ||
+    (typeof value === "number" && ITEM_NAMES[value] !== undefined)
+      ? null
+      : "must be 0 or a known inventory item id",
+  Outfit: catalogCheck(FOLLOWER_OUTFITS),
+  ShowingNecklace: (value) =>
+    typeof value === "boolean" ? null : "must be true or false",
+  SkinColour: wholeNumberCheck,
+  SkinVariation: wholeNumberCheck,
+  Special: catalogCheck(FOLLOWER_SPECIALS),
+  Traits: (value) => {
+    if (
+      !Array.isArray(value) ||
+      !value.every(
+        (trait) =>
+          typeof trait === "number" &&
+          FOLLOWER_TRAITS[trait] !== undefined,
+      )
+    ) {
+      return "must be a list of catalogued trait ids";
+    }
+    return new Set(value).size === value.length
+      ? null
+      : "must not repeat a trait";
+  },
+  XPLevel: wholeNumberCheck,
+  _happiness: percentCheck,
+  _illness: percentCheck,
+  _name: (value) =>
+    typeof value === "string" && value.trim() !== ""
+      ? null
+      : "must be non-empty text",
+  _satiation: percentCheck,
+};
+
+function requiredFollowerIndex(subfield: string): number {
+  const index = messagePackSubfieldIndex("slot", "Followers", subfield);
+  if (index === null) {
+    throw new CurrentSaveWriteError(
+      `The supported MessagePack schema does not map Followers.${subfield}.`,
+    );
+  }
+  return index;
+}
+
+function followerRecord(value: unknown, position: number): SaveRecord {
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    Array.isArray(value)
+  ) {
+    throw new CurrentSaveWriteError(
+      `Follower entry ${position} is not a record.`,
+    );
+  }
+  return value as SaveRecord;
+}
+
+// Nested keyed structures (Thoughts, Relationships, and so on) decode
+// into records, so their raw arrays cannot be compared field-for-field.
+// They are never editable and their raw values pass through untouched.
+const NESTED_FOLLOWER_SUBFIELDS = messagePackNestedSubfields(
+  "slot",
+  "Followers",
+);
+
+function assertRawFollowerMatches(
+  rawEntry: unknown,
+  record: SaveRecord,
+  position: number,
+): asserts rawEntry is unknown[] {
+  const keys = Object.keys(record);
+  if (!Array.isArray(rawEntry) || rawEntry.length !== keys.length) {
+    throw new CurrentSaveWriteError(
+      `Follower entry ${position} no longer matches its raw MessagePack layout.`,
+    );
+  }
+  for (const key of keys) {
+    if (NESTED_FOLLOWER_SUBFIELDS.has(key)) {
+      continue;
+    }
+    if (
+      !messagePackRawValuesMatch(
+        rawEntry[requiredFollowerIndex(key)],
+        record[key],
+      )
+    ) {
+      throw new CurrentSaveWriteError(
+        `Follower entry ${position} no longer matches raw MessagePack field ${key}.`,
+      );
+    }
+  }
+}
+
+function plannedFollowersValue(
+  rawFollowers: unknown,
+  originalFollowers: unknown,
+  workingFollowers: unknown,
+): unknown[] | null {
+  if (
+    !Array.isArray(rawFollowers) ||
+    !Array.isArray(originalFollowers) ||
+    !Array.isArray(workingFollowers)
+  ) {
+    throw new CurrentSaveWriteError(
+      "Followers is not a complete follower array.",
+    );
+  }
+  // Adding, removing, or resurrecting followers is deferred: a follower
+  // is referenced from many other save fields, so only field edits on
+  // the existing entries are allowed.
+  if (
+    rawFollowers.length !== originalFollowers.length ||
+    workingFollowers.length !== originalFollowers.length
+  ) {
+    throw new CurrentSaveWriteError(
+      "The working copy changed the number of follower entries.",
+    );
+  }
+
+  let changed = false;
+  const replacement = rawFollowers.map((rawEntry, position) => {
+    const originalRecord = followerRecord(
+      originalFollowers[position],
+      position,
+    );
+    const workingRecord = followerRecord(
+      workingFollowers[position],
+      position,
+    );
+    assertRawFollowerMatches(rawEntry, originalRecord, position);
+
+    const originalKeys = Object.keys(originalRecord);
+    const workingKeys = Object.keys(workingRecord);
+    if (
+      originalKeys.length !== workingKeys.length ||
+      !originalKeys.every((key, index) => key === workingKeys[index])
+    ) {
+      throw new CurrentSaveWriteError(
+        `The working copy changed the fields of follower entry ${position}.`,
+      );
+    }
+
+    const changedKeys = originalKeys.filter(
+      (key) =>
+        !messagePackRawValuesMatch(
+          originalRecord[key],
+          workingRecord[key],
+        ),
+    );
+    if (changedKeys.length === 0) {
+      return rawEntry;
+    }
+    for (const key of changedKeys) {
+      const check = FOLLOWER_EDITABLE_SUBFIELDS[key];
+      if (check === undefined) {
+        throw new CurrentSaveWriteError(
+          `The working copy changed unapproved follower field ${key} of entry ${position}.`,
+        );
+      }
+      const problem = check(workingRecord[key]);
+      if (problem !== null) {
+        throw new CurrentSaveWriteError(
+          `Follower entry ${position} field ${key} ${problem}.`,
+        );
+      }
+    }
+
+    changed = true;
+    const edited = rawEntry.slice();
+    for (const key of changedKeys) {
+      const value = workingRecord[key];
+      edited[requiredFollowerIndex(key)] = Array.isArray(value)
+        ? value.slice()
+        : value;
+    }
+    return edited;
+  });
+
+  return changed ? replacement : null;
+}
+
 function plannedReplacements(
   source: MessagePackSource,
   original: SaveRecord,
@@ -372,6 +614,18 @@ function plannedReplacements(
     );
     if (plannedItems !== null) {
       replacements.set(itemsPosition, plannedItems);
+    }
+  }
+
+  const followersPosition = CURRENT_EDITABLE_FIELD_POSITIONS.Followers;
+  if (!messagePackRawValuesMatch(original.Followers, working.Followers)) {
+    const plannedFollowers = plannedFollowersValue(
+      source.rawData[followersPosition],
+      original.Followers,
+      working.Followers,
+    );
+    if (plannedFollowers !== null) {
+      replacements.set(followersPosition, plannedFollowers);
     }
   }
 

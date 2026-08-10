@@ -555,6 +555,31 @@ export function messagePackSubfieldIndex(
   return matches[0] ?? null;
 }
 
+export function messagePackNestedSubfields(
+  schema: MessagePackSchema,
+  field: string,
+): Set<string> {
+  const descriptor = Object.values(schemaKeys[schema]).find(
+    (candidate) =>
+      typeof candidate !== "string" && candidate.name === field,
+  );
+  const nested = new Set<string>();
+  if (
+    descriptor === undefined ||
+    typeof descriptor === "string" ||
+    !Array.isArray(descriptor.keys) ||
+    descriptor.keys[0] === undefined
+  ) {
+    return nested;
+  }
+  for (const entry of Object.values(descriptor.keys[0])) {
+    if (typeof entry !== "string") {
+      nested.add(entry.name);
+    }
+  }
+  return nested;
+}
+
 export function replaceMessagePackPositions(
   source: MessagePackSource,
   replacements: ReadonlyMap<number, unknown>,
