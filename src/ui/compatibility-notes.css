@@ -1,0 +1,25 @@
+/* Styles for CompatibilityNotes. */
+
+.warnings {
+  padding: 0.8rem 1.1rem 0.85rem;
+  border-radius: 8px 11px 7px 10px;
+  background: rgb(242 201 76 / 8%);
+  color: var(--bone);
+}
+
+.warnings h3 {
+  margin-bottom: 0.35rem;
+  color: var(--gold);
+  font-family: "Nunito", "Trebuchet MS", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.warnings ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--bone-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+}

@@ -252,6 +252,15 @@
   color: var(--gold);
 }
 
+.catalog-warning {
+  margin: 0.65rem 0 0;
+  padding: 0.65rem 0.8rem;
+  border-left: 4px solid var(--gold);
+  background: rgb(242 201 76 / 9%);
+  color: var(--gold);
+  font-weight: 800;
+}
+
 @media (hover: none) {
   .doctrine-choice-state {
     opacity: 1;

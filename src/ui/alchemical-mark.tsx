@@ -1,3 +1,5 @@
+import "./alchemical-mark.css";
+
 type AlchemicalMarkKind = "black-sulfur" | "salt" | "sulfur";
 
 interface AlchemicalMarkProps {

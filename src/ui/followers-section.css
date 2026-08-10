@@ -1,0 +1,84 @@
+/* Styles for FollowersSection: the follower table and its status chips. */
+
+.follower-list {
+  display: grid;
+}
+
+.follower-row {
+  display: grid;
+  grid-template-columns:
+    minmax(140px, 1.5fr) minmax(50px, 0.5fr) minmax(70px, 0.65fr)
+    minmax(55px, 0.5fr) minmax(55px, 0.5fr) minmax(110px, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 0.7rem 0.4rem;
+  border-bottom: 1px solid #3e3741;
+  color: var(--bone);
+  font-size: 0.82rem;
+}
+
+.follower-row:last-child {
+  border-bottom: 0;
+}
+
+.follower-labels {
+  padding-top: 0;
+  color: var(--red);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.follower-name {
+  min-width: 0;
+}
+
+.follower-name strong,
+.follower-name small {
+  display: block;
+}
+
+.follower-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.follower-name small {
+  color: var(--bone-muted);
+  font-size: 0.68rem;
+}
+
+.follower-statuses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.follower-statuses span {
+  padding: 0.24rem 0.48rem;
+  border: 1px solid var(--line-mid);
+  border-radius: 999px;
+  background: var(--night-raised);
+  color: var(--bone);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+@media (max-width: 620px) {
+  .follower-labels {
+    display: none;
+  }
+
+  .follower-row:not(.follower-labels) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.45rem;
+  }
+
+  .follower-row .follower-name,
+  .follower-row .follower-statuses {
+    grid-column: 1 / -1;
+  }
+}

@@ -6,6 +6,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect } from "react";
+import "./action-toast.css";
 
 export type ToastKind = "error" | "info" | "loading" | "ready";
 

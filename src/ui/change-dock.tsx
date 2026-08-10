@@ -4,6 +4,7 @@ import {
   GO_TO_DOWNLOAD_LABEL,
   viewPendingChangesLabel,
 } from "./copy";
+import "./change-dock.css";
 
 interface ChangeDockProps {
   changeCount: number;

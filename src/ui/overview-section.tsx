@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { READ_ONLY_LABEL } from "./copy";
+import "./overview-section.css";
 
 interface OverviewSectionProps {
   children: ReactNode;

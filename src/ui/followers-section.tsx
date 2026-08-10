@@ -1,6 +1,7 @@
 import type { FollowerOverview } from "../save/overview";
 import { displayPercent } from "./overview-format";
 import { OverviewSection } from "./overview-section";
+import "./followers-section.css";
 
 function FollowerRow({ follower }: { follower: FollowerOverview }) {
   return (

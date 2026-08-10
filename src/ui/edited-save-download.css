@@ -1,0 +1,162 @@
+/* Styles for EditedSaveDownload: the final step, its review dialog contents,
+   and the install and recovery notes. The dialog frame and the disclosure
+   are shared recipes from styles.css. */
+
+.modified-save-check {
+  display: block;
+  scroll-margin-top: 1.5rem;
+}
+
+.modified-save-check h3 {
+  margin-bottom: 0.25rem;
+  color: var(--bone);
+  font-size: 1.45rem;
+}
+
+.modified-save-check > .step-header {
+  margin-bottom: 1.5rem;
+}
+
+.modified-save-check h4 {
+  margin: 0 0 0.55rem;
+  color: var(--bone);
+  font-size: 0.95rem;
+}
+
+.edited-save-download-intro {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.edited-save-download-intro p {
+  margin-bottom: 0;
+  color: var(--bone-muted);
+  font-size: 0.88rem;
+}
+
+.edited-save-download-intro > div {
+  min-width: 0;
+}
+
+.edited-save-review-button {
+  white-space: nowrap;
+}
+
+.final-doctrine-changes ol,
+.edited-save-install ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.final-doctrine-changes li + li,
+.edited-save-install li + li {
+  margin-top: 0.45rem;
+}
+
+.final-doctrine-changes li span,
+.final-doctrine-changes li strong {
+  display: block;
+}
+
+.final-doctrine-changes li span {
+  color: var(--bone-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.final-doctrine-changes li strong {
+  color: var(--bone);
+  font-size: 0.8rem;
+}
+
+.final-doctrine-changes,
+.edited-save-safety {
+  margin-top: 1.2rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.edited-save-safety .steam-cloud-warning {
+  margin: 0 0 0.75rem;
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.edited-save-safety label {
+  display: grid;
+  align-items: start;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: 0.55rem;
+  color: var(--bone);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.edited-save-safety label + label {
+  margin-top: 0.55rem;
+}
+
+.edited-save-safety input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.08rem 0 0;
+  accent-color: var(--red);
+}
+
+.edited-save-install {
+  margin-top: 1.35rem;
+}
+
+.edited-save-install li {
+  color: var(--bone-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.edited-save-install code {
+  color: var(--gold);
+}
+
+/* The recovery notes are a .diagnostic-disclosure, so the shared disclosure
+   rule already sets the top margin; only the body needs anything here. */
+.edited-save-recovery-body {
+  max-width: 850px;
+  padding-left: 0.15rem;
+}
+
+.edited-save-recovery p {
+  margin: 0.5rem 0 0;
+  color: var(--bone-muted);
+  font-size: 0.76rem;
+}
+
+.edited-save-recovery strong {
+  color: var(--bone);
+}
+
+.edited-save-issue-link {
+  margin-top: 0.8rem;
+  text-decoration: none;
+}
+
+.edited-save-modal-error {
+  margin: 1rem 0 0;
+  color: var(--red);
+  font-weight: 900;
+}
+
+@media (max-width: 620px) {
+  .edited-save-review-button {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .edited-save-download-intro {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

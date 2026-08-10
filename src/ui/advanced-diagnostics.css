@@ -1,0 +1,38 @@
+/* Styles for AdvancedDiagnostics and its decoded-payload preview. The
+   disclosure itself is the shared .diagnostic-disclosure recipe. */
+
+.advanced-diagnostics {
+  margin-top: 1.5rem;
+  padding: 1.5rem 0.25rem 0;
+  border-top: 2px solid var(--line);
+}
+
+.advanced-diagnostics h3 {
+  margin-bottom: 0.25rem;
+  color: var(--bone);
+  font-size: 1.45rem;
+}
+
+.advanced-diagnostics > p {
+  margin: 0;
+  color: var(--bone-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.preview-copy-button {
+  margin: 0.6rem 0;
+}
+
+.preview pre {
+  max-height: 28rem;
+  overflow: auto;
+  margin-bottom: 0;
+  padding: 1.25rem;
+  border: 2px solid var(--line);
+  border-radius: 10px;
+  background: var(--shadow-ink);
+  color: #d8ccb6;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}

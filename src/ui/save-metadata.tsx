@@ -2,6 +2,7 @@ import type {
   SaveCompatibilityReport,
   SaveFormat,
 } from "../save/types";
+import "./save-metadata.css";
 
 interface SaveMetadataProps {
   file: File;

@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import "./pending-changes.css";
 
 export interface PendingChangeItem {
   key: string;

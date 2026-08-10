@@ -5,8 +5,10 @@ import "@fontsource/nunito/latin-900.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
-import { App } from "./app";
+// Imported ahead of the app so the base sheet — tokens, element defaults, and
+// the shared recipes — is emitted before the component sheets that override it.
 import "./styles.css";
+import { App } from "./app";
 
 const rootElement = document.querySelector("#app");
 if (!rootElement) {

@@ -1,0 +1,73 @@
+/* Styles for StepHeader: the numbered seal, eyebrow, and title of each step. */
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.step-header > div {
+  flex: 1;
+}
+
+.step-header p {
+  color: var(--bone-muted);
+}
+
+.step-header .step-eyebrow {
+  color: var(--bone-muted);
+}
+
+.step {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 3px solid var(--bone);
+  border-radius: 51% 49% 45% 55%;
+  background: var(--red);
+  color: var(--ink);
+  font-family: "Lilita One", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transform: rotate(-5deg);
+}
+
+h2 {
+  margin-bottom: 0.3rem;
+  color: var(--bone);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  letter-spacing: 0.015em;
+  line-height: 1;
+}
+
+.step-header .step-description {
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 620px) {
+  .step-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 430px) {
+  .step-header {
+    gap: 0.8rem;
+  }
+
+  .step {
+    width: 43px;
+    height: 43px;
+    font-size: 1.1rem;
+  }
+
+  h2 {
+    font-size: 1.95rem;
+  }
+}

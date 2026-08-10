@@ -1,0 +1,31 @@
+/* Styles for AlchemicalMark and DoubleBarInvertedCross. Callers position the
+   marks; these rules only carry the drawing itself. */
+
+.alchemy-mark {
+  position: absolute;
+  z-index: 2;
+  width: 42px;
+  height: 48px;
+  overflow: visible;
+  color: var(--ink);
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+  filter: drop-shadow(2px 2px 0 rgb(245 234 208 / 50%));
+}
+
+.eyebrow-mark {
+  width: 17px;
+  height: 23px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+
+.eyebrow-mark:last-child {
+  transform: scaleX(-1) rotate(-3deg);
+}

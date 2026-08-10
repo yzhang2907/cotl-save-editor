@@ -3,6 +3,7 @@ import type {
   SaveCompatibilityReport,
   SaveFormat,
 } from "../save/types";
+import "./compatibility-notes.css";
 
 interface CompatibilityNotesProps {
   fileName: string;

@@ -8,6 +8,7 @@ import {
 } from "./copy";
 import { errorMessage } from "./error-message";
 import { downloadLocalFile } from "./local-download";
+import "./unchanged-rebuild.css";
 
 interface UnchangedRebuildProps {
   file: File;

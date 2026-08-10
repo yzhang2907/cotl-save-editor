@@ -23,6 +23,7 @@ import {
   type ResourceEditRequest,
 } from "./resources-section";
 import { RitualsSection } from "./rituals-section";
+import "./cult-overview.css";
 
 export interface CultEditingProps {
   addableItems: AddableItem[];

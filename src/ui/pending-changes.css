@@ -1,0 +1,103 @@
+/* Styles for PendingChanges: the list of edits queued against the save. */
+
+.pending-changes {
+  scroll-margin-top: 1.5rem;
+  margin: 1rem -0.25rem 1.5rem;
+  padding: 0.8rem 1.1rem 0.35rem;
+  border: 0;
+  border-radius: 8px 11px 7px 10px;
+  background: rgb(255 157 69 / 8%);
+  box-shadow: none;
+}
+
+.pending-changes > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pending-changes h4 {
+  margin: 0;
+  color: var(--orange);
+  font-size: 1.05rem;
+}
+
+.pending-changes ol {
+  display: grid;
+  gap: 0;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-changes li {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(0, 1.3fr) 30px;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.42rem 0;
+}
+
+.pending-changes li + li {
+  border-top: 1px solid rgb(245 234 208 / 10%);
+}
+
+.pending-change-scope {
+  color: var(--bone-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.pending-changes li strong {
+  color: var(--bone);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.pending-change-remove {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 3px solid var(--ink);
+  border-radius: 52% 44% 48% 55%;
+  background: var(--orange);
+  box-shadow: 2px 2px 0 var(--shadow-ink);
+  color: var(--ink);
+  cursor: pointer;
+  transform: rotate(5deg);
+}
+
+.pending-change-remove svg {
+  display: block;
+}
+
+.pending-change-remove:hover {
+  transform: rotate(-7deg) scale(1.08);
+}
+
+.pending-change-remove:focus-visible {
+  outline: 3px solid var(--bone);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .pending-changes li {
+    align-items: flex-start;
+    grid-template-columns: minmax(0, 1fr) 30px;
+    gap: 0.15rem 0.75rem;
+  }
+
+  .pending-change-scope,
+  .pending-changes li strong {
+    grid-column: 1;
+    text-align: left;
+  }
+
+  .pending-change-remove {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}

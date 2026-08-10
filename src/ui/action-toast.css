@@ -1,0 +1,92 @@
+/* Styles for ActionToast. The entrance animation is the shared toast-enter
+   keyframe from styles.css, which the change dock uses too. */
+
+@keyframes toast-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.action-toast {
+  position: fixed;
+  z-index: 20;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  display: grid;
+  width: min(430px, calc(100vw - 2rem));
+  grid-template-columns: 34px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.85rem;
+  border: 3px solid var(--ink);
+  border-radius: 8px 5px 10px 6px;
+  background: var(--orange);
+  box-shadow: 5px 6px 0 var(--shadow-ink);
+  color: var(--ink);
+  animation: toast-enter 160ms ease-out both;
+  font-weight: 900;
+  transform: rotate(-1deg);
+}
+
+.action-toast.loading {
+  background: var(--gold);
+}
+
+.action-toast.ready {
+  background: var(--bone);
+}
+
+.action-toast.error {
+  background: var(--red);
+  color: var(--bone);
+}
+
+.action-toast-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 3px solid currentColor;
+  border-radius: 52% 44% 48% 55%;
+  transform: rotate(-6deg);
+}
+
+.action-toast.loading .action-toast-icon svg {
+  animation: toast-spin 900ms linear infinite;
+}
+
+.action-toast p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+}
+
+.action-toast-dismiss {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+}
+
+.action-toast-dismiss:hover {
+  background: rgb(23 18 20 / 14%);
+  transform: rotate(7deg) scale(1.08);
+}
+
+.action-toast-dismiss:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .action-toast,
+  .action-toast.loading .action-toast-icon svg {
+    animation: none;
+  }
+}

@@ -14,6 +14,7 @@ import {
   TECHNICAL_SAVE_PREVIEW_COPY_LABEL,
   TECHNICAL_SAVE_PREVIEW_LABEL,
 } from "./copy";
+import "./advanced-diagnostics.css";
 
 const COPIED_RESET_MS = 2000;
 

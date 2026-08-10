@@ -48,6 +48,7 @@ import type { ResourceEditRequest } from "./resources-section";
 import { SaveMetadata } from "./save-metadata";
 import { StepHeader } from "./step-header";
 import { UnchangedRebuild } from "./unchanged-rebuild";
+import "./save-report.css";
 
 interface SaveReportProps {
   decoded: DecodedSave;

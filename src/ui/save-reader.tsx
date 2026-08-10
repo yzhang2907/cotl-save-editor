@@ -7,6 +7,7 @@ import {
   SAVE_SIZE_MAXIMUM_LABEL,
 } from "./copy";
 import { StepHeader } from "./step-header";
+import "./save-reader.css";
 
 interface SaveReaderProps {
   loadedFileName: string | null;

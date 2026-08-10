@@ -8,6 +8,7 @@ import {
   HERO_TAGLINE,
   SUPPORTED_GAME_VERSION_LABEL,
 } from "./copy";
+import "./page-chrome.css";
 
 export function Topbar() {
   return (

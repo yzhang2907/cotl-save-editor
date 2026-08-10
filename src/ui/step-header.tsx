@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import "./step-header.css";
 
 interface StepHeaderProps {
   aside?: ReactNode;

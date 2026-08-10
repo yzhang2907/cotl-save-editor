@@ -1,0 +1,132 @@
+/*
+ * Styles for OverviewSection, plus the small vocabulary every panel body
+ * shares: subheadings, empty states, and id chips.
+ */
+
+.overview-panel {
+  border-bottom: 1px solid #504853;
+}
+
+.overview-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0.25rem;
+  color: var(--bone);
+  cursor: pointer;
+  list-style: none;
+}
+
+.overview-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.overview-panel > summary::before {
+  color: var(--red);
+  content: "✦";
+  font-size: 0.8rem;
+}
+
+.overview-panel > summary strong {
+  margin-right: auto;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.overview-panel > summary span {
+  color: var(--bone-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.overview-panel > summary::after {
+  color: var(--red);
+  content: "›";
+  font-family: Arial, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 900;
+  line-height: 0.8;
+  transform: rotate(0);
+  transition: transform 140ms ease;
+}
+
+.overview-panel > summary:hover::after,
+.overview-panel > summary:focus-visible::after {
+  color: var(--bone);
+}
+
+.overview-panel[open] > summary {
+  border-bottom: 1px solid #504853;
+}
+
+.overview-panel[open] > summary::after {
+  transform: rotate(90deg);
+}
+
+/*
+ * Read-only sections sit quieter than the editable doctrine panel, so that
+ * the panel a user can act on reads first. Hover and keyboard focus restore
+ * full contrast, because these sections still open.
+ */
+.overview-panel.read-only > summary {
+  color: var(--bone-muted);
+}
+
+.overview-panel.read-only > summary::before,
+.overview-panel.read-only > summary::after {
+  color: #8d8478;
+}
+
+.overview-panel.read-only > summary:hover,
+.overview-panel.read-only > summary:focus-visible {
+  color: var(--bone);
+}
+
+.overview-panel.read-only > summary:hover::before,
+.overview-panel.read-only > summary:focus-visible::before {
+  color: var(--red);
+}
+
+.overview-panel.read-only > summary:hover::after,
+.overview-panel.read-only > summary:focus-visible::after {
+  color: var(--bone);
+}
+
+.overview-panel-body {
+  padding: 1rem 0.25rem 1.5rem;
+}
+
+.empty-overview {
+  margin: 0;
+}
+
+.overview-subheading {
+  margin: 1rem 0 0.45rem;
+  color: var(--bone);
+  font-size: 1rem;
+}
+
+.overview-subheading.first {
+  margin-top: 0;
+}
+
+.named-id-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.named-id-list span {
+  padding: 0.24rem 0.48rem;
+  border: 1px solid var(--line-mid);
+  border-radius: 999px;
+  background: var(--night-raised);
+  color: var(--bone);
+  font-size: 0.68rem;
+  font-weight: 800;
+}

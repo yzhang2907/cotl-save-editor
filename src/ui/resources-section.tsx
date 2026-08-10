@@ -6,6 +6,7 @@ import type { ResourceOverview } from "../save/overview";
 import resourceIconDefinitions from "../save/resource-icons.json";
 import { displayNumber } from "./overview-format";
 import { OverviewSection } from "./overview-section";
+import "./resources-section.css";
 
 const iconIds = new Set(
   resourceIconDefinitions.map((definition) => definition.id),

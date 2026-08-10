@@ -20,6 +20,7 @@ import { errorMessage } from "./error-message";
 import { downloadLocalFile } from "./local-download";
 import type { PendingSaveChange } from "./pending-save-changes";
 import { StepHeader } from "./step-header";
+import "./edited-save-download.css";
 
 interface EditedSaveDownloadProps {
   changes: PendingSaveChange[];

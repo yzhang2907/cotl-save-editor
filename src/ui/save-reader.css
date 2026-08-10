@@ -1,0 +1,251 @@
+/* Styles for SaveReader: the drop target and its loaded counterpart. The
+   card frame the reader sits in is the shared .reader/.report recipe. */
+
+.reader {
+  padding: clamp(1.4rem, 4vw, 2.7rem);
+}
+
+.drop-zone {
+  position: relative;
+  display: grid;
+  min-height: 285px;
+  margin-top: 2rem;
+  overflow: hidden;
+  place-items: center;
+  align-content: center;
+  gap: 0.3rem;
+  border: 3px dashed var(--line-strong);
+  border-radius: 18px 12px 21px 15px;
+  background:
+    radial-gradient(circle at center, transparent 0 64px, rgb(250 45 61 / 11%) 65px 67px, transparent 68px),
+    radial-gradient(circle at center, transparent 0 93px, rgb(245 234 208 / 10%) 94px 96px, transparent 97px),
+    var(--night-raised);
+  color: var(--bone);
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.drop-zone::before,
+.drop-zone::after {
+  position: absolute;
+  color: rgb(245 234 208 / 16%);
+  font-family: "Lilita One", sans-serif;
+  font-size: 2rem;
+  content: "✦";
+}
+
+.drop-zone::before {
+  top: 1.6rem;
+  left: 2.1rem;
+  transform: rotate(-12deg);
+}
+
+.drop-zone::after {
+  right: 2.2rem;
+  bottom: 1.5rem;
+  transform: rotate(12deg);
+}
+
+.drop-zone:hover,
+.drop-zone.dragging {
+  border-color: var(--red);
+  background-color: #39323a;
+  transform: rotate(-0.25deg) scale(1.005);
+}
+
+.drop-zone:focus-within {
+  outline: 4px solid var(--gold);
+  outline-offset: 4px;
+}
+
+.drop-zone input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.drop-zone strong,
+.drop-zone > span {
+  position: relative;
+  z-index: 1;
+}
+
+.drop-zone strong,
+.save-loaded strong {
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-weight: 400;
+}
+
+.drop-zone strong {
+  margin-top: 0.4rem;
+  color: var(--bone);
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+}
+
+.drop-zone > span:last-child {
+  color: var(--bone-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.drop-mark {
+  display: grid;
+  width: 86px;
+  height: 86px;
+  place-items: center;
+  border: 4px solid var(--ink);
+  border-radius: 48% 52% 46% 54%;
+  background: var(--red);
+  box-shadow: 0 0 0 4px var(--bone);
+  transform: rotate(3deg);
+}
+
+.drop-mark svg {
+  width: 58px;
+  fill: var(--bone);
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.drop-mark ellipse {
+  fill: var(--ink);
+  stroke: none;
+}
+
+/* Shared row track so the circle sits at the same height in both states. */
+.drop-zone,
+.save-loaded {
+  grid-template-rows: 86px auto 3rem;
+}
+
+.drop-zone > span:last-child,
+.save-loaded .chip-button {
+  align-self: center;
+}
+
+.save-rules {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 1.3rem;
+  color: var(--bone-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.save-rules span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.save-rules svg {
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+
+.save-loaded {
+  position: relative;
+  display: grid;
+  min-height: 285px;
+  margin-top: 2rem;
+  overflow: hidden;
+  place-items: center;
+  align-content: center;
+  gap: 0.3rem;
+  border: 3px solid var(--line-strong);
+  border-radius: 18px 12px 21px 15px;
+  background:
+    radial-gradient(circle at center, transparent 0 64px, rgb(242 201 76 / 12%) 65px 67px, transparent 68px),
+    radial-gradient(circle at center, transparent 0 93px, rgb(245 234 208 / 10%) 94px 96px, transparent 97px),
+    var(--night-raised);
+  color: var(--bone);
+}
+
+.save-loaded::before,
+.save-loaded::after {
+  position: absolute;
+  color: rgb(242 201 76 / 22%);
+  font-family: "Lilita One", sans-serif;
+  font-size: 2rem;
+  content: "✦";
+}
+
+.save-loaded::before {
+  top: 1.6rem;
+  left: 2.1rem;
+  transform: rotate(-12deg);
+}
+
+.save-loaded::after {
+  right: 2.2rem;
+  bottom: 1.5rem;
+  transform: rotate(12deg);
+}
+
+.save-loaded-mark {
+  display: grid;
+  width: 86px;
+  height: 86px;
+  place-items: center;
+  border: 4px solid var(--ink);
+  border-radius: 48% 52% 46% 54%;
+  background: var(--gold);
+  box-shadow: 0 0 0 4px var(--bone);
+  color: var(--ink);
+  transform: rotate(-3deg);
+}
+
+.save-loaded strong {
+  z-index: 1;
+  max-width: min(100%, 640px);
+  margin-top: 0.4rem;
+  padding: 0 1rem;
+  font-size: 2rem;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.save-loaded .chip-button {
+  z-index: 1;
+}
+
+.save-loaded-mark svg {
+  width: 58px;
+  fill: var(--bone);
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.save-loaded-mark svg .tick {
+  fill: none;
+  stroke-width: 7;
+}
+
+@media (max-width: 620px) {
+  .drop-zone {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 430px) {
+  .save-rules {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-left: 1rem;
+  }
+}
