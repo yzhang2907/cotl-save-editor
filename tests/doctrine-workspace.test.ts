@@ -11,6 +11,7 @@ import {
   DoctrineWorkspaceError,
   listPendingDoctrineChanges,
   resetDoctrineChanges,
+  restoreDoctrineWorkspace,
 } from "../src/save/doctrine-workspace";
 import type { SaveRecord } from "../src/save/types";
 import {
@@ -397,5 +398,43 @@ describe("doctrine workspace", () => {
         toName: RITUAL_OF_RESURRECTION.name,
       },
     ]);
+  });
+
+  it("replays a cached history back into the same working copy", () => {
+    const original = standardDoctrineSave();
+    const workChange = applyDoctrineChange(
+      createDoctrineWorkspace(original),
+      planDoctrineChange(original, INDUSTRIOUS.doctrineId),
+    );
+    const afterlifeChange = applyDoctrineChange(
+      workChange,
+      planDoctrineChange(
+        workChange.data,
+        RITUAL_OF_RESURRECTION.doctrineId,
+      ),
+    );
+
+    const restored = restoreDoctrineWorkspace(
+      original,
+      afterlifeChange.history,
+    );
+
+    expect(restored.data).toEqual(afterlifeChange.data);
+    expect(restored.original).toEqual(original);
+    expect(listPendingDoctrineChanges(restored)).toEqual(
+      listPendingDoctrineChanges(afterlifeChange),
+    );
+  });
+
+  it("rejects a cached history that no longer fits the save", () => {
+    const original = standardDoctrineSave();
+    const changed = applyDoctrineChange(
+      createDoctrineWorkspace(original),
+      planDoctrineChange(original, INDUSTRIOUS.doctrineId),
+    );
+
+    expect(() =>
+      restoreDoctrineWorkspace(completedWorkDoctrineSave(), changed.history),
+    ).toThrow(DoctrineWorkspaceError);
   });
 });

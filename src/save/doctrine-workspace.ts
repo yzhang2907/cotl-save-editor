@@ -253,6 +253,40 @@ export function createDoctrineWorkspace(
   };
 }
 
+/**
+ * Rebuilds a workspace by replaying a history recorded earlier, used when a
+ * cached session is restored after a refresh. Every step is re-checked
+ * against the same field guards as a live edit, so a history that no longer
+ * fits the save throws rather than producing a half-applied working copy.
+ */
+export function restoreDoctrineWorkspace(
+  original: SaveRecord,
+  history: AppliedDoctrineChange[],
+): DoctrineWorkspace {
+  let data = original;
+  for (const change of history) {
+    data = applyFieldValues(data, change.changes, "after");
+    assertWorkspaceIntegrity(original, data);
+  }
+  if (!hasDoctrineChanges(original, data)) {
+    return createDoctrineWorkspace(original);
+  }
+  return {
+    data,
+    history: history.map((change) => ({
+      ...change,
+      changes: change.changes.map((field) => ({
+        ...field,
+        added: field.added.slice(),
+        after: field.after.slice(),
+        before: field.before.slice(),
+        removed: field.removed.slice(),
+      })),
+    })),
+    original,
+  };
+}
+
 export function applyDoctrineChange(
   workspace: DoctrineWorkspace,
   selection: DoctrineChangePlan,

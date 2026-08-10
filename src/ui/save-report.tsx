@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   ITEM_NAMES,
@@ -14,6 +14,7 @@ import {
   stageCultNameEdit,
   stageResourceAddition,
   stageResourceEdit,
+  type CultEdits,
 } from "../save/cult-edits";
 import { dlcDefinition, saveHasActivatedDlc } from "../save/dlc";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
@@ -23,6 +24,8 @@ import {
   discardDoctrineChange,
   listPendingDoctrineChanges,
   resetDoctrineChanges,
+  restoreDoctrineWorkspace,
+  type AppliedDoctrineChange,
   type PendingDoctrineChange,
 } from "../save/doctrine-workspace";
 import { buildCultOverview } from "../save/overview";
@@ -49,20 +52,44 @@ import { UnchangedRebuild } from "./unchanged-rebuild";
 interface SaveReportProps {
   decoded: DecodedSave;
   file: File;
+  onEditsChange?: (edits: {
+    cultEdits: CultEdits;
+    doctrineHistory: AppliedDoctrineChange[];
+  }) => void;
   onNotice: (message: string, kind: ToastKind) => void;
   report: SaveCompatibilityReport;
+  restoredCultEdits?: CultEdits;
+  restoredDoctrineHistory?: AppliedDoctrineChange[];
 }
 
 export function SaveReport({
   decoded,
   file,
+  onEditsChange,
   onNotice,
   report,
+  restoredCultEdits,
+  restoredDoctrineHistory,
 }: SaveReportProps) {
-  const [workspace, setWorkspace] = useState(() =>
-    createDoctrineWorkspace(decoded.data),
+  const [workspace, setWorkspace] = useState(() => {
+    try {
+      return restoreDoctrineWorkspace(
+        decoded.data,
+        restoredDoctrineHistory ?? [],
+      );
+    } catch {
+      // A history that no longer fits the save is dropped rather than
+      // blocking the save from opening at all.
+      return createDoctrineWorkspace(decoded.data);
+    }
+  });
+  const [cultEdits, setCultEdits] = useState(
+    () => restoredCultEdits ?? emptyCultEdits(),
   );
-  const [cultEdits, setCultEdits] = useState(emptyCultEdits);
+
+  useEffect(() => {
+    onEditsChange?.({ cultEdits, doctrineHistory: workspace.history });
+  }, [cultEdits, onEditsChange, workspace.history]);
   const showCultOverview =
     decoded.messagePack?.schema === "slot" ||
     Array.isArray(decoded.data.Followers) ||
