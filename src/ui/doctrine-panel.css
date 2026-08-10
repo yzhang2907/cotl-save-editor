@@ -51,7 +51,8 @@
 .doctrine-pair {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  align-items: start;
+  /* Centred so the rank sits on the same line as each tile's checkmark. */
+  align-items: center;
   gap: 0.55rem;
   padding: 0.65rem 0.2rem;
   border-bottom: 1px solid #403942;
