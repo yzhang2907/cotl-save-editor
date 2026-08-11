@@ -466,6 +466,15 @@
   font-weight: 400;
 }
 
+.follower-edit-unavailable {
+  flex: 1 1 auto;
+  color: var(--bone-muted);
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1.25rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
 .follower-trait-chip.removed {
   border-color: rgb(from var(--red) r g b / 45%);
   border-style: dashed;

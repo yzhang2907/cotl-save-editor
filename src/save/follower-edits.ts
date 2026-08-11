@@ -28,6 +28,13 @@ export const DEATH_CAUSE_FIELD = "DeathCause";
  * "Active" toggle Followers_Elderly_IDs membership, reviving first when
  * the follower is dead. Contradictions are structurally impossible: one
  * field, one value.
+ *
+ * The game turns a follower elder once Age reaches LifeExpectancy and
+ * kills the elder 3.5 days later, so a status toggle that leaves the two
+ * fields contradicting it would be undone on the next day tick. Applying
+ * "Active" therefore pushes LifeExpectancy above Age when needed, and
+ * applying "Elder" pulls it down to Age. A LifeExpectancy value that
+ * already agrees with the target status is kept, including staged edits.
  */
 export const STATUS_FIELD = "Status";
 
@@ -41,6 +48,30 @@ const FOLLOWER_STATUSES: readonly FollowerStatus[] = [
 
 function isFollowerStatus(value: unknown): value is FollowerStatus {
   return FOLLOWER_STATUSES.includes(value as FollowerStatus);
+}
+
+/**
+ * A status toggle must leave Age and LifeExpectancy agreeing with it, or
+ * the game undoes the toggle on the next day tick. Returns the pushed
+ * (Active) or pulled (Elder) lifespan, or null when the current value
+ * already agrees. A fresh recruit lives 15-30 more days, so a pushed-out
+ * lifespan of Age + 15 stays inside the game's own range.
+ */
+function alignedLifeExpectancy(
+  age: unknown,
+  expectancy: unknown,
+  target: FollowerStatus,
+): number | null {
+  if (typeof age !== "number" || typeof expectancy !== "number") {
+    return null;
+  }
+  if (target === "Active" && expectancy <= age) {
+    return Math.floor(age) + 15;
+  }
+  if (target === "Elder" && expectancy > age) {
+    return Math.floor(age);
+  }
+  return null;
 }
 
 function elderIds(original: SaveRecord): number[] {
@@ -69,7 +100,7 @@ export function deathCauseOf(record: SaveRecord): string {
 
 function deathCauseLabel(flag: string): string {
   if (flag === "") {
-    return "Ritual";
+    return "None (Ritual)";
   }
   return (
     DEATH_CAUSES.find(([candidate]) => candidate === flag)?.[1] ?? flag
@@ -98,6 +129,13 @@ export interface PendingFollowerEdit {
   followerName: string;
   from: string;
   to: string;
+  /**
+   * Set when this row is a consequence of another staged edit rather
+   * than an edit of its own: discarding the named source field removes
+   * this row with it. Used for the lifespan alignment that a Status
+   * toggle carries.
+   */
+  sourceField?: string;
 }
 
 export class FollowerEditError extends Error {
@@ -198,6 +236,7 @@ const FOLLOWER_FIELDS: Readonly<
     "customisation",
   ),
   Hat: catalogField("Hat", FOLLOWER_HATS, "hat"),
+  LifeExpectancy: wholeNumberField("Life expectancy", MAX_FOLLOWER_AGE),
   Necklace: {
     display: (value) =>
       value === 0
@@ -439,16 +478,24 @@ export function stageFollowerEdit(
 }
 
 export function discardFollowerEdit(
+  original: SaveRecord,
   edits: FollowerEdits,
   followerId: number,
   field: string,
 ): FollowerEdits {
+  // A cause of death on a living follower exists only because a kill is
+  // staged, so discarding the kill takes the cause with it. A cause on
+  // an already-dead follower stands on its own and survives.
+  const dropsCause =
+    field === STATUS_FIELD &&
+    !followerById(original, followerId).dead;
   return {
     ...edits,
     fields: edits.fields.filter(
       (candidate) =>
         candidate.followerId !== followerId ||
-        candidate.field !== field,
+        (candidate.field !== field &&
+          !(dropsCause && candidate.field === DEATH_CAUSE_FIELD)),
     ),
   };
 }
@@ -475,7 +522,7 @@ export function listPendingFollowerEdits(
   original: SaveRecord,
   edits: FollowerEdits,
 ): PendingFollowerEdit[] {
-  return edits.fields.map((edit) => {
+  const rows: PendingFollowerEdit[] = edits.fields.map((edit) => {
     const { record } = followerById(original, edit.followerId);
     if (edit.field === STATUS_FIELD) {
       return {
@@ -507,6 +554,40 @@ export function listPendingFollowerEdits(
       to: definition.display(edit.value),
     };
   });
+
+  // A status toggle aligns LifeExpectancy at apply time; list that
+  // consequence explicitly so the change dock shows the full effect.
+  for (const edit of edits.fields) {
+    if (edit.field !== STATUS_FIELD || !isFollowerStatus(edit.value)) {
+      continue;
+    }
+    const { record } = followerById(original, edit.followerId);
+    const staged = (field: string): unknown =>
+      edits.fields.find(
+        (candidate) =>
+          candidate.followerId === edit.followerId &&
+          candidate.field === field,
+      )?.value ?? record[field];
+    const expectancy = staged("LifeExpectancy");
+    const aligned = alignedLifeExpectancy(
+      staged("Age"),
+      expectancy,
+      edit.value,
+    );
+    if (aligned !== null) {
+      const definition = requiredFieldDefinition("LifeExpectancy");
+      rows.push({
+        field: "LifeExpectancy",
+        fieldLabel: definition.label,
+        followerId: edit.followerId,
+        followerName: followerDisplayName(record),
+        from: definition.display(expectancy),
+        to: definition.display(aligned),
+        sourceField: STATUS_FIELD,
+      });
+    }
+  }
+  return rows;
 }
 
 const FOLLOWER_EDIT_RESULT_KEYS = [
@@ -593,6 +674,20 @@ export function applyFollowerEdits(
     }
   }
 
+  const alignLifeExpectancy = (
+    record: SaveRecord,
+    target: FollowerStatus,
+  ): void => {
+    const aligned = alignedLifeExpectancy(
+      record.Age,
+      record.LifeExpectancy,
+      target,
+    );
+    if (aligned !== null) {
+      record.LifeExpectancy = aligned;
+    }
+  };
+
   const followerId = (entry: unknown): number | null =>
     entry !== null &&
     typeof entry === "object" &&
@@ -623,8 +718,11 @@ export function applyFollowerEdits(
       continue;
     }
     const record = editedRecord(entry as SaveRecord);
-    if (target !== undefined && Object.hasOwn(record, "OldAge")) {
-      record.OldAge = target === "Elder";
+    if (target !== undefined) {
+      if (Object.hasOwn(record, "OldAge")) {
+        record.OldAge = target === "Elder";
+      }
+      alignLifeExpectancy(record, target);
     }
     living.push(
       rawValuesMatch(record, entry) ? entry : record,
@@ -642,6 +740,7 @@ export function applyFollowerEdits(
       if (Object.hasOwn(record, "OldAge")) {
         record.OldAge = target === "Elder";
       }
+      alignLifeExpectancy(record, target);
       revived.push(record);
       moved = true;
       continue;

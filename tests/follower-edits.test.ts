@@ -24,6 +24,7 @@ function lamb(): SaveRecord {
   return {
     Age: 12,
     ID: 7,
+    LifeExpectancy: 120,
     OldAge: false,
     Outfit: 2,
     Traits: [16, 51],
@@ -40,6 +41,7 @@ function goat(): SaveRecord {
   return {
     Age: 4,
     ID: 9,
+    LifeExpectancy: 3,
     OldAge: true,
     Traits: [],
     XPLevel: 1,
@@ -93,6 +95,67 @@ describe("stageFollowerEdit", () => {
     ]);
   });
 
+  it("stages a life expectancy edit", () => {
+    const original = originalSave();
+    const edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "LifeExpectancy",
+      followerId: 7,
+      value: 300,
+    });
+
+    expect(listPendingFollowerEdits(original, edits)).toEqual([
+      {
+        field: "LifeExpectancy",
+        fieldLabel: "Life expectancy",
+        followerId: 7,
+        followerName: "Lamby",
+        from: "120",
+        to: "300",
+      },
+    ]);
+  });
+
+  it("lists the lifespan alignment a status toggle carries", () => {
+    const original = originalSave();
+    const edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: 9,
+      value: "Active",
+    });
+
+    expect(listPendingFollowerEdits(original, edits)).toEqual([
+      {
+        field: "Status",
+        fieldLabel: "Status",
+        followerId: 9,
+        followerName: "Goatrude",
+        from: "Elder",
+        to: "Active",
+      },
+      {
+        field: "LifeExpectancy",
+        fieldLabel: "Life expectancy",
+        followerId: 9,
+        followerName: "Goatrude",
+        from: "3",
+        to: "19",
+        sourceField: "Status",
+      },
+    ]);
+
+    // A staged lifespan that already agrees suppresses the derived row.
+    const agreed = stageFollowerEdit(original, edits, {
+      field: "LifeExpectancy",
+      followerId: 9,
+      value: 200,
+    });
+    expect(
+      listPendingFollowerEdits(original, agreed).filter(
+        (row) => row.sourceField !== undefined,
+      ),
+    ).toEqual([]);
+  });
+
   it("drops a staged edit that returns to the original value", () => {
     const original = originalSave();
     let edits = stageFollowerEdit(original, emptyFollowerEdits(), {
@@ -123,10 +186,43 @@ describe("stageFollowerEdit", () => {
     });
 
     expect(edits.fields).toHaveLength(2);
-    edits = discardFollowerEdit(edits, 7, "XPLevel");
+    edits = discardFollowerEdit(original, edits, 7, "XPLevel");
     expect(edits.fields).toEqual([
       { field: "_name", followerId: 9, value: "Goatrude II" },
     ]);
+  });
+
+  it("discards a staged kill together with its cause", () => {
+    const original = originalSave();
+    let edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: 7,
+      value: "Dead",
+    });
+    edits = stageFollowerEdit(original, edits, {
+      field: "DeathCause",
+      followerId: 7,
+      value: "DiedOfIllness",
+    });
+
+    // The cause alone can go; the kill stays and defaults to ritual.
+    const causeless = discardFollowerEdit(original, edits, 7, "DeathCause");
+    expect(causeless.fields.map((edit) => edit.field)).toEqual(["Status"]);
+
+    // Discarding the kill takes the dependent cause with it.
+    expect(
+      discardFollowerEdit(original, edits, 7, "Status").fields,
+    ).toEqual([]);
+
+    // A cause on an already-dead follower stands on its own.
+    const deadCause = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "DeathCause",
+      followerId: 30,
+      value: "DiedOfIllness",
+    });
+    expect(
+      discardFollowerEdit(original, deadCause, 30, "Status").fields,
+    ).toHaveLength(1);
   });
 
   it("rejects unknown fields and unknown followers", () => {
@@ -336,13 +432,45 @@ describe("applyFollowerEdits", () => {
     const working = applyFollowerEdits(original, original, edits);
     const followers = working.Followers as SaveRecord[];
 
-    expect(followers[0]).toEqual({ ...lamb(), OldAge: true });
-    expect(followers[1]).toEqual({ ...goat(), OldAge: false });
+    // A status toggle keeps Age and LifeExpectancy in agreement, so the
+    // game does not undo it on the next day tick.
+    expect(followers[0]).toEqual({
+      ...lamb(),
+      LifeExpectancy: 12,
+      OldAge: true,
+    });
+    expect(followers[1]).toEqual({
+      ...goat(),
+      LifeExpectancy: 19,
+      OldAge: false,
+    });
     expect(working.Followers_Elderly_IDs).toEqual([30, 7]);
     expect(working.Followers_Dead).toBe(original.Followers_Dead);
     expect(working.Followers_Dead_IDs).toBe(
       original.Followers_Dead_IDs,
     );
+  });
+
+  it("keeps a staged life expectancy that agrees with the status", () => {
+    const original = originalSave();
+    let edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: 9,
+      value: "Active",
+    });
+    edits = stageFollowerEdit(original, edits, {
+      field: "LifeExpectancy",
+      followerId: 9,
+      value: 200,
+    });
+
+    const working = applyFollowerEdits(original, original, edits);
+    const followers = working.Followers as SaveRecord[];
+    expect(followers[1]).toEqual({
+      ...goat(),
+      LifeExpectancy: 200,
+      OldAge: false,
+    });
   });
 
   it("drops a status staged back to the original", () => {
@@ -395,7 +523,7 @@ describe("applyFollowerEdits", () => {
         fieldLabel: "Cause of death",
         followerId: 7,
         followerName: "Lamby",
-        from: "Ritual",
+        from: "None (Ritual)",
         to: "Murdered",
       },
     ]);

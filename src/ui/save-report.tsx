@@ -195,7 +195,14 @@ export function SaveReport({
       ...followerEditPendingSaveChange(edit),
       onDiscard: () =>
         setFollowerEdits(
-          discardFollowerEdit(followerEdits, edit.followerId, edit.field),
+          // A derived row (sourceField) is discarded through the edit
+          // that causes it.
+          discardFollowerEdit(
+            workspace.original,
+            followerEdits,
+            edit.followerId,
+            edit.sourceField ?? edit.field,
+          ),
         ),
     })),
   ];

@@ -140,6 +140,110 @@ function overviewStatus(follower: FollowerOverview): FollowerStatus {
   return follower.elder ? "Elder" : "Active";
 }
 
+const FOLLOWER_STATUS_OPTIONS = [
+  { label: "Active", value: "Active" },
+  { label: "Elder", value: "Elder" },
+  { label: "Dead", value: "Dead" },
+] as const;
+
+const DEATH_CAUSE_OPTIONS = [
+  { label: "None (Ritual)", value: "" },
+  ...DEATH_CAUSES.map(([flag, label]) => ({ label, value: flag })),
+];
+
+interface EditableSelectProps {
+  display: string;
+  edited: boolean;
+  editing: boolean;
+  label: string;
+  onChange: (value: string) => void;
+  onEditingChange: (editing: boolean) => void;
+  onRevert: () => void;
+  options: ReadonlyArray<{ label: string; value: string }>;
+  /** Rendered as a muted placeholder with no controls. */
+  unavailable?: boolean;
+  value: string;
+}
+
+// A dropdown that edits in place like the number fields: the value shows
+// as text until the pencil seal swaps in the select, and picking an
+// option commits and closes it.
+function EditableSelect({
+  display,
+  edited,
+  editing,
+  label,
+  onChange,
+  onEditingChange,
+  onRevert,
+  options,
+  unavailable = false,
+  value,
+}: EditableSelectProps) {
+  const lower = label.toLowerCase();
+  if (unavailable) {
+    return (
+      <div className="follower-edit-field">
+        <span>{label}</span>
+        <div className="follower-edit-input-row">
+          <span className="follower-edit-unavailable">(Unavailable)</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="follower-edit-field">
+      <span>
+        {label}
+        {edited ? <EditedStar /> : null}
+      </span>
+      {editing ? (
+        <div className="follower-edit-input-row">
+          <select
+            aria-label={label}
+            autoFocus
+            className="follower-edit-select"
+            onChange={(event) => {
+              onChange(event.currentTarget.value);
+              onEditingChange(false);
+            }}
+            value={value}
+          >
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <button
+            aria-label={`Stop editing ${lower}`}
+            className="seal-button resource-edit-cancel"
+            onClick={() => onEditingChange(false)}
+            title="Cancel"
+            type="button"
+          >
+            <X aria-hidden="true" size={18} strokeWidth={4} />
+          </button>
+        </div>
+      ) : (
+        <div className="follower-edit-input-row">
+          <strong className="follower-field-value">{display}</strong>
+          {edited ? <RevertSeal label={label} onRevert={onRevert} /> : null}
+          <button
+            aria-label={`Edit ${lower}`}
+            className="seal-button stat-edit-toggle"
+            onClick={() => onEditingChange(true)}
+            title={`Edit ${lower}`}
+            type="button"
+          >
+            <Pencil aria-hidden="true" size={17} strokeWidth={3} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FollowerEditModal({
   follower,
   followerId,
@@ -156,6 +260,9 @@ function FollowerEditModal({
   );
   const [age, setAge] = useState(
     follower.age === null ? "" : String(follower.age),
+  );
+  const [lifeExpectancy, setLifeExpectancy] = useState(
+    follower.lifeExpectancy === null ? "" : String(follower.lifeExpectancy),
   );
   const [happiness, setHappiness] = useState(
     follower.happiness === null ? "" : String(rounded(follower.happiness)),
@@ -226,6 +333,7 @@ function FollowerEditModal({
     > = [
       ["XPLevel", level, follower.level],
       ["Age", age, follower.age],
+      ["LifeExpectancy", lifeExpectancy, follower.lifeExpectancy],
       ["_happiness", happiness, rounded(follower.happiness)],
       ["_satiation", satiation, rounded(follower.satiation)],
       ["_illness", illness, rounded(follower.illness)],
@@ -383,6 +491,15 @@ function FollowerEditModal({
               MAX_FOLLOWER_AGE,
             ],
             [
+              "Life expectancy",
+              lifeExpectancy,
+              setLifeExpectancy,
+              true,
+              follower.lifeExpectancy,
+              original.lifeExpectancy,
+              MAX_FOLLOWER_AGE,
+            ],
+            [
               "Happiness",
               happiness,
               setHappiness,
@@ -503,77 +620,38 @@ function FollowerEditModal({
             </div>
           );
         })}
-        {(() => {
-          const savedStatus = overviewStatus(original);
-          const edited = status !== savedStatus;
-          return (
-            <div className="follower-edit-field">
-              <span>
-                Status
-                {edited ? <EditedStar /> : null}
-              </span>
-              <div className="follower-edit-input-row">
-                <select
-                  aria-label="Status"
-                  className="follower-edit-select"
-                  onChange={(event) =>
-                    setStatus(
-                      event.currentTarget.value as FollowerStatus,
-                    )
-                  }
-                  value={status}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Elder">Elder</option>
-                  <option value="Dead">Dead</option>
-                </select>
-                {edited ? (
-                  <RevertSeal
-                    label="Status"
-                    onRevert={() => setStatus(savedStatus)}
-                  />
-                ) : null}
-              </div>
-            </div>
-          );
-        })()}
-        {status !== "Dead"
-          ? null
-          : (() => {
-              const savedCause = original.death?.causeFlag ?? "";
-              const edited = cause !== savedCause;
-              return (
-                <div className="follower-edit-field">
-                  <span>
-                    Cause of death
-                    {edited ? <EditedStar /> : null}
-                  </span>
-                  <div className="follower-edit-input-row">
-                    <select
-                      aria-label="Cause of death"
-                      className="follower-edit-select"
-                      onChange={(event) =>
-                        setCause(event.currentTarget.value)
-                      }
-                      value={cause}
-                    >
-                      <option value="">Ritual (no recorded cause)</option>
-                      {DEATH_CAUSES.map(([flag, label]) => (
-                        <option key={flag} value={flag}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                    {edited ? (
-                      <RevertSeal
-                        label="Cause of death"
-                        onRevert={() => setCause(savedCause)}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })()}
+        <EditableSelect
+          display={status}
+          edited={status !== overviewStatus(original)}
+          editing={editingField === "Status"}
+          label="Status"
+          onChange={(value) => setStatus(value as FollowerStatus)}
+          onEditingChange={(editing) =>
+            setEditingField(editing ? "Status" : null)
+          }
+          onRevert={() => setStatus(overviewStatus(original))}
+          options={FOLLOWER_STATUS_OPTIONS}
+          value={status}
+        />
+        <EditableSelect
+          display={
+            cause === ""
+              ? "None (Ritual)"
+              : (DEATH_CAUSES.find(([flag]) => flag === cause)?.[1] ??
+                cause)
+          }
+          edited={cause !== (original.death?.causeFlag ?? "")}
+          editing={editingField === "Cause of death"}
+          label="Cause of death"
+          onChange={setCause}
+          onEditingChange={(editing) =>
+            setEditingField(editing ? "Cause of death" : null)
+          }
+          onRevert={() => setCause(original.death?.causeFlag ?? "")}
+          options={DEATH_CAUSE_OPTIONS}
+          unavailable={status !== "Dead"}
+          value={cause}
+        />
       </div>
       <div className="follower-edit-traits">
         <span className="follower-edit-label">

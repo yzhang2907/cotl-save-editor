@@ -376,6 +376,7 @@ const FOLLOWER_EDITABLE_SUBFIELDS: Readonly<
   ClothingVariant: textCheck,
   Customisation: catalogCheck(FOLLOWER_CUSTOMISATIONS),
   Hat: catalogCheck(FOLLOWER_HATS),
+  LifeExpectancy: wholeNumberCheck,
   Necklace: (value) =>
     value === 0 ||
     (typeof value === "number" && ITEM_NAMES[value] !== undefined)

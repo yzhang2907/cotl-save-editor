@@ -55,7 +55,7 @@ An unchanged rebuild keeps its empty array.
 - [x] Remove the old manual DOM builders after the comparison passes.
 - [x] Commit the React conversion without save-writing changes.
 
-## 6. Apply doctrine changes in memory — Ready for review
+## 6. Apply doctrine changes in memory — Done
 
 - [x] Keep the original decoded save unchanged.
 - [x] Create a separate working copy for edits.
@@ -72,7 +72,7 @@ An unchanged rebuild keeps its empty array.
 - [x] Test modern `CultTraits` and legacy `CultTrait` saves.
 - [x] Test one change, several changes, reset, and blocked changes.
 
-## 7. Write a modified current save — Ready for review
+## 7. Write a modified current save — Done
 
 - [x] Map each editable field to its raw MessagePack position.
 - [x] Copy the raw MessagePack data before any replacement.
@@ -86,7 +86,7 @@ An unchanged rebuild keeps its empty array.
 - [x] Stop the export if any comparison fails.
 - [x] Write current `.mp` saves only. Legacy JSON is read-only.
 
-## 8. Download an edited save safely — Ready for review
+## 8. Download an edited save safely — Done
 
 - [x] Show the final change list before download.
 - [x] Require confirmation that a backup exists.
@@ -134,34 +134,34 @@ progress belong to the mature-save test only.
 - [x] Keep save data inside the browser.
 - [ ] Confirm permission to distribute extracted game icons.
 - [ ] Replace game icons if distribution permission is not available.
+- [x] Document backup, replacement, Steam Cloud, and recovery steps.
+- [ ] Test the production build on a static host.
 
 Icons stay for now by decision. Massive Monster publishes no policy on
-extracted assets, so confirmation means asking them directly.
-- [x] Document backup, replacement, Steam Cloud, and recovery steps.
-- [ ] Test the production build on a static host. Verified locally under a
-      `/cotl-save-editor/` subpath; a real GitHub Pages deploy is pending.
+extracted assets, so confirmation means asking them directly. The
+production build is verified locally under a `/cotl-save-editor/`
+subpath; a real GitHub Pages deploy is pending.
 
 ## 11. Add more editors
 
 - [x] Edit the cult name.
 - [x] Edit resource quantities and reserved quantities.
 - [x] Add catalog-known items that the save does not hold yet.
-- [ ] Edit follower data after all linked follower records are mapped.
+- [x] Edit follower data: name, level, age, happiness, satiation,
+      illness, traits, and cause of death.
+- [x] Kill, revive, and elder-toggle followers through a Status field.
+- [ ] Add form controls for follower appearance fields. Validation and
+      apply support already exist.
 - [ ] Edit unlocks after their dependencies are mapped.
 - [ ] Edit quests after their state transitions are mapped.
 - [x] Add an approved-field comparison for each editor.
-- [ ] Add browser and in-game checks for each editor.
+- [ ] Add in-game checks for the cult name, resource, and follower
+      editors. Browser checks are automated.
 
-Cult name and resource edits stage into the same working copy as
-doctrine changes and go through the same rebuild, reopen, and
-byte-for-byte verification. Within `items`, only `quantity` and
-`QuantityReserved` may change on existing entries; item types and
-unknown sub-positions are preserved and enforced, and entries are
-never removed. New entries append at the end, must use catalog-known
-item types not already held, and always carry the
-`[type, quantity, QuantityReserved]` layout. Items without a stored
-`QuantityReserved` keep it absent. Browser checks are automated in
-`tests/cult-edits.test.ts`, `tests/current-save.test.ts`, and
-`tests/react-ui.test.tsx`; the in-game check of an edited name and
-quantity is still pending. Follower, unlock, and quest editors stay
-blocked on their mapping work.
+Every editor uses the same pending-changes list, checks, and download
+steps. Follower details are in `follower-roadmap.md`. Not planned yet:
+adding new followers, and fixing other parts of the save that still
+point at a follower after a kill or revival. The game cleans up such
+references itself when a follower dies normally; the key test is
+reviving a follower whose house was given to someone else. Unlock and
+quest editing wait until we know what those values mean.

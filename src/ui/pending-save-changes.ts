@@ -27,7 +27,11 @@ export function followerEditPendingSaveChange(
   edit: PendingFollowerEdit,
 ): PendingSaveChange {
   return {
-    key: `follower-${edit.followerId}-${edit.field}`,
+    key: `follower-${edit.followerId}-${
+      edit.sourceField === undefined
+        ? edit.field
+        : `${edit.sourceField}-${edit.field}`
+    }`,
     label: `${edit.fieldLabel}: ${edit.from} → ${edit.to}`,
     requiredDlc: null,
     scope: `Followers · ${edit.followerName}`,
