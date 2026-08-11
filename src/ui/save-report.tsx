@@ -17,6 +17,17 @@ import {
   type CultEdits,
 } from "../save/cult-edits";
 import { dlcDefinition, saveHasActivatedDlc } from "../save/dlc";
+import {
+  applyFollowerEdits,
+  discardFollowerEdit,
+  discardFollowerEdits,
+  editedFollowerIds,
+  emptyFollowerEdits,
+  listPendingFollowerEdits,
+  stageFollowerEdit,
+  type FollowerEdits,
+  type FollowerFieldEdit,
+} from "../save/follower-edits";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
 import {
   applyDoctrineChange,
@@ -43,6 +54,7 @@ import { EditedSaveDownload } from "./edited-save-download";
 import {
   cultEditPendingSaveChange,
   doctrinePendingSaveChange,
+  followerEditPendingSaveChange,
 } from "./pending-save-changes";
 import type { ResourceEditRequest } from "./resources-section";
 import { SaveMetadata } from "./save-metadata";
@@ -56,11 +68,13 @@ interface SaveReportProps {
   onEditsChange?: (edits: {
     cultEdits: CultEdits;
     doctrineHistory: AppliedDoctrineChange[];
+    followerEdits: FollowerEdits;
   }) => void;
   onNotice: (message: string, kind: ToastKind) => void;
   report: SaveCompatibilityReport;
   restoredCultEdits?: CultEdits;
   restoredDoctrineHistory?: AppliedDoctrineChange[];
+  restoredFollowerEdits?: FollowerEdits;
 }
 
 export function SaveReport({
@@ -71,6 +85,7 @@ export function SaveReport({
   report,
   restoredCultEdits,
   restoredDoctrineHistory,
+  restoredFollowerEdits,
 }: SaveReportProps) {
   const [workspace, setWorkspace] = useState(() => {
     try {
@@ -87,10 +102,17 @@ export function SaveReport({
   const [cultEdits, setCultEdits] = useState(
     () => restoredCultEdits ?? emptyCultEdits(),
   );
+  const [followerEdits, setFollowerEdits] = useState(
+    () => restoredFollowerEdits ?? emptyFollowerEdits(),
+  );
 
   useEffect(() => {
-    onEditsChange?.({ cultEdits, doctrineHistory: workspace.history });
-  }, [cultEdits, onEditsChange, workspace.history]);
+    onEditsChange?.({
+      cultEdits,
+      doctrineHistory: workspace.history,
+      followerEdits,
+    });
+  }, [cultEdits, followerEdits, onEditsChange, workspace.history]);
   const showCultOverview =
     decoded.messagePack?.schema === "slot" ||
     Array.isArray(decoded.data.Followers) ||
@@ -99,14 +121,42 @@ export function SaveReport({
     decoded.messagePack?.schema === "slot";
 
   const working = useMemo(() => {
+    // Stale staged edits are skipped rather than blocking the report.
+    let result = workspace.data;
     try {
-      return applyCultEdits(workspace.data, workspace.original, cultEdits);
+      result = applyCultEdits(result, workspace.original, cultEdits);
     } catch {
-      return workspace.data;
+      /* skip */
     }
-  }, [cultEdits, workspace]);
+    try {
+      result = applyFollowerEdits(
+        result,
+        workspace.original,
+        followerEdits,
+      );
+    } catch {
+      /* skip */
+    }
+    return result;
+  }, [cultEdits, followerEdits, workspace]);
   const overview = buildCultOverview(working);
-  const originalDoctrine = buildCultOverview(workspace.original).doctrine;
+  const originalOverview = useMemo(
+    () => buildCultOverview(workspace.original),
+    [workspace.original],
+  );
+  const originalDoctrine = originalOverview.doctrine;
+  const originalFollowersById = useMemo(
+    () =>
+      new Map(
+        [
+          ...originalOverview.followers,
+          ...originalOverview.deadFollowers,
+        ].flatMap((follower) =>
+          follower.id === null ? [] : [[follower.id, follower] as const],
+        ),
+      ),
+    [originalOverview],
+  );
   const pendingDoctrineChanges = listPendingDoctrineChanges(workspace);
   const pendingCultEdits = useMemo(() => {
     try {
@@ -115,9 +165,17 @@ export function SaveReport({
       return [];
     }
   }, [cultEdits, workspace.original]);
+  const pendingFollowerEdits = useMemo(() => {
+    try {
+      return listPendingFollowerEdits(workspace.original, followerEdits);
+    } catch {
+      return [];
+    }
+  }, [followerEdits, workspace.original]);
   const pendingChanges = [
     ...pendingDoctrineChanges.map(doctrinePendingSaveChange),
     ...pendingCultEdits.map(cultEditPendingSaveChange),
+    ...pendingFollowerEdits.map(followerEditPendingSaveChange),
   ];
   const pendingChangeItems = [
     ...pendingDoctrineChanges.map((change) => ({
@@ -133,11 +191,19 @@ export function SaveReport({
             : discardResourceEdit(cultEdits, edit.itemType),
         ),
     })),
+    ...pendingFollowerEdits.map((edit) => ({
+      ...followerEditPendingSaveChange(edit),
+      onDiscard: () =>
+        setFollowerEdits(
+          discardFollowerEdit(followerEdits, edit.followerId, edit.field),
+        ),
+    })),
   ];
 
   function discardAllChanges(): void {
     resetDoctrines();
     setCultEdits(emptyCultEdits());
+    setFollowerEdits(emptyFollowerEdits());
   }
 
   function applyDoctrine(plan: DoctrineChangePlan): boolean {
@@ -201,6 +267,31 @@ export function SaveReport({
     }
   }
 
+  function editFollower(edits: FollowerFieldEdit[]): boolean {
+    try {
+      // Validate the whole batch in order first (a cause of death may
+      // depend on a status staged in the same submit); the functional
+      // update then stages it in one tick.
+      let staged = followerEdits;
+      for (const edit of edits) {
+        staged = stageFollowerEdit(workspace.original, staged, edit);
+      }
+      setFollowerEdits((current) => {
+        let next = current;
+        for (const edit of edits) {
+          next = stageFollowerEdit(workspace.original, next, edit);
+        }
+        return next;
+      });
+      return true;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown error.";
+      onNotice(`The follower edit was not staged: ${message}`, "error");
+      return false;
+    }
+  }
+
   function addResource(edit: ResourceEditRequest): boolean {
     try {
       setCultEdits(
@@ -246,6 +337,7 @@ export function SaveReport({
             };
           })
           .sort((left, right) => left.name.localeCompare(right.name)),
+        editedFollowerIds: editedFollowerIds(followerEdits),
         editedResourceTypes: new Set([
           ...cultEdits.resources.map((edit) => edit.type),
           ...cultEdits.additions.map((edit) => edit.type),
@@ -257,7 +349,13 @@ export function SaveReport({
         onDiscardResourceEdit: (type) =>
           setCultEdits(discardResourceEdit(cultEdits, type)),
         onAddResource: addResource,
+        onDiscardFollowerEdits: (followerId) =>
+          setFollowerEdits(
+            discardFollowerEdits(followerEdits, followerId),
+          ),
+        onEditFollower: editFollower,
         onEditResource: editResource,
+        originalFollowersById,
         onRename: renameCult,
         originalName:
           typeof workspace.original.CultName === "string" &&

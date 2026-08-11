@@ -23,10 +23,15 @@ import {
 import type { MessagePackSource, SaveRecord } from "./types";
 
 type CurrentDoctrineField = Exclude<DoctrineStorageField, "CultTrait">;
+type FollowerListField = "Followers" | "Followers_Dead";
+type FollowerIdArrayField =
+  | "Followers_Dead_IDs"
+  | "Followers_Elderly_IDs";
 type CurrentEditableField =
   | CurrentDoctrineField
   | "CultName"
-  | "Followers"
+  | FollowerListField
+  | FollowerIdArrayField
   | "items";
 
 export class CurrentSaveWriteError extends Error {
@@ -68,8 +73,16 @@ export const CURRENT_EDITABLE_FIELD_POSITIONS = {
   ...CURRENT_DOCTRINE_FIELD_POSITIONS,
   CultName: requiredSlotPosition("CultName"),
   Followers: requiredSlotPosition("Followers"),
+  Followers_Dead: requiredSlotPosition("Followers_Dead"),
+  Followers_Dead_IDs: requiredSlotPosition("Followers_Dead_IDs"),
+  Followers_Elderly_IDs: requiredSlotPosition("Followers_Elderly_IDs"),
   items: requiredSlotPosition("items"),
 } as const satisfies Record<CurrentEditableField, number>;
+
+const FOLLOWER_ID_ARRAY_FIELDS = [
+  "Followers_Dead_IDs",
+  "Followers_Elderly_IDs",
+] as const satisfies readonly FollowerIdArrayField[];
 
 const ITEM_QUANTITY_SUBFIELDS = {
   quantity: requiredItemIndex("quantity"),
@@ -397,13 +410,43 @@ const FOLLOWER_EDITABLE_SUBFIELDS: Readonly<
       ? null
       : "must be non-empty text",
   _satiation: percentCheck,
+  // Death-cause flags plus the elder marker. The staging layer only ever
+  // produces them through its Status/DeathCause pseudo-fields, so at most
+  // one cause can end up true and OldAge stays in step with
+  // Followers_Elderly_IDs.
+  ...Object.fromEntries(
+    [
+      "OldAge",
+      "DiedOfIllness",
+      "DiedOfInjury",
+      "DiedOfOldAge",
+      "DiedOfStarvation",
+      "FrozeToDeath",
+      "DiedFromRot",
+      "DiedFromTwitchChat",
+      "DiedInPrison",
+      "DiedFromMurder",
+      "DiedFromDeadlyDish",
+      "DiedFromMissionary",
+      "DiedFromLightning",
+      "DiedFromOverheating",
+      "BurntToDeath",
+    ].map((flag) => [
+      flag,
+      (value: unknown) =>
+        typeof value === "boolean" ? null : "must be true or false",
+    ]),
+  ),
 };
 
-function requiredFollowerIndex(subfield: string): number {
-  const index = messagePackSubfieldIndex("slot", "Followers", subfield);
+function requiredFollowerIndex(
+  list: FollowerListField,
+  subfield: string,
+): number {
+  const index = messagePackSubfieldIndex("slot", list, subfield);
   if (index === null) {
     throw new CurrentSaveWriteError(
-      `The supported MessagePack schema does not map Followers.${subfield}.`,
+      `The supported MessagePack schema does not map ${list}.${subfield}.`,
     );
   }
   return index;
@@ -425,12 +468,16 @@ function followerRecord(value: unknown, position: number): SaveRecord {
 // Nested keyed structures (Thoughts, Relationships, and so on) decode
 // into records, so their raw arrays cannot be compared field-for-field.
 // They are never editable and their raw values pass through untouched.
-const NESTED_FOLLOWER_SUBFIELDS = messagePackNestedSubfields(
-  "slot",
-  "Followers",
-);
+const NESTED_FOLLOWER_SUBFIELDS: Record<
+  FollowerListField,
+  ReadonlySet<string>
+> = {
+  Followers: messagePackNestedSubfields("slot", "Followers"),
+  Followers_Dead: messagePackNestedSubfields("slot", "Followers_Dead"),
+};
 
 function assertRawFollowerMatches(
+  list: FollowerListField,
   rawEntry: unknown,
   record: SaveRecord,
   position: number,
@@ -438,27 +485,28 @@ function assertRawFollowerMatches(
   const keys = Object.keys(record);
   if (!Array.isArray(rawEntry) || rawEntry.length !== keys.length) {
     throw new CurrentSaveWriteError(
-      `Follower entry ${position} no longer matches its raw MessagePack layout.`,
+      `${list} entry ${position} no longer matches its raw MessagePack layout.`,
     );
   }
   for (const key of keys) {
-    if (NESTED_FOLLOWER_SUBFIELDS.has(key)) {
+    if (NESTED_FOLLOWER_SUBFIELDS[list].has(key)) {
       continue;
     }
     if (
       !messagePackRawValuesMatch(
-        rawEntry[requiredFollowerIndex(key)],
+        rawEntry[requiredFollowerIndex(list, key)],
         record[key],
       )
     ) {
       throw new CurrentSaveWriteError(
-        `Follower entry ${position} no longer matches raw MessagePack field ${key}.`,
+        `${list} entry ${position} no longer matches raw MessagePack field ${key}.`,
       );
     }
   }
 }
 
 function plannedFollowersValue(
+  list: FollowerListField,
   rawFollowers: unknown,
   originalFollowers: unknown,
   workingFollowers: unknown,
@@ -469,7 +517,7 @@ function plannedFollowersValue(
     !Array.isArray(workingFollowers)
   ) {
     throw new CurrentSaveWriteError(
-      "Followers is not a complete follower array.",
+      `${list} is not a complete follower array.`,
     );
   }
   // Adding, removing, or resurrecting followers is deferred: a follower
@@ -494,7 +542,7 @@ function plannedFollowersValue(
       workingFollowers[position],
       position,
     );
-    assertRawFollowerMatches(rawEntry, originalRecord, position);
+    assertRawFollowerMatches(list, rawEntry, originalRecord, position);
 
     const originalKeys = Object.keys(originalRecord);
     const workingKeys = Object.keys(workingRecord);
@@ -536,7 +584,7 @@ function plannedFollowersValue(
     const edited = rawEntry.slice();
     for (const key of changedKeys) {
       const value = workingRecord[key];
-      edited[requiredFollowerIndex(key)] = Array.isArray(value)
+      edited[requiredFollowerIndex(list, key)] = Array.isArray(value)
         ? value.slice()
         : value;
     }
@@ -544,6 +592,230 @@ function plannedFollowersValue(
   });
 
   return changed ? replacement : null;
+}
+
+function requiredFollowerId(
+  record: SaveRecord,
+  list: FollowerListField,
+  position: number,
+): number {
+  const id = record.ID;
+  if (typeof id !== "number" || !Number.isSafeInteger(id)) {
+    throw new CurrentSaveWriteError(
+      `${list} entry ${position} has no numeric ID, so followers cannot be moved.`,
+    );
+  }
+  return id;
+}
+
+/**
+ * Plans both follower list replacements when entries moved between the
+ * living and dead lists. Every follower must still exist exactly once
+ * across the two lists — moves are allowed, appearing or vanishing is
+ * not. Records keep their raw values except for approved subfield edits,
+ * re-projected into the target list's layout.
+ */
+function plannedMovedFollowerLists(
+  source: MessagePackSource,
+  original: SaveRecord,
+  working: SaveRecord,
+): Map<number, unknown> {
+  interface OriginalEntry {
+    list: FollowerListField;
+    position: number;
+    rawEntry: unknown[];
+    record: SaveRecord;
+  }
+  const originalById = new Map<number, OriginalEntry>();
+  for (const list of ["Followers", "Followers_Dead"] as const) {
+    // A save may omit a list entirely (no deaths yet); it only takes
+    // part in a move when either side actually stores an array.
+    if (!Array.isArray(original[list]) && !Array.isArray(working[list])) {
+      continue;
+    }
+    const rawList = source.rawData[CURRENT_EDITABLE_FIELD_POSITIONS[list]];
+    const originalList = original[list];
+    if (!Array.isArray(rawList) || !Array.isArray(originalList)) {
+      throw new CurrentSaveWriteError(
+        `${list} is not a complete follower array.`,
+      );
+    }
+    if (rawList.length !== originalList.length) {
+      throw new CurrentSaveWriteError(
+        `${list} no longer matches its raw MessagePack layout.`,
+      );
+    }
+    originalList.forEach((entry, position) => {
+      const record = followerRecord(entry, position);
+      const rawEntry = rawList[position];
+      assertRawFollowerMatches(list, rawEntry, record, position);
+      const id = requiredFollowerId(record, list, position);
+      if (originalById.has(id)) {
+        throw new CurrentSaveWriteError(
+          `Follower ${id} appears more than once in the follower lists.`,
+        );
+      }
+      originalById.set(id, { list, position, rawEntry, record });
+    });
+  }
+
+  const replacements = new Map<number, unknown>();
+  const seen = new Set<number>();
+  for (const list of ["Followers", "Followers_Dead"] as const) {
+    if (!Array.isArray(original[list]) && !Array.isArray(working[list])) {
+      continue;
+    }
+    const workingList = working[list];
+    if (!Array.isArray(workingList)) {
+      throw new CurrentSaveWriteError(
+        `${list} is not a complete follower array.`,
+      );
+    }
+    const planned = workingList.map((entry, position) => {
+      const workingRecord = followerRecord(entry, position);
+      const id = requiredFollowerId(workingRecord, list, position);
+      if (seen.has(id)) {
+        throw new CurrentSaveWriteError(
+          `Follower ${id} appears more than once in the working follower lists.`,
+        );
+      }
+      seen.add(id);
+      const origin = originalById.get(id);
+      if (origin === undefined) {
+        throw new CurrentSaveWriteError(
+          `Follower ${id} appeared from nowhere; followers can only move between the living and dead lists.`,
+        );
+      }
+      const originalRecord = origin.record;
+
+      const originalKeys = Object.keys(originalRecord);
+      const workingKeys = Object.keys(workingRecord);
+      if (
+        originalKeys.length !== workingKeys.length ||
+        !originalKeys.every((key, index) => key === workingKeys[index])
+      ) {
+        throw new CurrentSaveWriteError(
+          `The working copy changed the fields of follower ${id}.`,
+        );
+      }
+
+      const changedKeys = originalKeys.filter(
+        (key) =>
+          !messagePackRawValuesMatch(
+            originalRecord[key],
+            workingRecord[key],
+          ),
+      );
+      for (const key of changedKeys) {
+        const check = FOLLOWER_EDITABLE_SUBFIELDS[key];
+        if (check === undefined) {
+          throw new CurrentSaveWriteError(
+            `The working copy changed unapproved follower field ${key} of follower ${id}.`,
+          );
+        }
+        const problem = check(workingRecord[key]);
+        if (problem !== null) {
+          throw new CurrentSaveWriteError(
+            `Follower ${id} field ${key} ${problem}.`,
+          );
+        }
+      }
+
+      if (origin.list === list && changedKeys.length === 0) {
+        return origin.rawEntry;
+      }
+      // Re-project the raw entry into this list's layout (the layouts
+      // share the same field set; indexes may differ).
+      const projected = new Array<unknown>(originalKeys.length);
+      const changed = new Set(changedKeys);
+      for (const key of originalKeys) {
+        const value = changed.has(key)
+          ? workingRecord[key]
+          : origin.rawEntry[requiredFollowerIndex(origin.list, key)];
+        projected[requiredFollowerIndex(list, key)] = Array.isArray(
+          value,
+        )
+          ? value.slice()
+          : value;
+      }
+      return projected;
+    });
+    replacements.set(CURRENT_EDITABLE_FIELD_POSITIONS[list], planned);
+  }
+  for (const id of originalById.keys()) {
+    if (!seen.has(id)) {
+      throw new CurrentSaveWriteError(
+        `Follower ${id} vanished; followers can only move between the living and dead lists.`,
+      );
+    }
+  }
+  return replacements;
+}
+
+/**
+ * Whenever followers move or the status id arrays change, the working
+ * copy must stay self-consistent: Followers_Dead_IDs mirrors the dead
+ * list's order, and every elderly id belongs to a known follower.
+ */
+function assertFollowerArraysConsistent(working: SaveRecord): void {
+  const living = Array.isArray(working.Followers)
+    ? working.Followers
+    : [];
+  const dead = Array.isArray(working.Followers_Dead)
+    ? working.Followers_Dead
+    : [];
+  const idOf = (entry: unknown): unknown =>
+    entry !== null && typeof entry === "object" && !Array.isArray(entry)
+      ? (entry as SaveRecord).ID
+      : undefined;
+  const deadIds = dead.map(idOf);
+  if (!messagePackRawValuesMatch(working.Followers_Dead_IDs, deadIds)) {
+    throw new CurrentSaveWriteError(
+      "Followers_Dead_IDs does not mirror the dead follower list.",
+    );
+  }
+  const known = new Set([...living.map(idOf), ...deadIds]);
+  const elderly = numberArray(working.Followers_Elderly_IDs);
+  if (elderly === null) {
+    throw new CurrentSaveWriteError(
+      "Followers_Elderly_IDs is not a complete number array.",
+    );
+  }
+  for (const id of elderly) {
+    if (!known.has(id)) {
+      throw new CurrentSaveWriteError(
+        `Followers_Elderly_IDs lists unknown follower ${id}.`,
+      );
+    }
+  }
+}
+
+function followerListsMoved(
+  original: SaveRecord,
+  working: SaveRecord,
+): boolean {
+  const idOf = (entry: unknown): unknown =>
+    entry !== null && typeof entry === "object" && !Array.isArray(entry)
+      ? (entry as SaveRecord).ID
+      : undefined;
+  for (const list of ["Followers", "Followers_Dead"] as const) {
+    const originalList = original[list];
+    const workingList = working[list];
+    if (!Array.isArray(originalList) || !Array.isArray(workingList)) {
+      continue;
+    }
+    // A kill plus a revive keeps the lengths equal, so compare the
+    // entries' identities, not just the counts.
+    if (
+      originalList.length !== workingList.length ||
+      originalList.some(
+        (entry, index) => idOf(entry) !== idOf(workingList[index]),
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function plannedReplacements(
@@ -617,16 +889,51 @@ function plannedReplacements(
     }
   }
 
-  const followersPosition = CURRENT_EDITABLE_FIELD_POSITIONS.Followers;
-  if (!messagePackRawValuesMatch(original.Followers, working.Followers)) {
-    const plannedFollowers = plannedFollowersValue(
-      source.rawData[followersPosition],
-      original.Followers,
-      working.Followers,
-    );
-    if (plannedFollowers !== null) {
-      replacements.set(followersPosition, plannedFollowers);
+  if (followerListsMoved(original, working)) {
+    const planned = plannedMovedFollowerLists(source, original, working);
+    assertFollowerArraysConsistent(working);
+    for (const [position, value] of planned) {
+      replacements.set(position, value);
     }
+  } else {
+    for (const list of ["Followers", "Followers_Dead"] as const) {
+      const position = CURRENT_EDITABLE_FIELD_POSITIONS[list];
+      if (messagePackRawValuesMatch(original[list], working[list])) {
+        continue;
+      }
+      const plannedFollowers = plannedFollowersValue(
+        list,
+        source.rawData[position],
+        original[list],
+        working[list],
+      );
+      if (plannedFollowers !== null) {
+        replacements.set(position, plannedFollowers);
+      }
+    }
+  }
+
+  for (const field of FOLLOWER_ID_ARRAY_FIELDS) {
+    const position = CURRENT_EDITABLE_FIELD_POSITIONS[field];
+    if (messagePackRawValuesMatch(original[field], working[field])) {
+      continue;
+    }
+    const originalIds = numberArray(original[field]);
+    const workingIds = numberArray(working[field]);
+    if (originalIds === null || workingIds === null) {
+      throw new CurrentSaveWriteError(
+        `${field} is not a complete number array.`,
+      );
+    }
+    if (
+      !messagePackRawValuesMatch(source.rawData[position], originalIds)
+    ) {
+      throw new CurrentSaveWriteError(
+        `${field} no longer matches raw MessagePack position ${position}.`,
+      );
+    }
+    assertFollowerArraysConsistent(working);
+    replacements.set(position, workingIds.slice());
   }
 
   if (replacements.size === 0) {

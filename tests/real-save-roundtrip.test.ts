@@ -10,6 +10,11 @@ import {
   planDoctrineChange,
 } from "../src/save/doctrine-editor";
 import { encodeVerifiedMessagePackSave } from "../src/save/encode";
+import {
+  applyFollowerEdits,
+  emptyFollowerEdits,
+  stageFollowerEdit,
+} from "../src/save/follower-edits";
 import { buildCultOverview } from "../src/save/overview";
 
 const saveCopyPath = process.env.COTL_SAVE_COPY;
@@ -160,6 +165,73 @@ describeSaveCopy("real save copy", () => {
     expect(reopenedFollowers[0]?.ID).toBe(first.ID);
     expect(reopenedFollowers.length).toBe(followers.length);
     expect(reopened.data.Followers_Dead).toEqual(original.Followers_Dead);
+  });
+
+  it("writes a kill and a revive and reopens them intact", async () => {
+    const decoded = await decodeSave(
+      await readSaveCopy(saveCopyPath as string),
+    );
+    if (!decoded.messagePack) {
+      throw new Error("Expected raw MessagePack source data.");
+    }
+    const original = decoded.data;
+    const livingId = (
+      (original.Followers as Array<Record<string, unknown>>)[0] as Record<
+        string,
+        unknown
+      >
+    ).ID as number;
+    const deadId = (
+      (original.Followers_Dead as Array<Record<string, unknown>>)[0] as Record<
+        string,
+        unknown
+      >
+    ).ID as number;
+
+    let edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: livingId,
+      value: "Dead",
+    });
+    edits = stageFollowerEdit(original, edits, {
+      field: "DeathCause",
+      followerId: livingId,
+      value: "DiedFromMurder",
+    });
+    edits = stageFollowerEdit(original, edits, {
+      field: "Status",
+      followerId: deadId,
+      value: "Elder",
+    });
+    const working = applyFollowerEdits(original, original, edits);
+
+    const written = await encodeVerifiedModifiedCurrentSave(
+      decoded.messagePack,
+      original,
+      working,
+    );
+    const reopened = await decodeSave(
+      new Uint8Array(written).slice().buffer,
+    );
+    const living = reopened.data.Followers as Array<
+      Record<string, unknown>
+    >;
+    const dead = reopened.data.Followers_Dead as Array<
+      Record<string, unknown>
+    >;
+
+    const revived = living.at(-1);
+    expect(revived?.ID).toBe(deadId);
+    expect(revived?.OldAge).toBe(true);
+    const killed = dead.at(-1);
+    expect(killed?.ID).toBe(livingId);
+    expect(killed?.DiedFromMurder).toBe(true);
+    expect(reopened.data.Followers_Dead_IDs).toEqual(
+      dead.map((entry) => entry.ID),
+    );
+    expect(
+      (reopened.data.Followers_Elderly_IDs as number[]).includes(deadId),
+    ).toBe(true);
   });
 
   it.runIf(rebuiltSaveCopyPath)(

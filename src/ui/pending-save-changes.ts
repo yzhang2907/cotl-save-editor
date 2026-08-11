@@ -1,5 +1,6 @@
 import type { PendingCultEdit } from "../save/cult-edits";
 import type { DlcKey } from "../save/dlc";
+import type { PendingFollowerEdit } from "../save/follower-edits";
 import type { PendingDoctrineChange } from "../save/doctrine-workspace";
 import { doctrineChangeLabel } from "./doctrine-change-label";
 import { displayNumber } from "./overview-format";
@@ -19,6 +20,17 @@ export function doctrinePendingSaveChange(
     label: doctrineChangeLabel(change),
     requiredDlc: change.requiredDlc,
     scope: `${change.categoryName} · Rank ${change.rank}`,
+  };
+}
+
+export function followerEditPendingSaveChange(
+  edit: PendingFollowerEdit,
+): PendingSaveChange {
+  return {
+    key: `follower-${edit.followerId}-${edit.field}`,
+    label: `${edit.fieldLabel}: ${edit.from} → ${edit.to}`,
+    requiredDlc: null,
+    scope: `Followers · ${edit.followerName}`,
   };
 }
 

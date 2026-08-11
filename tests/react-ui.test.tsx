@@ -906,17 +906,12 @@ describe("CultOverview", () => {
 
     expect(sections).toHaveLength(4);
     expect(sections.every((section) => !section.open)).toBe(true);
-    const readOnlySections = sections.filter((section) =>
-      section.classList.contains("read-only"),
+    const readOnlySections = sections.filter(
+      (section) =>
+        section.querySelector("summary .summary-badge")?.textContent ===
+        READ_ONLY_LABEL,
     );
     expect(readOnlySections).toHaveLength(3);
-    expect(
-      readOnlySections.every((section) =>
-        section
-          .querySelector("summary strong")
-          ?.textContent?.includes(`(${READ_ONLY_LABEL})`),
-      ),
-    ).toBe(true);
     expect(screen.getByText(NO_DOCTRINE_CHANGES_LABEL)).toBeTruthy();
   });
 

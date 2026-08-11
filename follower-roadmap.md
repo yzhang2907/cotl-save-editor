@@ -1,150 +1,154 @@
 # Follower data roadmap
 
-Findings come from the decoder key map in `lamb-mp-decoder` and from a
-real save (`slot_0.mp`: 17 living followers, 39 dead).
+Based on the decoder key map in `lamb-mp-decoder` and a real save
+(`slot_0.mp`: 17 living followers, 39 dead).
 
-## State of things
+## What we know
 
-### The follower schema is already mapped
+**The follower record layout is fully mapped.** Every follower is a
+192-field record (`slot_mp_keys[1109]` in `lamb-mp-decoder` names every
+index). The living, dead, recruit, possessed, and dissented lists all
+share this layout. Thus no list needs its own reader.
 
-`slot_mp_keys[1109]` names indices 0-191 of every follower record. The
-same 192-field layout is used by:
+**Appearance is stored directly in the save.** Each record has the
+skin name as a literal string (`Fish`, `Red Panda3`), plus numeric
+fields for skin variation and colour, hat, outfit, clothing, necklace,
+and overlays like curses and snowman state. Describing a follower in
+text ("Red Panda, variation 3, colour 22, Bishop robes, no hat") needs
+no reverse engineering. To draw an actual portrait, we must extract
+layered, tinted sprites from the game files. This is possible (we
+already extract icons with UnityPy) but is real work. Name plus colour
+swatch plus labelled parts is the cheap version.
 
-- `Followers` (1109) — living
-- `Followers_Recruit` (1110)
-- `Followers_Dead` (1111)
-- `Followers_Possessed` (1113)
-- `Followers_Dissented` (1114)
-
-So dead followers need no new reader: same layout, different array.
-
-The editor currently surfaces 9 of the 192 fields in
-`buildFollowers` (`src/save/overview.ts:162`) and renders them
-read-only in `src/ui/followers-section.tsx`.
-
-### Appearance can be reconstructed
-
-The save stores appearance directly:
-
-- `SkinName` — a literal string, e.g. `Fish`, `Red Panda3`,
-  `Boss Scorpion`.
-- `SkinCharacter` / `SkinVariation` — e.g. `45` / `2` for
-  `Red Panda3`; the name suffix is the variation plus one.
-- `SkinColour` — values 0-24 observed.
-- `Hat`, `Outfit`, `Clothing`, `ClothingVariant`,
-  `ClothingPreviousVariant`, `Necklace`, `ShowingNecklace`,
-  `Customisation`, `Special` — small integers, `0` or `""` for none.
-- `CursedState`, `CursedStateVariant`, `IsSnowman`, `Pets`, `DLCPets`
-  — overlays on top of the base skin.
-
-`SkinCharacter` maps 1:1 to `SkinName` across all 57 records in the
-test save, and `FollowerSkinsUnlocked` in the same save is a 54-entry
-list of skin names — a catalog the save hands us for free.
-
-A textual rebuild ("Red Panda, variation 3, colour 22, Bishop robes,
-no hat") therefore needs no reverse engineering. A visual portrait
-needs sprite extraction: feasible, since
-`scripts/extract-resource-icons.py` already does this with UnityPy,
-but followers are layered and tinted sprites rather than single
-icons, so a faithful portrait is real work. Name, colour swatch, and
-labelled parts is the cheap version.
-
-### The real gap is the enum catalogs
-
-Follower `Traits` values (`[79,16]`, `[16,51,42,43]`) are not
-catalogued anywhere. `catalogs.ts` only holds the ~30 cult-trait IDs
-that doctrines grant.
-
-`Assembly-CSharp.dll` in the Steam install contains the `clothingType`,
-`hatType`, `necklaceType`, `outfitType`, and `customisation` enums,
-plus I2.Loc localization terms (`Traits_GrassEater`, and so on) for
-display names.
+**The missing piece was the lookup tables** for trait, role, hat,
+outfit, and similar ids. Item 1 below solved this. It reads the tables
+out of the game's code and localization files.
 
 ## Roadmap
 
-### 1. Extract the catalogs — DONE
+### 1. Extract the lookup tables — DONE
 
 `scripts/extract-follower-catalogs.py` (run with `uv run`, pass the
 `Cult Of The Lamb_Data` dir) generates `src/save/follower-catalogs.ts`:
 traits (126), roles (20), factions, hats, outfits, clothing,
 customisations, specials, pets, causes of death, and thoughts (565).
-Names come from the I2Languages English column with humanized enum-key
-fallbacks; `catalogName()` degrades to `Unknown trait 79`.
+Display names come from the game's English localization, with
+humanized fallbacks; unknown ids degrade to `Unknown trait 79`.
 
 Learned along the way:
 
-- Necklaces are inventory item ids (`Gift_Necklace*`), already covered
-  by `ITEM_NAMES` — there is no necklace enum.
-- Skins are not an enum either; they live in WorshipperData Unity
-  assets. The save's literal `SkinName` strings suffice for display.
-- Roles localize as `Traits/<Role>` terms; work hats and outfits are
-  mostly unlocalized (functional items named by role).
-- `SkinCharacter` maps 1:1 to the *base* skin name; the trailing digit
-  on `SkinName` is the variation plus one (`Seahorse3` = variation 2).
-- Curses do share the Thought id space, so `FOLLOWER_THOUGHTS` covers
-  `CursedState`. No sacrificial-type enum exists in the DLL.
+- Necklaces are ordinary inventory items, already covered by
+  `ITEM_NAMES`.
+- Skins have no id table; the save's literal skin-name strings are
+  enough for display. The trailing digit is the variation plus one
+  (`Seahorse3` = variation 2).
+- Work hats and outfits are mostly unnamed in the localization files
+  (they're functional items named by role).
+- Curses reuse the Thought id space, so the thoughts table covers
+  `CursedState` too.
 
-`tests/follower-catalogs.test.ts` self-tests the anchors and, when
+`tests/follower-catalogs.test.ts` self-checks known ids and, when
 `COTL_SAVE_COPY` is set, cross-checks every trait, outfit, and skin
-pair in the real save.
+in the real save.
 
 ### 2. Read side: full detail and dead followers — DONE
 
-- `FollowerOverview` now carries appearance, named traits, role,
-  faction, faith, adoration, family (spouse and parents resolved to
-  names), day joined, life expectancy, and a `death` block (cause
-  from the `DiedOf*` flags, burial, funeral, murderer).
-- Each follower row expands to a detail panel; dead followers render
-  in their own closed-by-default section with the cause as the chip.
-  Recruit, possessed, and dissented still pending the same pattern.
-- The bogus "Cursed" status is gone: `CursedState` is surfaced as
-  "State of mind" via `FOLLOWER_THOUGHTS` (146 = Old Age, 392 = Just
-  Hatched), confirming the loose end below.
+- Each follower now shows appearance, named traits, role, faction,
+  faith, adoration, family (spouse and parents by name), day joined,
+  life expectancy, and death details (cause, burial, funeral,
+  murderer).
+- Rows expand to a detail panel; dead followers get their own
+  closed-by-default section with the cause of death as the chip.
+  Recruit, possessed, and dissented lists still pending the same
+  treatment.
+- Fixed a bug where any nonzero `CursedState` showed as "Cursed".
+  Those values are Thought ids. They now show as "State of mind"
+  (146 = Old Age, 392 = Just Hatched).
 
-### 3. Write side: positional raw mapping — DONE
+### 3. Write side — DONE
 
-- `current-save.ts` maps a `Followers` position and plans per-entry
-  replacements via `plannedFollowersValue`, mirroring
-  `plannedItemsValue`: fixed entry count (add/remove/resurrect
-  rejected), unapproved subfields rejected, raw layout asserted
-  before replacement.
-- Allowlist (`FOLLOWER_EDITABLE_SUBFIELDS`): `_name`, `XPLevel`,
-  `Age`, `_happiness`, `_satiation`, `_illness`, appearance fields
-  (skin variation/colour, hat, outfit, clothing and variants,
-  necklace, customisation, special), and `Traits` — each validated
-  against the follower catalogs or value ranges.
-- Nested keyed subfields (Thoughts, Relationships, Inventory, …)
-  decode into records, so the layout assertion skips them
-  (`messagePackNestedSubfields`); they are never editable and pass
-  through raw untouched.
-- Covered by unit tests and a gated real-save roundtrip that edits a
-  follower, re-encrypts, and reopens the file.
+`current-save.ts` can rewrite follower records the same way it rewrites
+items (`plannedFollowersValue`): the follower count is fixed (no adding
+or removing), only an approved list of fields may change
+(`FOLLOWER_EDITABLE_SUBFIELDS`), and the record's raw layout is verified
+before anything is replaced. Editable fields: name, level, age,
+happiness, satiation, illness, the appearance fields, and traits. The
+editor validates each field against the lookup tables or a value range.
+Nested structures (thoughts, relationships, inventory) are never
+editable and pass through untouched. Covered by unit tests plus a gated
+real-save roundtrip that edits a follower, re-encrypts, and reopens the
+file.
 
-### 4. Edit staging and UI
+### 4. Edit staging and UI — DONE
 
-Follow the existing `cult-edits.ts` pattern: stage, discard,
-`listPending…`, and `apply…` with the unapproved-field sweep.
+`src/save/follower-edits.ts` mirrors the cult-edits pattern: stage,
+discard, list (with human-readable from/to values), and apply. Edits
+are keyed by follower id and work on both living and dead followers.
+The UI exposes name, level, age, happiness, satiation, illness, and
+traits through an edit modal (with a searchable trait picker); dead
+followers additionally get a cause-of-death dropdown. Cause of death
+is staged as one virtual field and expanded at apply time so the
+underlying flags can never contradict each other. A second virtual
+field, Status (Active / Elder / Dead), covers kill, revive, and elder
+toggling. See item 5. Follower edits share the same pending-changes
+list, change dock, download flow, and session cache as cult edits
+(old cached sessions still restore). Appearance fields validate and
+apply but have no form controls yet.
 
-### 5. Guard cross-record integrity
+### 5. Guard cross-record integrity — PARTLY DONE
 
-This is what makes follower editing riskier than resources. A
-follower is referenced from about fifteen other places:
-`Followers_Dead_IDs`, `Followers_Elderly_IDs`, `SpouseFollowerID`,
-`Relationships`, `Thoughts[].FollowerID`, `MurderedBy`, dwelling
-assignments, and more.
+This is the risky part. About fifteen other places in the save refer
+to a follower: the dead-id list, the elder-id list, spouses,
+relationships, thoughts, murderers, dwelling assignments, and more.
 
-Editing a field is safe. Changing IDs, resurrecting, or adding
-followers is not. Scope the first pass to field edits on existing
-followers and defer add, remove, and resurrect entirely.
+Kill, revive, and elder toggling shipped via the Status field. What a
+real save taught us:
+
+- Living and dead records share the same layout (dead-cause flags
+  exist on living records too, all false), so moving a follower
+  between lists is just a copy plus flag flips.
+- The save keeps a separate list of dead follower ids that mirrors
+  the dead list's order; the editor recomputes it and refuses to move
+  anyone if the mirror is already broken.
+- Elder state lives in two places. The game leaves both stale on
+  death, so killing preserves them and reviving sets both explicitly.
+- The writer enforces conservation: followers may move between lists
+  but never appear or vanish, and every moved record must match its
+  original bytes outside the editable fields.
+
+Still deferred: creating new followers, changing ids, and cleaning up
+the other cross-references on kill/revive. The game cleans up
+dangling references for deaths it causes itself. An in-game check
+(item 6) should confirm that it tolerates ours. The most important
+case is to revive a follower whose dwelling was reassigned.
+
+On bodies and graves: a dead record only stores whether the follower
+was buried and had a funeral, plus a last position. Corpses and graves
+are structures that point at the follower (`FollowerID`, `BodyWrapped`),
+never the reverse. An editor kill spawns no corpse structure, but that
+matches natural states for every cause: ritual deaths (the no-cause
+default) consume the body, and any other corpse can be butchered for
+meat, leaving dead-of-old-age followers with no body and no grave. The
+game also routinely produces unburied dead and buried dead with no
+surviving grave. Reviving a buried follower leaves a grave that points at a
+living follower. The game never creates this state itself. If the
+item-6 check shows problems, revive must clear the grave's follower
+id, which means adding a structures writer.
 
 ### 6. Check in the game
 
 Follow the pattern in `todo.md` section 9: one field per category,
 then a combined edit, then save, reload, and restart.
 
-## Loose ends noticed along the way
+## Loose ends
 
-- ~~`overview.ts` marked any nonzero `CursedState` as "Cursed"~~ —
-  confirmed to be Thought ids and fixed in item 2.
-- ~~`traitCount` discards trait data~~ — replaced with named `traits`
-  in item 2.
+- The trait table doesn't say which traits are DLC. Late additions
+  (Aestivation, Heavyweight, Flautist, …) are almost certainly
+  Woolhaven traits, but the editor can currently stage them onto a
+  non-DLC save. Needs an in-game check (item 6) or a curated id list.
+- Some localized trait names embed markup or `{0}` templates; the
+  picker cleans these up, but names shown elsewhere are still raw.
+- The game no longer caps loyalty levels (the old level-10 cap was
+  removed), so the editor's limit is just a 9999 sanity bound. The
+  XP table was never extracted; it lives in compiled code the catalog
+  script doesn't read.

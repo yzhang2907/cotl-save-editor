@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { analyzeSave } from "./save/analyze";
 import { emptyCultEdits, type CultEdits } from "./save/cult-edits";
 import type { AppliedDoctrineChange } from "./save/doctrine-workspace";
+import {
+  emptyFollowerEdits,
+  type FollowerEdits,
+} from "./save/follower-edits";
 import { MAX_SAVE_BYTES, MAX_SAVE_MEBIBYTES } from "./save/limits";
 import {
   clearCachedSession,
@@ -25,6 +29,7 @@ interface OpenedSave {
   id: number;
   restoredCultEdits: CultEdits;
   restoredDoctrineHistory: AppliedDoctrineChange[];
+  restoredFollowerEdits: FollowerEdits;
 }
 
 interface AppToast {
@@ -86,6 +91,7 @@ export function App() {
           id: currentRequest,
           restoredCultEdits: emptyCultEdits(),
           restoredDoctrineHistory: [],
+          restoredFollowerEdits: emptyFollowerEdits(),
         });
         showToast(`Opened ${file.name}.`, "ready");
       } catch (error) {
@@ -120,6 +126,7 @@ export function App() {
     (edits: {
       cultEdits: CultEdits;
       doctrineHistory: AppliedDoctrineChange[];
+      followerEdits: FollowerEdits;
     }): void => {
       const opened = openedSaveRef.current;
       if (opened === null) {
@@ -130,6 +137,7 @@ export function App() {
         cultEdits: edits.cultEdits,
         doctrineHistory: edits.doctrineHistory,
         fileName: opened.file.name,
+        followerEdits: edits.followerEdits,
         lastModified: opened.file.lastModified,
         savedAt: Date.now(),
       });
@@ -163,6 +171,7 @@ export function App() {
           id,
           restoredCultEdits: session.cultEdits,
           restoredDoctrineHistory: session.doctrineHistory,
+          restoredFollowerEdits: session.followerEdits,
         });
         showToast(
           `Restored your last session with ${session.fileName}.`,
@@ -202,6 +211,7 @@ export function App() {
             onNotice={showToast}
             restoredCultEdits={openedSave.restoredCultEdits}
             restoredDoctrineHistory={openedSave.restoredDoctrineHistory}
+            restoredFollowerEdits={openedSave.restoredFollowerEdits}
           />
         ) : null}
 

@@ -42,6 +42,7 @@ export interface FollowerAppearance {
 export interface FollowerDeath {
   buried: boolean;
   cause: string | null;
+  causeFlag: string | null;
   day: number | null;
   funeral: boolean;
   murderedBy: string | null;
@@ -54,6 +55,7 @@ export interface FollowerOverview {
   bornInCult: boolean;
   dayJoined: number | null;
   death: FollowerDeath | null;
+  elder: boolean;
   faction: string | null;
   faith: number | null;
   happiness: number | null;
@@ -68,6 +70,7 @@ export interface FollowerOverview {
   spouse: string | null;
   stateThought: string | null;
   statuses: string[];
+  traitIds: number[];
   traits: string[];
 }
 
@@ -186,7 +189,7 @@ function followerStatuses(
 }
 
 // Flag fields on dead follower records, checked in save order.
-const DEATH_CAUSES: ReadonlyArray<[string, string]> = [
+export const DEATH_CAUSES: ReadonlyArray<[string, string]> = [
   ["DiedOfIllness", "Illness"],
   ["DiedOfInjury", "Injury"],
   ["DiedOfOldAge", "Old age"],
@@ -241,10 +244,11 @@ function buildDeath(
   followerNames: ReadonlyMap<number, string>,
 ): FollowerDeath {
   const murderer = positiveInteger(follower.MurderedBy);
+  const cause = DEATH_CAUSES.find(([flag]) => follower[flag] === true);
   return {
     buried: follower.HasBeenBuried === true,
-    cause:
-      DEATH_CAUSES.find(([flag]) => follower[flag] === true)?.[1] ?? null,
+    cause: cause?.[1] ?? null,
+    causeFlag: cause?.[0] ?? null,
     // Ritual deaths leave TimeOfDeath at zero, so zero means unrecorded.
     day: positiveInteger(follower.TimeOfDeath),
     funeral: follower.HadFuneral === true,
@@ -271,6 +275,14 @@ function buildFollower(
     bornInCult: follower.BornInCult === true,
     dayJoined: integer(follower.DayJoined),
     death: dead ? buildDeath(follower, followerNames) : null,
+    // The game leaves dead followers' elder membership in place, so this
+    // is meaningful for both lists.
+    elder: (() => {
+      const id = integer(follower.ID);
+      return id !== null && statusIds.Elder !== undefined
+        ? statusIds.Elder.has(id)
+        : false;
+    })(),
     faction: catalogNullable(follower.Faction, FOLLOWER_FACTIONS, "faction"),
     faith: finiteNumber(follower._faith),
     happiness: finiteNumber(follower._happiness),
@@ -297,6 +309,7 @@ function buildFollower(
         ? null
         : catalogName(FOLLOWER_THOUGHTS, stateThought, "thought"),
     statuses: dead ? [] : followerStatuses(follower, statusIds),
+    traitIds: numberArray(follower.Traits),
     traits: numberArray(follower.Traits).map((trait) =>
       catalogName(FOLLOWER_TRAITS, trait, "trait"),
     ),
@@ -311,8 +324,6 @@ function catalogNullable(
   const id = integer(value);
   return id === null ? null : catalogName(catalog, id, kind);
 }
-
-const NO_STATUS_IDS: Readonly<Record<string, Set<number>>> = {};
 
 function followerNameIndex(
   followerLists: ReadonlyArray<SaveRecord[]>,
@@ -352,7 +363,9 @@ function buildFollowers(data: SaveRecord): {
 
   return {
     deadFollowers: dead.map((follower, index) =>
-      buildFollower(follower, index, NO_STATUS_IDS, names, true),
+      // Statuses stay empty for the dead, but pass the real id sets so
+      // the elder flag survives death like it does in the save.
+      buildFollower(follower, index, statusIds, names, true),
     ),
     followers: living.map((follower, index) =>
       buildFollower(follower, index, statusIds, names, false),

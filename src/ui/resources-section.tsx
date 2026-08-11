@@ -313,42 +313,17 @@ function AddItemModal({
             type="search"
             value={query}
           />
-          {matches.length === 0 ? (
-            <p className="empty-overview">
-              No catalog items match “{query}”.
-            </p>
-          ) : (
-            <div className="resource-add-results">
-              {matches.some((item) => item.unobtainable !== true) ? (
-                <div className="resource-add-list">
-                  {matches
-                    .filter((item) => item.unobtainable !== true)
-                    .map((item) => (
-                      <AddItemOption
-                        item={item}
-                        key={item.id}
-                        onSelect={select}
-                        selected={item.id === selectedId}
-                      />
-                    ))}
-                </div>
-              ) : null}
-              {matches.some((item) => item.unobtainable === true) ? (
-                <section
-                  aria-labelledby="unobtainable-items-title"
-                  className="resource-add-unobtainable"
-                >
-                  <h4 id="unobtainable-items-title">
-                    Unobtainable items
-                  </h4>
-                  <p>
-                    The game defines these but never places them in the
-                    inventory: cut content, or things it tracks
-                    elsewhere. Adding one likely does nothing in-game.
-                  </p>
+          <div className="resource-add-results">
+            {matches.length === 0 ? (
+              <p className="empty-overview">
+                No catalog items match “{query}”.
+              </p>
+            ) : (
+              <>
+                {matches.some((item) => item.unobtainable !== true) ? (
                   <div className="resource-add-list">
                     {matches
-                      .filter((item) => item.unobtainable === true)
+                      .filter((item) => item.unobtainable !== true)
                       .map((item) => (
                         <AddItemOption
                           item={item}
@@ -358,10 +333,37 @@ function AddItemModal({
                         />
                       ))}
                   </div>
+                ) : null}
+                {matches.some((item) => item.unobtainable === true) ? (
+                  <section
+                    aria-labelledby="unobtainable-items-title"
+                    className="resource-add-unobtainable"
+                  >
+                    <h4 id="unobtainable-items-title">
+                      Unobtainable items
+                    </h4>
+                    <p>
+                      The game defines these but never places them in the
+                      inventory: cut content, or things it tracks
+                      elsewhere. Adding one likely does nothing in-game.
+                    </p>
+                    <div className="resource-add-list">
+                      {matches
+                        .filter((item) => item.unobtainable === true)
+                        .map((item) => (
+                          <AddItemOption
+                            item={item}
+                            key={item.id}
+                            onSelect={select}
+                            selected={item.id === selectedId}
+                          />
+                        ))}
+                    </div>
                 </section>
-              ) : null}
-            </div>
-          )}
+                ) : null}
+              </>
+            )}
+          </div>
           <label className="resource-add-quantity">
             <span>
               Quantity

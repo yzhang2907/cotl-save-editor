@@ -5,6 +5,8 @@
  */
 
 :root {
+  /* Native widgets (select popups, scrollbars) should render dark. */
+  color-scheme: dark;
   color: #f5ead0;
   background: #25232b;
   font-family: "Nunito", "Trebuchet MS", sans-serif;
@@ -155,6 +157,15 @@ h3 {
 
 .seal-button:hover {
   transform: rotate(6deg) scale(1.08);
+}
+
+.seal-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.seal-button:disabled:hover {
+  transform: none;
 }
 
 .seal-button:focus-visible {

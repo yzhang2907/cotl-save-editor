@@ -9,7 +9,9 @@
 
 .action-toast {
   position: fixed;
-  z-index: 20;
+  /* Above the modal backdrop (z-index 30): staging errors toast while a
+     modal is still open. */
+  z-index: 40;
   right: var(--corner-inset-x);
   bottom: var(--corner-inset-y);
   display: grid;

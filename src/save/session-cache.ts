@@ -1,5 +1,6 @@
 import type { CultEdits } from "./cult-edits";
 import type { AppliedDoctrineChange } from "./doctrine-workspace";
+import { emptyFollowerEdits, type FollowerEdits } from "./follower-edits";
 
 /**
  * Keeps the save that is currently open, plus every staged edit, in
@@ -21,6 +22,7 @@ export interface CachedSession {
   bytes: ArrayBuffer;
   cultEdits: CultEdits;
   doctrineHistory: AppliedDoctrineChange[];
+  followerEdits: FollowerEdits;
   fileName: string;
   lastModified: number;
   savedAt: number;
@@ -74,7 +76,10 @@ async function withStore<T>(
   }
 }
 
-function isCachedSession(value: unknown): value is CachedSession {
+function isCachedSession(
+  value: unknown,
+): value is Omit<CachedSession, "followerEdits"> &
+  Partial<Pick<CachedSession, "followerEdits">> {
   if (typeof value !== "object" || value === null) {
     return false;
   }
@@ -103,7 +108,13 @@ export async function readCachedSession(): Promise<CachedSession | null> {
     void clearCachedSession();
     return null;
   }
-  return stored;
+  // Sessions cached before follower editing existed lack the field.
+  const followerEdits =
+    stored.followerEdits !== undefined &&
+    Array.isArray(stored.followerEdits.fields)
+      ? stored.followerEdits
+      : emptyFollowerEdits();
+  return { ...stored, followerEdits };
 }
 
 export async function writeCachedSession(

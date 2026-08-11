@@ -177,6 +177,9 @@
 }
 
 .follower-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
   min-width: 0;
 }
 
@@ -199,5 +202,302 @@
 
   .follower-row .follower-name {
     grid-column: 1 / -1;
+  }
+}
+
+.follower-edited {
+  flex: 0 0 auto;
+  color: var(--orange);
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.follower-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Form contents of the follower edit modal (.edited-save-modal). */
+.follower-edit-form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.follower-edit-field {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+/* Same voice as .overview-stat-label on the save summary tiles. */
+.follower-edit-field > span,
+.follower-edit-label {
+  color: var(--red);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.follower-edit-field input {
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  appearance: textfield;
+  border: 2px solid var(--bone-muted);
+  border-radius: 7px 5px 8px 6px;
+  background: var(--wash-bone);
+  color: var(--bone);
+  font: inherit;
+}
+
+.follower-edit-field input.follower-edit-number {
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1.25rem;
+}
+
+.follower-edit-field input::-webkit-outer-spin-button,
+.follower-edit-field input::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.follower-edit-field input:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.follower-edit-field input[aria-invalid="true"],
+.follower-edit-field input[aria-invalid="true"]:focus-visible {
+  border-color: var(--red);
+  outline-color: var(--red);
+}
+
+.follower-edit-field input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Thin-line grid, same recipe as the cult overview stat tiles. */
+.follower-edit-numbers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid var(--line-soft);
+}
+
+.follower-edit-numbers .follower-edit-field {
+  padding: 0.8rem 0.95rem;
+  border-right: 1px solid var(--line-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.follower-edit-numbers .follower-edit-field:nth-child(2n) {
+  border-right: 0;
+}
+
+/* No inner line above the container's bottom border: the last cell, and
+   with an odd count also the lone cell beside it. */
+.follower-edit-numbers .follower-edit-field:nth-last-child(1),
+.follower-edit-numbers .follower-edit-field:nth-last-child(2):nth-child(odd) {
+  border-bottom: 0;
+}
+
+.follower-edit-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* The input yields to the fixed-size seals instead of overflowing the
+   grid cell. */
+.follower-edit-input-row input {
+  flex: 1 1 0;
+  width: 100%;
+}
+
+.follower-edit-input-row .seal-button {
+  flex-shrink: 0;
+}
+
+.follower-edit-input-row input {
+  flex: 1 1 auto;
+}
+
+.follower-edit-input-row .seal-button {
+  flex: 0 0 auto;
+}
+
+.follower-edit-traits {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.follower-trait-none {
+  margin: 0;
+  color: var(--bone-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.follower-trait-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.follower-trait-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.3rem 0.2rem 0.55rem;
+  border: 2px solid var(--line);
+  border-radius: 9px 7px 10px 8px;
+  background: rgb(245 234 208 / 4%);
+  color: var(--bone);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.follower-trait-chip button {
+  display: inline-flex;
+  padding: 0.1rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--bone-muted);
+  cursor: pointer;
+}
+
+.follower-trait-chip button:hover,
+.follower-trait-chip button:focus-visible {
+  color: var(--red);
+}
+
+.follower-trait-results {
+  height: min(28vh, 15rem);
+}
+
+.follower-trait-results .resource-add-option svg {
+  flex: 0 0 auto;
+  color: var(--bone-muted);
+}
+
+.follower-trait-results .resource-add-option:hover svg {
+  color: var(--red);
+}
+
+.follower-edit-heading {
+  min-width: 0;
+}
+
+.follower-edit-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.65rem;
+}
+
+/* Renaming happens inside the h3 row: same font, same height, the
+   seals land where the pencil sits. */
+.follower-edit-heading h3 {
+  min-height: 34px;
+}
+
+/* Outranks the .resource-add-modal form grid rule. */
+.follower-edit-heading .follower-rename-form {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.follower-rename-form input {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: -2px 0;
+  padding: 0 0.45rem;
+  border: 2px solid var(--bone-muted);
+  border-radius: 7px 5px 8px 6px;
+  background: var(--wash-bone);
+  color: var(--bone);
+  font: inherit;
+}
+
+.follower-rename-form input:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.follower-rename-form .seal-button {
+  flex: 0 0 auto;
+}
+
+.follower-edit-field > span,
+.follower-edit-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+/* Same palette as the circular discard seals. */
+.chip-button.follower-clear-edits {
+  background: var(--orange);
+  color: var(--ink);
+}
+
+.follower-trait-chip.added {
+  border-color: var(--orange);
+  background: var(--edited-wash);
+}
+
+.follower-field-value {
+  flex: 1 1 auto;
+  color: var(--bone);
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.follower-trait-chip.removed {
+  border-color: rgb(from var(--red) r g b / 45%);
+  border-style: dashed;
+  color: var(--bone-muted);
+}
+
+.follower-edit-select {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 2px solid var(--bone-muted);
+  border-radius: 7px 5px 8px 6px;
+  background: var(--wash-bone);
+  color: var(--bone);
+  cursor: pointer;
+  font-family: "Lilita One", "Arial Black", sans-serif;
+  font-size: 0.95rem;
+}
+
+.follower-edit-select:focus-visible {
+  border-color: var(--gold);
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.follower-edit-select option {
+  background: var(--night-raised, #241f23);
+  color: var(--bone);
+}
+
+@media (max-width: 620px) {
+  .follower-edit-numbers {
+    grid-template-columns: 1fr;
   }
 }

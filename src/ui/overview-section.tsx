@@ -5,6 +5,7 @@ import "./overview-section.css";
 interface OverviewSectionProps {
   children: ReactNode;
   count: string;
+  experimental?: boolean;
   readOnly?: boolean;
   title: string;
 }
@@ -12,18 +13,22 @@ interface OverviewSectionProps {
 export function OverviewSection({
   children,
   count,
+  experimental = false,
   readOnly = false,
   title,
 }: OverviewSectionProps) {
   return (
-    <details
-      className={`overview-panel${readOnly ? " read-only" : ""}`}
-    >
+    <details className="overview-panel">
       <summary>
         <strong>
           {title}
-          {readOnly ? ` (${READ_ONLY_LABEL})` : null}
         </strong>
+        {readOnly ? (
+          <span className="summary-badge">{READ_ONLY_LABEL}</span>
+        ) : null}
+        {experimental ? (
+          <span className="summary-badge">Experimental</span>
+        ) : null}
         <span>{count}</span>
       </summary>
       <div className="overview-panel-body">{children}</div>

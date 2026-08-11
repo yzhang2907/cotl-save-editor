@@ -44,6 +44,20 @@
   text-transform: uppercase;
 }
 
+/* Matches .follower-trait-chip, minus the inline remove/add button. */
+.overview-panel > summary .summary-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border: 2px solid var(--line);
+  border-radius: 9px 7px 10px 8px;
+  background: rgb(245 234 208 / 4%);
+  color: var(--bone);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+}
 .overview-panel > summary::after {
   color: var(--red);
   content: "›";
@@ -66,35 +80,6 @@
 
 .overview-panel[open] > summary::after {
   transform: rotate(90deg);
-}
-
-/*
- * Read-only sections sit quieter than the editable doctrine panel, so that
- * the panel a user can act on reads first. Hover and keyboard focus restore
- * full contrast, because these sections still open.
- */
-.overview-panel.read-only > summary {
-  color: var(--bone-muted);
-}
-
-.overview-panel.read-only > summary::before,
-.overview-panel.read-only > summary::after {
-  color: var(--disabled-fg);
-}
-
-.overview-panel.read-only > summary:hover,
-.overview-panel.read-only > summary:focus-visible {
-  color: var(--bone);
-}
-
-.overview-panel.read-only > summary:hover::before,
-.overview-panel.read-only > summary:focus-visible::before {
-  color: var(--red);
-}
-
-.overview-panel.read-only > summary:hover::after,
-.overview-panel.read-only > summary:focus-visible::after {
-  color: var(--bone);
 }
 
 .overview-panel-body {

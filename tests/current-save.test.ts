@@ -14,6 +14,11 @@ import {
   encodeVerifiedModifiedCurrentSave,
 } from "../src/save/current-save";
 import { decodeSave } from "../src/save/decode";
+import {
+  applyFollowerEdits,
+  emptyFollowerEdits,
+  stageFollowerEdit,
+} from "../src/save/follower-edits";
 import { planDoctrineChange } from "../src/save/doctrine-editor";
 import {
   applyDoctrineChange,
@@ -70,8 +75,11 @@ const numericKeyMap = Uint8Array.of(
 
 async function currentSource(options: {
   cultTraits?: number[];
+  deadIds?: number[];
   doctrineIds?: number[];
+  elderlyIds?: number[];
   followers?: unknown[];
+  followersDead?: unknown[];
   items?: unknown[];
   postgameDualChoice?: boolean;
   upgradeIds?: number[];
@@ -110,6 +118,17 @@ async function currentSource(options: {
   }
   if (options.followers !== undefined) {
     rawData[requiredSlotPosition("Followers")] = options.followers;
+  }
+  if (options.followersDead !== undefined) {
+    rawData[requiredSlotPosition("Followers_Dead")] =
+      options.followersDead;
+  }
+  if (options.deadIds !== undefined) {
+    rawData[requiredSlotPosition("Followers_Dead_IDs")] = options.deadIds;
+  }
+  if (options.elderlyIds !== undefined) {
+    rawData[requiredSlotPosition("Followers_Elderly_IDs")] =
+      options.elderlyIds;
   }
   rawData[UNKNOWN_SLOT_POSITION] = [];
 
@@ -560,11 +579,22 @@ function followerIndex(subfield: string): number {
 }
 
 function rawFollower(fields: Record<string, unknown>): unknown[] {
+  return rawFollowerIn("Followers", fields);
+}
+
+function rawFollowerIn(
+  list: "Followers" | "Followers_Dead",
+  fields: Record<string, unknown>,
+): unknown[] {
   const entry = Array.from<unknown>({
     length: RAW_FOLLOWER_LENGTH,
   }).fill(null);
   for (const [subfield, value] of Object.entries(fields)) {
-    entry[followerIndex(subfield)] = value;
+    const index = messagePackSubfieldIndex("slot", list, subfield);
+    if (index === null) {
+      throw new Error(`${list}.${subfield} has no raw index.`);
+    }
+    entry[index] = value;
   }
   return entry;
 }
@@ -659,7 +689,110 @@ describe("modified current save follower writer", () => {
 
     await expect(
       encodeVerifiedModifiedCurrentSave(source, original, working),
-    ).rejects.toThrow("unapproved follower field ID of entry 0");
+    ).rejects.toThrow(
+      "appeared from nowhere; followers can only move between the living and dead lists",
+    );
+  });
+
+  it("writes a kill through the moved-list path", async () => {
+    const { original, source } = await currentSource({
+      deadIds: [],
+      elderlyIds: [],
+      followers: TEST_FOLLOWERS,
+      followersDead: [],
+    });
+    let edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: 9,
+      value: "Dead",
+    });
+    edits = stageFollowerEdit(original, edits, {
+      field: "DeathCause",
+      followerId: 9,
+      value: "DiedFromMurder",
+    });
+    const working = applyFollowerEdits(original, original, edits);
+
+    const written = await encodeVerifiedModifiedCurrentSave(
+      source,
+      original,
+      working,
+    );
+    const reopened = await decodeSave(exactBuffer(written));
+    const living = reopened.data.Followers as Array<
+      Record<string, unknown>
+    >;
+    const dead = reopened.data.Followers_Dead as Array<
+      Record<string, unknown>
+    >;
+
+    expect(living).toHaveLength(1);
+    expect(living[0]?.ID).toBe(7);
+    expect(dead).toHaveLength(1);
+    expect(dead[0]?.ID).toBe(9);
+    expect(dead[0]?._name).toBe("Mola");
+    expect(dead[0]?.DiedFromMurder).toBe(true);
+    expect(dead[0]?.DiedOfOldAge).toBe(false);
+    expect(reopened.data.Followers_Dead_IDs).toEqual([9]);
+  });
+
+  it("writes a revive through the moved-list path", async () => {
+    const deadEntry = rawFollowerIn("Followers_Dead", {
+      Age: 60,
+      DiedOfOldAge: true,
+      ID: 21,
+      OldAge: true,
+      Traits: [2],
+      XPLevel: 5,
+      _name: "Boo",
+    });
+    const { original, source } = await currentSource({
+      deadIds: [21],
+      elderlyIds: [21],
+      followers: TEST_FOLLOWERS,
+      followersDead: [deadEntry],
+    });
+    const edits = stageFollowerEdit(original, emptyFollowerEdits(), {
+      field: "Status",
+      followerId: 21,
+      value: "Active",
+    });
+    const working = applyFollowerEdits(original, original, edits);
+
+    const written = await encodeVerifiedModifiedCurrentSave(
+      source,
+      original,
+      working,
+    );
+    const reopened = await decodeSave(exactBuffer(written));
+    const living = reopened.data.Followers as Array<
+      Record<string, unknown>
+    >;
+
+    expect(living).toHaveLength(3);
+    expect(living[2]?.ID).toBe(21);
+    expect(living[2]?._name).toBe("Boo");
+    expect(living[2]?.DiedOfOldAge).toBe(false);
+    expect(living[2]?.OldAge).toBe(false);
+    expect(reopened.data.Followers_Dead).toEqual([]);
+    expect(reopened.data.Followers_Dead_IDs).toEqual([]);
+    expect(reopened.data.Followers_Elderly_IDs).toEqual([]);
+  });
+
+  it("rejects moved lists whose dead ids do not mirror", async () => {
+    const { original, source } = await currentSource({
+      deadIds: [],
+      elderlyIds: [],
+      followers: TEST_FOLLOWERS,
+      followersDead: [],
+    });
+    const working = structuredClone(original);
+    const moved = (working.Followers as unknown[]).pop();
+    (working.Followers_Dead as unknown[]).push(moved);
+
+    await expect(
+      encodeVerifiedModifiedCurrentSave(source, original, working),
+    ).rejects.toThrow("does not mirror the dead follower list");
   });
 
   it("rejects added or removed follower entries", async () => {
@@ -675,10 +808,12 @@ describe("modified current save follower writer", () => {
 
     await expect(
       encodeVerifiedModifiedCurrentSave(source, original, added),
-    ).rejects.toThrow("changed the number of follower entries");
+    ).rejects.toThrow(
+      "appears more than once in the working follower lists",
+    );
     await expect(
       encodeVerifiedModifiedCurrentSave(source, original, removed),
-    ).rejects.toThrow("changed the number of follower entries");
+    ).rejects.toThrow("vanished");
   });
 
   it("rejects values outside the allowlist rules", async () => {
@@ -743,7 +878,7 @@ describe("modified current save follower writer", () => {
     await expect(
       encodeVerifiedModifiedCurrentSave(tampered, original, working),
     ).rejects.toThrow(
-      "Follower entry 0 no longer matches raw MessagePack field Age",
+      "Followers entry 0 no longer matches raw MessagePack field Age",
     );
   });
 });

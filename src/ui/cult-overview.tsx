@@ -2,7 +2,11 @@ import { Check, Pencil, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { GAME_CULT_NAME_INPUT_LIMIT } from "../save/cult-edits";
-import type { CultOverview as CultOverviewData } from "../save/overview";
+import type { FollowerFieldEdit } from "../save/follower-edits";
+import type {
+  CultOverview as CultOverviewData,
+  FollowerOverview,
+} from "../save/overview";
 import type { DoctrineChangePlan } from "../save/doctrine-editor";
 import type { SaveRecord } from "../save/types";
 import { doctrineChangeCountLabel } from "./copy";
@@ -27,14 +31,18 @@ import "./cult-overview.css";
 
 export interface CultEditingProps {
   addableItems: AddableItem[];
+  editedFollowerIds: ReadonlySet<number>;
   editedResourceTypes: ReadonlySet<number>;
   nameEditable: boolean;
   nameEdited: boolean;
   onAddResource: (edit: ResourceEditRequest) => boolean;
+  onDiscardFollowerEdits: (followerId: number) => void;
   onDiscardRename: () => void;
   onDiscardResourceEdit: (type: number) => void;
+  onEditFollower: (edits: FollowerFieldEdit[]) => boolean;
   onEditResource: (edit: ResourceEditRequest) => boolean;
   onRename: (name: string) => boolean;
+  originalFollowersById: ReadonlyMap<number, FollowerOverview>;
   originalName: string | null;
 }
 
@@ -242,7 +250,11 @@ export function CultOverview({
           <FollowersSection
             count={overview.followerCount}
             deadFollowers={overview.deadFollowers}
+            editedFollowerIds={editing?.editedFollowerIds}
             followers={overview.followers}
+            onDiscardFollowerEdits={editing?.onDiscardFollowerEdits}
+            onEditFollower={editing?.onEditFollower}
+            originalFollowersById={editing?.originalFollowersById}
           />
         )}
         {overview.itemTypeCount === null ? null : (
