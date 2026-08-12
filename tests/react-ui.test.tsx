@@ -18,7 +18,7 @@ import {
   resetDoctrineChanges,
   type PendingDoctrineChange,
 } from "../src/save/doctrine-workspace";
-import { buildCultOverview } from "../src/save/overview";
+import { buildCultOverview, DEATH_CAUSES } from "../src/save/overview";
 import type { SaveRecord } from "../src/save/types";
 import { ActionToast, TOAST_DISMISS_AFTER_MS } from "../src/ui/action-toast";
 import { AdvancedDiagnostics } from "../src/ui/advanced-diagnostics";
@@ -850,6 +850,322 @@ describe("SaveReport editing", () => {
     expect(container.querySelector(".change-count-seal")?.textContent).toBe(
       NO_DOCTRINE_CHANGES_LABEL,
     );
+  });
+});
+
+describe("SaveReport follower editing", () => {
+  function followerFixture(
+    fields: Record<string, unknown>,
+  ): Record<string, unknown> {
+    return {
+      ID: 0,
+      OldAge: false,
+      ...Object.fromEntries(DEATH_CAUSES.map(([flag]) => [flag, false])),
+      ...fields,
+    };
+  }
+
+  const followersSave: SaveRecord = doctrineSaveFromChoices(
+    [FAITHFUL, BELIEF_IN_AFTERLIFE, FUNERAL],
+    {
+      BaseStructures: [],
+      CultName: "Test Cult",
+      Followers: [
+        followerFixture({
+          Age: 20,
+          ID: 7,
+          LifeExpectancy: 35,
+          Traits: [6],
+          XPLevel: 3,
+          _happiness: 60,
+          _illness: 0,
+          _name: "Webb",
+          _satiation: 80,
+        }),
+        followerFixture({
+          Age: 44,
+          ID: 9,
+          LifeExpectancy: 50,
+          Traits: [],
+          XPLevel: 1,
+          _happiness: 40,
+          _illness: 5,
+          _name: "Mola",
+          _satiation: 30,
+        }),
+      ],
+      Followers_Dead: [
+        followerFixture({
+          Age: 60,
+          DiedOfOldAge: true,
+          HasBeenBuried: true,
+          ID: 21,
+          LifeExpectancy: 60,
+          OldAge: true,
+          TimeOfDeath: 30,
+          XPLevel: 5,
+          _name: "Boo",
+        }),
+      ],
+      Followers_Dead_IDs: [21],
+      Followers_Elderly_IDs: [21],
+      UnlockedSermonsAndRituals: [],
+      items: [],
+    },
+  );
+
+  function renderFollowersReport(onNotice = () => undefined) {
+    return render(
+      <SaveReport
+        decoded={{
+          data: structuredClone(followersSave),
+          format: "encrypted-messagepack",
+          messagePack: EMPTY_SLOT_MESSAGEPACK_SOURCE,
+        }}
+        file={new File(["save"], "slot_0.mp")}
+        onNotice={onNotice}
+        report={analyzeSave(followersSave)}
+      />,
+    );
+  }
+
+  async function openFollower(
+    user: ReturnType<typeof userEvent.setup>,
+    name: string,
+  ) {
+    await user.click(
+      screen.getByText("Followers", { selector: "summary strong" }),
+    );
+    await user.click(
+      screen.getByText(name, { selector: ".follower-name strong" }),
+    );
+    await user.click(screen.getByRole("button", { name: `Edit ${name}` }));
+  }
+
+  function livingNames(container: HTMLElement): string[] {
+    const list = container.querySelector(".follower-list");
+    return [...(list?.querySelectorAll(".follower-name strong") ?? [])].map(
+      (entry) => entry.textContent ?? "",
+    );
+  }
+
+  it("stages a rename and number edits from the modal", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFollowersReport();
+
+    await openFollower(user, "Webb");
+    await user.click(screen.getByRole("button", { name: "Rename Webb" }));
+    const nameInput = screen.getByRole("textbox", {
+      name: "New follower name",
+    });
+    await user.clear(nameInput);
+    await user.type(nameInput, "Webbington");
+    await user.click(
+      screen.getByRole("button", { name: "Set the follower's name" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit level" }));
+    const levelInput = screen.getByRole("textbox", {
+      name: "New level value",
+    });
+    await user.clear(levelInput);
+    // Firefox lets letters through, so the input must drop them.
+    await user.type(levelInput, "12x");
+    expect((levelInput as HTMLInputElement).value).toBe("12");
+    await user.click(
+      screen.getByRole("button", { name: "Set the level value" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit happiness" }));
+    const happinessInput = screen.getByRole("textbox", {
+      name: "New happiness value",
+    });
+    await user.clear(happinessInput);
+    await user.type(happinessInput, "55.5");
+    await user.click(
+      screen.getByRole("button", { name: "Set the happiness value" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Stage the edits" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(3),
+    );
+    expect(screen.getByText("Name: “Webb” → “Webbington”")).toBeTruthy();
+    expect(screen.getByText("Level: 3 → 12")).toBeTruthy();
+    expect(screen.getByText("Happiness: 60 → 55.5")).toBeTruthy();
+    expect(screen.getAllByText("Followers · Webb")).toHaveLength(3);
+    expect(livingNames(container)).toContain("Webbington");
+    expect(screen.getAllByLabelText("edited").length).toBeGreaterThan(0);
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard Level: 3 → 12" }),
+    );
+    expect(screen.queryByText("Level: 3 → 12")).toBeNull();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(2),
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Discard the Webbington edits" }),
+    );
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
+    expect(livingNames(container)).toContain("Webb");
+    expect(screen.queryByLabelText("edited")).toBeNull();
+  });
+
+  it("stages a kill with a cause and couples its discard", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFollowersReport();
+
+    await openFollower(user, "Mola");
+    await user.click(screen.getByRole("button", { name: "Edit status" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Status" }),
+      "Dead",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Edit cause of death" }),
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Cause of death" }),
+      "DiedFromMurder",
+    );
+    await user.click(screen.getByRole("button", { name: "Stage the edits" }));
+
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(2),
+    );
+    expect(screen.getByText("Status: Active → Dead")).toBeTruthy();
+    expect(
+      screen.getByText("Cause of death: None (Ritual) → Murdered"),
+    ).toBeTruthy();
+    expect(screen.getByText("2 dead")).toBeTruthy();
+    expect(livingNames(container)).toEqual(["Webb"]);
+
+    // The staged cause exists only because of the staged kill, so
+    // discarding the kill must take the cause with it.
+    await user.click(
+      screen.getByRole("button", { name: "Discard Status: Active → Dead" }),
+    );
+    expect(
+      screen.queryByText("Cause of death: None (Ritual) → Murdered"),
+    ).toBeNull();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
+    expect(screen.getByText("1 dead")).toBeTruthy();
+    expect(livingNames(container)).toEqual(["Webb", "Mola"]);
+  });
+
+  it("stages a revive and routes the derived lifespan row", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFollowersReport();
+
+    await user.click(
+      screen.getByText("Followers", { selector: "summary strong" }),
+    );
+    await user.click(screen.getByText("Dead followers"));
+    await user.click(
+      screen.getByText("Boo", { selector: ".follower-name strong" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Edit Boo" }));
+    await user.click(screen.getByRole("button", { name: "Edit status" }));
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Status" }),
+      "Active",
+    );
+    await user.click(screen.getByRole("button", { name: "Stage the edits" }));
+
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      doctrineChangeCountLabel(2),
+    );
+    expect(screen.getByText("Status: Dead → Active")).toBeTruthy();
+    expect(screen.getByText("Life expectancy: 60 → 75")).toBeTruthy();
+    expect(screen.queryByText("Dead followers")).toBeNull();
+    expect(livingNames(container)).toEqual(["Webb", "Mola", "Boo"]);
+
+    // Discarding the derived row must discard the status edit that
+    // causes it, not a standalone lifespan edit.
+    await user.click(
+      screen.getByRole("button", {
+        name: "Discard Life expectancy: 60 → 75",
+      }),
+    );
+    expect(screen.queryByText("Status: Dead → Active")).toBeNull();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
+    expect(screen.getByText("Dead followers")).toBeTruthy();
+  });
+
+  it("bounds numeric drafts and stages nothing on escape", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFollowersReport();
+
+    await openFollower(user, "Webb");
+    await user.click(screen.getByRole("button", { name: "Edit level" }));
+    const levelInput = screen.getByRole("textbox", {
+      name: "New level value",
+    });
+    await user.clear(levelInput);
+    await user.type(levelInput, "99999");
+    const confirmLevel = screen.getByRole("button", {
+      name: "Set the level value",
+    });
+    expect(confirmLevel.hasAttribute("disabled")).toBe(true);
+    expect(levelInput.getAttribute("aria-invalid")).toBe("true");
+    await user.click(
+      screen.getByRole("button", { name: "Stop editing level" }),
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit happiness" }));
+    const happinessInput = screen.getByRole("textbox", {
+      name: "New happiness value",
+    });
+    await user.clear(happinessInput);
+    await user.type(happinessInput, "5.5.5");
+    expect((happinessInput as HTMLInputElement).value).toBe("5.55");
+
+    await user.keyboard("{Escape}");
+    expect(
+      screen.queryByRole("textbox", { name: "New happiness value" }),
+    ).toBeNull();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(container.querySelector(".change-count-seal")?.textContent).toBe(
+      NO_DOCTRINE_CHANGES_LABEL,
+    );
+  });
+
+  it("sorts follower rows by a clicked column", async () => {
+    const user = userEvent.setup();
+    const { container } = renderFollowersReport();
+
+    await user.click(
+      screen.getByText("Followers", { selector: "summary strong" }),
+    );
+    expect(livingNames(container)).toEqual(["Webb", "Mola"]);
+
+    const labels = container.querySelector(
+      ".follower-list .follower-labels",
+    );
+    expect(labels).not.toBeNull();
+    const levelHeader = within(labels as HTMLElement).getByRole("button", {
+      name: "Level",
+    });
+
+    await user.click(levelHeader);
+    expect(livingNames(container)).toEqual(["Mola", "Webb"]);
+
+    await user.click(levelHeader);
+    expect(livingNames(container)).toEqual(["Webb", "Mola"]);
+
+    await user.click(levelHeader);
+    expect(livingNames(container)).toEqual(["Webb", "Mola"]);
   });
 });
 
