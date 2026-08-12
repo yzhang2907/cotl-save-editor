@@ -39,6 +39,11 @@
      mirrored edge where the red field meets the dark one. */
   --tear-width: 18px;
   --tear-height: 10px;
+  /* The edge under the topbar loses the point of each tooth into the bar
+     above it. The mirrored edge slides its teeth up by the same amount
+     so both end in the same blunt tip. */
+  --tear-crop: 6px;
+  --tear-visible: calc(var(--tear-height) - var(--tear-crop));
   /* Corner shared by the toast and the change dock; --toast-stack is the
      toast height the dock-aware toast offset in change-dock.css assumes. */
   --corner-inset-x: clamp(1rem, 3vw, 2rem);
@@ -95,20 +100,27 @@ body {
 }
 
 #app::after {
-  top: calc(var(--field-split) - var(--tear-height));
+  top: calc(var(--field-split) - var(--tear-height) + var(--tear-crop));
   bottom: 0;
   background:
     /* Teeth biting up into the red field, mirroring the torn edge under
-       the topbar. That edge paints ink over red along the same diagonal;
-       here the dark side is the other half of the tile, so the colour
-       stop order is reversed rather than the angle. */
-    linear-gradient(45deg, var(--night) 50%, transparent 51%) 0 0 /
-      var(--tear-width) var(--tear-height) repeat-x,
-    url("./lamb-mark.svg") 0 var(--tear-height) / 128px 256px,
+       the topbar. Flipping that edge top to bottom keeps each tooth
+       leaning the same way across the tile, which turns its 135deg into
+       315deg.
+
+       The edge above is a strip of teeth laid over a bar of the same
+       colour, so each point merges into the bar and only the blunt lower
+       part of the tooth shows. Nothing sits beneath this edge to do the
+       same, so the tile is nudged past the end of the strip and clipped,
+       which leaves the matching flat tip. */
+    linear-gradient(315deg, var(--night) 50%, transparent 51%) 0
+      calc(var(--tear-crop) * -1) / var(--tear-width) var(--tear-height)
+      repeat-x,
+    url("./lamb-mark.svg") 0 var(--tear-visible) / 128px 256px,
     radial-gradient(ellipse at center, transparent 42%, rgb(0 0 0 / 14%) 100%)
-      0 var(--tear-height) / 100% calc(100% - var(--tear-height)) no-repeat,
-    linear-gradient(var(--night), var(--night)) 0 var(--tear-height) / 100%
-      calc(100% - var(--tear-height)) no-repeat;
+      0 var(--tear-visible) / 100% calc(100% - var(--tear-visible)) no-repeat,
+    linear-gradient(var(--night), var(--night)) 0 var(--tear-visible) / 100%
+      calc(100% - var(--tear-visible)) no-repeat;
 }
 
 button,
