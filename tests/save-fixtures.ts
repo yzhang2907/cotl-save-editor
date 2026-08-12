@@ -1,4 +1,7 @@
-import { messagePackFieldPosition } from "../src/save/messagepack";
+import {
+  messagePackFieldPosition,
+  messagePackSubfieldIndex,
+} from "../src/save/messagepack";
 import { AES_BLOCK_BYTES } from "../src/save/encryption";
 import type {
   MessagePackSource,
@@ -49,6 +52,33 @@ export function requiredSlotPosition(field: string): number {
     throw new Error(`Expected ${field} in the slot field map.`);
   }
   return position;
+}
+
+/**
+ * The length of a raw follower entry, matching the number of mapped
+ * subfields a current save stores per follower.
+ */
+export const RAW_FOLLOWER_LENGTH = 192;
+
+export function rawFollowerIn(
+  list: "Followers" | "Followers_Dead",
+  fields: Record<string, unknown>,
+): unknown[] {
+  const entry = Array.from<unknown>({
+    length: RAW_FOLLOWER_LENGTH,
+  }).fill(null);
+  for (const [subfield, value] of Object.entries(fields)) {
+    const index = messagePackSubfieldIndex("slot", list, subfield);
+    if (index === null) {
+      throw new Error(`${list}.${subfield} has no raw index.`);
+    }
+    entry[index] = value;
+  }
+  return entry;
+}
+
+export function rawFollower(fields: Record<string, unknown>): unknown[] {
+  return rawFollowerIn("Followers", fields);
 }
 
 export function positionalSlotSave(data: SaveRecord): unknown[] {

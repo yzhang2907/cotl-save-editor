@@ -54,6 +54,8 @@ import {
   concatenateBytes,
   EMPTY_MESSAGEPACK_ARRAY_BYTE,
   exactBuffer,
+  rawFollower,
+  rawFollowerIn,
   requiredSlotPosition,
   SLOT_POSITION_COUNT,
   TEST_AES_IV,
@@ -568,35 +570,12 @@ describe("modified current save writer", () => {
   });
 });
 
-const RAW_FOLLOWER_LENGTH = 192;
-
 function followerIndex(subfield: string): number {
   const index = messagePackSubfieldIndex("slot", "Followers", subfield);
   if (index === null) {
     throw new Error(`Followers.${subfield} has no raw index.`);
   }
   return index;
-}
-
-function rawFollower(fields: Record<string, unknown>): unknown[] {
-  return rawFollowerIn("Followers", fields);
-}
-
-function rawFollowerIn(
-  list: "Followers" | "Followers_Dead",
-  fields: Record<string, unknown>,
-): unknown[] {
-  const entry = Array.from<unknown>({
-    length: RAW_FOLLOWER_LENGTH,
-  }).fill(null);
-  for (const [subfield, value] of Object.entries(fields)) {
-    const index = messagePackSubfieldIndex("slot", list, subfield);
-    if (index === null) {
-      throw new Error(`${list}.${subfield} has no raw index.`);
-    }
-    entry[index] = value;
-  }
-  return entry;
 }
 
 const TEST_FOLLOWERS = [

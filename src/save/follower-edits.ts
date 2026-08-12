@@ -312,6 +312,10 @@ const FOLLOWER_FIELDS: Readonly<
   _satiation: percentField("Satiation"),
 };
 
+/** Names of the directly stageable follower fields. */
+export const FOLLOWER_FIELD_NAMES: readonly string[] =
+  Object.keys(FOLLOWER_FIELDS);
+
 export function emptyFollowerEdits(): FollowerEdits {
   return { fields: [] };
 }
