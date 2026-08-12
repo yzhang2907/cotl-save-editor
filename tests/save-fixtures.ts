@@ -1,3 +1,5 @@
+import { slot_mp_keys } from "lamb-mp-decoder/dist/keys.js";
+
 import {
   messagePackFieldPosition,
   messagePackSubfieldIndex,
@@ -86,6 +88,61 @@ export function positionalSlotSave(data: SaveRecord): unknown[] {
     length: SLOT_POSITION_COUNT,
   }).fill(null);
   for (const [field, value] of Object.entries(data)) {
+    rawData[requiredSlotPosition(field)] = value;
+  }
+  rawData[UNKNOWN_SLOT_POSITION] = [];
+  return rawData;
+}
+
+/*
+ * The padding pushes the encoded payload past two LZ4 blocks, so a
+ * round trip over this fixture exercises the block continuation path
+ * that only a full-size save reaches.
+ */
+function representativeScalar(position: number): unknown {
+  const kind = position % 6;
+  if (kind === 0) {
+    return position;
+  }
+  if (kind === 1) {
+    return `slot-position-${position}-${"x".repeat(200)}`;
+  }
+  if (kind === 2) {
+    return position % 4 === 2;
+  }
+  if (kind === 3) {
+    return position + 0.5;
+  }
+  if (kind === 4) {
+    return [position, position + 1, position + 2];
+  }
+  return null;
+}
+
+/**
+ * Builds a raw slot array that populates every mapped position with a
+ * representative value: scalars for plain fields, empty lists for
+ * positional sub-lists, and empty records for keyed sub-records.
+ * Overrides replace named positions with realistic structures.
+ */
+export function representativeSlotSave(
+  overrides: Record<string, unknown> = {},
+): unknown[] {
+  const keys = slot_mp_keys as Record<
+    number,
+    string | { keys: unknown; name: string } | undefined
+  >;
+  const rawData: unknown[] = Array.from(
+    { length: SLOT_POSITION_COUNT },
+    (_, position) => {
+      const descriptor = keys[position];
+      if (descriptor === undefined || typeof descriptor === "string") {
+        return representativeScalar(position);
+      }
+      return Array.isArray(descriptor.keys) ? [] : {};
+    },
+  );
+  for (const [field, value] of Object.entries(overrides)) {
     rawData[requiredSlotPosition(field)] = value;
   }
   rawData[UNKNOWN_SLOT_POSITION] = [];
