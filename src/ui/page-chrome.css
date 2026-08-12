@@ -33,11 +33,12 @@
 .topbar::after {
   position: absolute;
   right: 0;
-  bottom: -10px;
+  bottom: calc(var(--tear-height) * -1);
   left: 0;
-  height: 10px;
+  height: var(--tear-height);
   background:
-    linear-gradient(135deg, var(--ink) 50%, transparent 51%) 0 0 / 18px 10px repeat-x;
+    linear-gradient(135deg, var(--ink) 50%, transparent 51%) 0 0 /
+      var(--tear-width) var(--tear-height) repeat-x;
   content: "";
 }
 
