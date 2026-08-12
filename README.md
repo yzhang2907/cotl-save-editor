@@ -1,7 +1,14 @@
+<p align="center">
+  <a href="https://cotlsave.com">
+    <img src="public/banner.png" alt="Cult of the Lamb Save Editor" width="100%">
+  </a>
+</p>
+
 # Cult of the Lamb Save Editor
 
 An unofficial browser editor for Cult of the Lamb saves. Saves are read
-in the browser and never uploaded.
+in the browser and never uploaded. Available at
+[cotlsave.com](https://cotlsave.com).
 
 ## What it does
 
