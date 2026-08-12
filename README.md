@@ -45,6 +45,12 @@ Run all checks:
 pnpm check
 ```
 
+Run the tests with a per-file coverage report:
+
+```sh
+pnpm coverage
+```
+
 The interface uses React and Vite. Save decoding, validation, and encoding
 remain in framework-independent TypeScript modules under `src/save`.
 
