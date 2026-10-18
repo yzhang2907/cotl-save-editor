@@ -58,6 +58,23 @@ Run the tests with a per-file coverage report:
 pnpm coverage
 ```
 
+Run the browser end-to-end tests against a production build, using the sample
+save in `public/samples`:
+
+```sh
+pnpm exec playwright install chromium
+pnpm e2e
+```
+
+Screenshot comparisons only run on Linux, because font rendering differs
+between operating systems. Run them, or update their baselines after an
+intended visual change, in the same Playwright image CI uses:
+
+```sh
+pnpm e2e:docker
+pnpm e2e:docker --update-snapshots
+```
+
 The interface uses React and Vite. Save decoding, validation, and encoding
 remain in framework-independent TypeScript modules under `src/save`.
 

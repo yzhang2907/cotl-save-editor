@@ -19,3 +19,7 @@ Thumbs.db
 /slot_*.json
 /meta_*.mp
 /meta_*.json
+
+# Playwright output.
+/test-results/
+/playwright-report/

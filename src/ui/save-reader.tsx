@@ -135,18 +135,22 @@ export function SaveReader({
         </label>
       )}
 
-      {loaded ? null : (
-        <div className="sample-save">
-          <span>No save handy?</span>
-          <button
-            className="chip-button ghost-button"
-            onClick={onSample}
-            type="button"
-          >
-            Try a sample save
-          </button>
-        </div>
-      )}
+      {/* Hidden rather than removed once a save is loaded, so the card
+          keeps the same height in both states. */}
+      <div
+        aria-hidden={loaded}
+        className={`sample-save${loaded ? " hidden" : ""}`}
+        inert={loaded}
+      >
+        <span>No save handy?</span>
+        <button
+          className="chip-button ghost-button"
+          onClick={onSample}
+          type="button"
+        >
+          Try a sample save
+        </button>
+      </div>
 
       <div className="save-rules" aria-label="File handling details">
         <span>

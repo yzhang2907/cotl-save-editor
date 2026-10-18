@@ -155,6 +155,10 @@
   font-weight: 700;
 }
 
+.sample-save.hidden {
+  visibility: hidden;
+}
+
 .save-rules {
   display: flex;
   flex-wrap: wrap;
