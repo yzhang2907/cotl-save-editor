@@ -21,6 +21,10 @@ import type { PendingSaveChange } from "./pending-save-changes";
 import { StepHeader } from "./step-header";
 import "./edited-save-download.css";
 
+// Default Steam library on Linux and Steam Deck, where the game runs under
+// Proton and saves inside its Windows prefix.
+const STEAM_ROOT = "~/.local/share/Steam";
+
 interface EditedSaveDownloadProps {
   changes: PendingSaveChange[];
   children?: ReactNode;
@@ -40,6 +44,7 @@ export function EditedSaveDownload({
   source,
   working,
 }: EditedSaveDownloadProps) {
+  const installSteps = useRef<HTMLDetailsElement>(null);
   const requestId = useRef(0);
   const [backupConfirmed, setBackupConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -130,6 +135,11 @@ export function EditedSaveDownload({
 
       downloadLocalFile(encoded, outputName);
       setReviewOpen(false);
+      // Set directly rather than through the open prop, so every download
+      // reopens the steps even if the user closed them after an earlier one.
+      if (installSteps.current !== null) {
+        installSteps.current.open = true;
+      }
       onNotice(`Downloaded ${outputName}.`, "ready");
     } catch (error) {
       if (requestId.current !== currentRequest) {
@@ -174,14 +184,43 @@ export function EditedSaveDownload({
         titleId="edited-save-step-title"
       />
 
-      <section
-        className="edited-save-install"
-        aria-labelledby="edited-save-install-title"
+      <details
+        className="diagnostic-disclosure edited-save-install"
+        ref={installSteps}
       >
-        <h4 id="edited-save-install-title">Install the edited file</h4>
+        <summary>How to install the edited file</summary>
         <ol>
           <li>Close the game completely.</li>
-          <li>Locate the game’s <code>saves</code> directory.</li>
+          <li>
+            Open the game’s <code>saves</code> directory:
+            <ul className="edited-save-locations">
+              <li>
+                <strong>Windows</strong>
+                <code>
+                  {
+                    "%USERPROFILE%\\AppData\\LocalLow\\Massive Monster\\Cult Of The Lamb\\saves"
+                  }
+                </code>
+              </li>
+              <li>
+                <strong>macOS</strong>
+                <code>
+                  {
+                    "~/Library/Application Support/Massive Monster/Cult Of The Lamb/saves"
+                  }
+                </code>
+              </li>
+              <li>
+                <strong>Linux and Steam Deck</strong>
+                <code>{`${STEAM_ROOT}/steamapps/compatdata/1313140/pfx/drive_c/users/steamuser/AppData/LocalLow/Massive Monster/Cult Of The Lamb/saves`}</code>
+                <span>
+                  For Flatpak Steam, or a game on another drive or SD card,
+                  replace <code>{STEAM_ROOT}</code> with that Steam
+                  library’s folder.
+                </span>
+              </li>
+            </ul>
+          </li>
           <li>Copy the whole directory somewhere safe as a backup.</li>
           <li>
             Move <code>{outputName}</code> into the <code>saves</code>{" "}
@@ -194,7 +233,7 @@ export function EditedSaveDownload({
           <li>Start the game and load that slot.</li>
           <li>Save in the game, then reload the slot once.</li>
         </ol>
-      </section>
+      </details>
 
       <details
         className="diagnostic-disclosure edited-save-recovery"

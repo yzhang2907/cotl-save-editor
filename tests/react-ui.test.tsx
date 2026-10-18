@@ -424,6 +424,10 @@ describe("EditedSaveDownload", () => {
       }),
     );
     expect(download.hasAttribute("disabled")).toBe(false);
+    const installSteps = screen
+      .getByText("How to install the edited file")
+      .closest("details");
+    expect(installSteps?.open).toBe(false);
 
     await user.click(download);
     expect(currentSaveWriter).toHaveBeenCalledWith(source, original, working);
@@ -436,6 +440,7 @@ describe("EditedSaveDownload", () => {
       "ready",
     );
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(installSteps?.open).toBe(true);
     expect(container.querySelector(".edited-save-status")).toBeNull();
   });
 

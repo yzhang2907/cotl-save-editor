@@ -26,8 +26,7 @@
   white-space: nowrap;
 }
 
-.final-doctrine-changes ol,
-.edited-save-install ol {
+.final-doctrine-changes ol {
   margin: 0;
   padding-left: 1.2rem;
 }
@@ -89,13 +88,17 @@
   accent-color: var(--red);
 }
 
-.edited-save-install {
-  margin-top: 1.35rem;
+/* The install steps and recovery notes are .diagnostic-disclosure elements,
+   so the shared disclosure rule already sets their top margin. */
+.edited-save-install ol {
+  max-width: 850px;
+  margin: 0.5rem 0 0;
+  padding-left: 1.4rem;
 }
 
 .edited-save-install li {
   color: var(--bone-muted);
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -103,8 +106,30 @@
   color: var(--gold);
 }
 
-/* The recovery notes are a .diagnostic-disclosure, so the shared disclosure
-   rule already sets the top margin; only the body needs anything here. */
+.edited-save-locations {
+  margin: 0.45rem 0 0;
+  padding-left: 1rem;
+}
+
+.edited-save-locations strong,
+.edited-save-locations span {
+  display: block;
+}
+
+.edited-save-locations strong {
+  color: var(--bone);
+}
+
+/* Paths are long enough to need breaking anywhere on narrow screens. */
+.edited-save-locations code {
+  box-decoration-break: clone;
+  overflow-wrap: anywhere;
+}
+
+.edited-save-locations span {
+  margin-top: 0.25rem;
+}
+
 .edited-save-recovery-body {
   max-width: 850px;
   padding-left: 0.15rem;
@@ -113,7 +138,7 @@
 .edited-save-recovery p {
   margin: 0.5rem 0 0;
   color: var(--bone-muted);
-  font-size: 0.76rem;
+  font-size: 0.9rem;
 }
 
 .edited-save-recovery strong {
