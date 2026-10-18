@@ -36,7 +36,7 @@ export function RitualsSection({
     >
       {count === 0 ? (
         <p className="empty-overview">
-          No ritual or sermon unlocks were found.
+          No rituals or sermons unlocked.
         </p>
       ) : (
         <>

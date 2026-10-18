@@ -23,23 +23,6 @@
   font-size: 0.95rem;
 }
 
-.edited-save-download-intro {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  justify-content: space-between;
-}
-
-.edited-save-download-intro p {
-  margin-bottom: 0;
-  color: var(--bone-muted);
-  font-size: 0.88rem;
-}
-
-.edited-save-download-intro > div {
-  min-width: 0;
-}
-
 .edited-save-review-button {
   white-space: nowrap;
 }
@@ -153,10 +136,5 @@
   .edited-save-review-button {
     width: 100%;
     white-space: normal;
-  }
-
-  .edited-save-download-intro {
-    flex-direction: column;
-    align-items: stretch;
   }
 }

@@ -6,9 +6,7 @@ const STALE_MODULE_PATTERN =
   /dynamically imported module|importing a module script failed/i;
 
 export const STALE_MODULE_MESSAGE =
-  "The editor was updated since this tab was opened. Reload the " +
-  "page and try again — any staged changes will need to be staged " +
-  "again.";
+  "The editor has been updated. Reload the page and try again.";
 
 export function errorMessage(error: unknown): string {
   const message =

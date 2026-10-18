@@ -13,7 +13,6 @@ import type { ToastKind } from "./action-toast";
 import {
   EDITED_SAVE_REVIEW_LABEL,
   EDITED_SAVE_STEP_TITLE,
-  EDITED_SAVE_SUBSECTION_TITLE,
   NO_EDITED_SAVE_CHANGES_LABEL,
 } from "./copy";
 import { errorMessage } from "./error-message";
@@ -153,35 +152,27 @@ export function EditedSaveDownload({
       aria-labelledby="edited-save-step-title"
     >
       <StepHeader
+        aside={
+          <button
+            className="cta-button edited-save-review-button"
+            disabled={!hasChanges}
+            onClick={() => {
+              setFailure(null);
+              setReviewOpen(true);
+            }}
+            type="button"
+          >
+            {hasChanges
+              ? EDITED_SAVE_REVIEW_LABEL
+              : NO_EDITED_SAVE_CHANGES_LABEL}
+          </button>
+        }
         description="Review the changes, then download the edited save."
         eyebrow="Edited save download"
         step="III"
         title={EDITED_SAVE_STEP_TITLE}
         titleId="edited-save-step-title"
       />
-
-      <div className="edited-save-download-intro">
-        <div>
-          <h3>{EDITED_SAVE_SUBSECTION_TITLE}</h3>
-          <p>
-            The rebuilt save is checked against the original before the
-            download starts.
-          </p>
-        </div>
-        <button
-          className="cta-button edited-save-review-button"
-          disabled={!hasChanges}
-          onClick={() => {
-            setFailure(null);
-            setReviewOpen(true);
-          }}
-          type="button"
-        >
-          {hasChanges
-            ? EDITED_SAVE_REVIEW_LABEL
-            : NO_EDITED_SAVE_CHANGES_LABEL}
-        </button>
-      </div>
 
       <section
         className="edited-save-install"
@@ -212,15 +203,13 @@ export function EditedSaveDownload({
         <summary>If the edited save does not work</summary>
         <div className="edited-save-recovery-body">
           <p>
-            <strong>Stopped by this editor:</strong> no download was started
-            and your original file was untouched. Review the reported error
-            and retry with one staged change if you need to isolate it.
+            <strong>Stopped by the editor:</strong> nothing was downloaded.
+            Try one change at a time to find the one it rejects.
           </p>
           <p>
-            <strong>Rejected by the game:</strong> close the game without
-            saving, then restore the slot and its matching metadata file from
-            your full-folder backup. If Steam reports a conflict, keep the
-            restored local files.
+            <strong>Rejected by the game:</strong> close it without saving,
+            then restore the slot and its metadata file from your backup. If
+            Steam reports a conflict, keep the local files.
           </p>
           <a
             className="chip-button edited-save-issue-link"
@@ -246,7 +235,6 @@ export function EditedSaveDownload({
           }}
         >
           <section
-            aria-describedby="edited-save-review-description"
             aria-labelledby="edited-save-review-title"
             aria-modal="true"
             className="edited-save-modal"
@@ -271,12 +259,6 @@ export function EditedSaveDownload({
               </button>
             </header>
 
-            <p id="edited-save-review-description">
-              The editor rebuilds the save with these changes, reopens it,
-              and confirms that every other position is byte-for-byte
-              unchanged.
-            </p>
-
             <section
               className="final-doctrine-changes"
               aria-labelledby="final-doctrine-changes-title"
@@ -298,9 +280,8 @@ export function EditedSaveDownload({
             >
               <h4 id="edited-save-safety-title">Before downloading</h4>
               <p className="steam-cloud-warning">
-                Steam Cloud can overwrite your local replacement or restore
-                an older file. Resolve any conflict in favor of the copy you
-                intend to keep.
+                Steam Cloud can overwrite the edited save with an older copy.
+                If Steam reports a conflict, keep the local files.
               </p>
               <label>
                 <input
@@ -350,8 +331,7 @@ export function EditedSaveDownload({
 
             {failure !== null ? (
               <p className="edited-save-modal-error" role="alert">
-                Verification or download stopped: {failure}. Your original
-                save was not changed.
+                Download stopped: {failure}
               </p>
             ) : null}
 

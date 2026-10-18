@@ -1125,7 +1125,7 @@ export function FollowersSection({
       title="Followers"
     >
       {followers.length === 0 ? (
-        <p className="empty-overview">No living follower records were found.</p>
+        <p className="empty-overview">No living followers.</p>
       ) : (
         <FollowerList
           dead={false}

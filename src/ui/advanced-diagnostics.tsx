@@ -86,7 +86,7 @@ export function AdvancedDiagnostics({
     if (!event.currentTarget.open || record !== null) {
       return;
     }
-    setRecord("Preparing the complete save record…");
+    setRecord("Loading…");
     window.requestAnimationFrame(() => {
       try {
         setRecord(serializeSaveData(data));
@@ -101,10 +101,6 @@ export function AdvancedDiagnostics({
   return (
     <section className="advanced-diagnostics">
       <h3>{ADVANCED_DIAGNOSTICS_TITLE}</h3>
-      <p>
-        The complete decoded record, for troubleshooting. Large saves may
-        take a moment to display.
-      </p>
       <details
         className="diagnostic-disclosure preview"
         onToggle={prepareRecord}
@@ -123,8 +119,7 @@ export function AdvancedDiagnostics({
               : TECHNICAL_SAVE_PREVIEW_COPY_LABEL}
         </button>
         <pre>
-          {record ??
-            "Open this section to prepare the complete save record."}
+          {record ?? "Loading…"}
         </pre>
       </details>
       {children}

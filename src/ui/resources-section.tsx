@@ -316,7 +316,7 @@ function AddItemModal({
           <div className="resource-add-results">
             {matches.length === 0 ? (
               <p className="empty-overview">
-                No catalog items match “{query}”.
+                No items match “{query}”.
               </p>
             ) : (
               <>
@@ -343,9 +343,8 @@ function AddItemModal({
                       Unobtainable items
                     </h4>
                     <p>
-                      The game defines these but never places them in the
-                      inventory: cut content, or things it tracks
-                      elsewhere. Adding one likely does nothing in-game.
+                      The game never puts these in the inventory, so adding
+                      one likely does nothing.
                     </p>
                     <div className="resource-add-list">
                       {matches
@@ -439,7 +438,7 @@ export function ResourcesSection({
       title="Resources"
     >
       {resources.length === 0 ? (
-        <p className="empty-overview">No inventory records were found.</p>
+        <p className="empty-overview">The inventory is empty.</p>
       ) : (
         <div className="resource-grid">
           {resources.map((resource) => (

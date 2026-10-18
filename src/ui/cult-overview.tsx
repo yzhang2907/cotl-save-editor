@@ -197,13 +197,7 @@ export function CultOverview({
   return (
     <section className="cult-overview" aria-labelledby="cult-overview-title">
       <header className="overview-heading">
-        <div>
-          <h3 id="cult-overview-title">Inside the cult</h3>
-          <p>
-            Changes go to a working copy. The file you opened stays
-            untouched.
-          </p>
-        </div>
+        <h3 id="cult-overview-title">Inside the cult</h3>
         <span
           className={`change-count-seal${changeCount === 0 ? "" : " is-dirty"}`}
         >

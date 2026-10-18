@@ -1,11 +1,6 @@
-import { FileLock2, Save, Trash2, UserX } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useState, type ChangeEvent, type DragEvent } from "react";
 
-import {
-  NOTHING_OVERWRITTEN_LABEL,
-  NO_ACCOUNT_NEEDED_LABEL,
-  SAVE_SIZE_MAXIMUM_LABEL,
-} from "./copy";
 import { StepHeader } from "./step-header";
 import "./save-reader.css";
 
@@ -150,21 +145,6 @@ export function SaveReader({
         >
           Try a sample save
         </button>
-      </div>
-
-      <div className="save-rules" aria-label="File handling details">
-        <span>
-          <UserX aria-hidden="true" size={15} strokeWidth={3.5} />
-          {NO_ACCOUNT_NEEDED_LABEL}
-        </span>
-        <span>
-          <FileLock2 aria-hidden="true" size={15} strokeWidth={3.5} />
-          {NOTHING_OVERWRITTEN_LABEL}
-        </span>
-        <span>
-          <Save aria-hidden="true" size={15} strokeWidth={3.5} />
-          {SAVE_SIZE_MAXIMUM_LABEL}
-        </span>
       </div>
     </section>
   );

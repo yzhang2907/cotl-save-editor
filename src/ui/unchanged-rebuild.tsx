@@ -39,7 +39,7 @@ export function UnchangedRebuild({
 
   async function download(): Promise<void> {
     setBusy(true);
-    onNotice("Rebuilding the save locally…", "loading");
+    onNotice("Rebuilding the save…", "loading");
     try {
       const { encodeVerifiedMessagePackSave } = await import("../save/encode");
       const encoded = await encodeVerifiedMessagePackSave(source);
@@ -62,12 +62,11 @@ export function UnchangedRebuild({
       <div className="unchanged-rebuild-content">
         <div>
           <p>
-            Download a test copy that keeps the original game-data bytes
-            and rebuilds only the compression and encryption.
+            The original save, recompressed and re-encrypted with no edits.
           </p>
           {pendingChangeCount > 0 ? (
             <p className="unchanged-rebuild-warning">
-              This test rebuild will not include the pending doctrine changes.
+              Pending changes are not included.
             </p>
           ) : null}
         </div>
