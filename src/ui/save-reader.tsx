@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { ArrowDown, Trash2 } from "lucide-react";
 import { useState, type ChangeEvent, type DragEvent } from "react";
 
 import { StepHeader } from "./step-header";
@@ -6,6 +6,7 @@ import "./save-reader.css";
 
 interface SaveReaderProps {
   loadedFileName: string | null;
+  nextSectionId: string;
   onFile: (file: File) => void;
   onRemove: () => void;
   onSample: () => void;
@@ -18,6 +19,7 @@ function firstFile(files: FileList | null): File | null {
 
 export function SaveReader({
   loadedFileName,
+  nextSectionId,
   onFile,
   onRemove,
   onSample,
@@ -87,7 +89,7 @@ export function SaveReader({
           <strong>{loadedFileName} successfully loaded</strong>
           <div className="save-loaded-actions">
             <button
-              className="chip-button"
+              className="chip-button ghost-button"
               onClick={() => setDismissedSaveId(saveId)}
               type="button"
             >
@@ -130,21 +132,31 @@ export function SaveReader({
         </label>
       )}
 
-      {/* Hidden rather than removed once a save is loaded, so the card
-          keeps the same height in both states. */}
-      <div
-        aria-hidden={loaded}
-        className={`sample-save${loaded ? " hidden" : ""}`}
-        inert={loaded}
-      >
-        <span>No save handy?</span>
-        <button
-          className="chip-button ghost-button"
-          onClick={onSample}
-          type="button"
-        >
-          Try a sample save
-        </button>
+      {/* Present in both states, so the card keeps the same height. */}
+      <div className="reader-footer">
+        {loaded ? (
+          <button
+            className="chip-button"
+            onClick={() =>
+              document.getElementById(nextSectionId)?.scrollIntoView()
+            }
+            type="button"
+          >
+            <ArrowDown aria-hidden="true" size={16} strokeWidth={2.5} />
+            Continue
+          </button>
+        ) : (
+          <>
+            <span>No save handy?</span>
+            <button
+              className="chip-button ghost-button"
+              onClick={onSample}
+              type="button"
+            >
+              Try a sample save
+            </button>
+          </>
+        )}
       </div>
     </section>
   );

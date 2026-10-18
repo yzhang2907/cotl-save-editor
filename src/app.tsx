@@ -215,6 +215,7 @@ export function App() {
         <Hero />
         <SaveReader
           loadedFileName={openedSave?.file.name ?? null}
+          nextSectionId="report"
           onFile={(file) => void inspectFile(file)}
           onRemove={removeSave}
           onSample={() => void openSampleSave()}

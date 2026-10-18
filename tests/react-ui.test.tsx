@@ -207,6 +207,7 @@ describe("SaveReader", () => {
     const { container } = render(
       <SaveReader
         loadedFileName={null}
+        nextSectionId="report"
         onFile={onFile}
         onRemove={() => undefined}
         onSample={() => undefined}
@@ -231,6 +232,7 @@ describe("SaveReader", () => {
     render(
       <SaveReader
         loadedFileName={null}
+        nextSectionId="report"
         onFile={() => undefined}
         onRemove={() => undefined}
         onSample={onSample}
@@ -241,6 +243,41 @@ describe("SaveReader", () => {
     await user.click(screen.getByRole("button", { name: "Try a sample save" }));
 
     expect(onSample).toHaveBeenCalledOnce();
+  });
+
+  it("offers to continue to the next section once a save is loaded", async () => {
+    const scrolled: string[] = [];
+    Element.prototype.scrollIntoView = function scrollIntoView() {
+      scrolled.push((this as Element).id);
+    };
+    const user = userEvent.setup();
+    render(
+      <>
+        <SaveReader
+          loadedFileName="slot_0.mp"
+          nextSectionId="report"
+          onFile={() => undefined}
+          onRemove={() => undefined}
+          onSample={() => undefined}
+          saveId={1}
+        />
+        <section id="report" />
+      </>,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Try a sample save" }),
+    ).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(scrolled).toEqual(["report"]);
+
+    await user.click(
+      screen.getByRole("button", { name: "Choose another save" }),
+    );
+    expect(screen.queryByRole("button", { name: "Continue" })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Try a sample save" }),
+    ).toBeTruthy();
   });
 });
 
@@ -255,6 +292,7 @@ describe("step headers", () => {
       <>
         <SaveReader
           loadedFileName={null}
+          nextSectionId="report"
           onFile={() => undefined}
           onRemove={() => undefined}
           onSample={() => undefined}
