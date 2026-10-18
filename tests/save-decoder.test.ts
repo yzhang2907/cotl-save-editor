@@ -228,15 +228,12 @@ describe("analyzeSave", () => {
     expect(report.doctrineFields.cultTraitsField).toBe("CultTrait");
   });
 
-  it("keeps unknown positions visible without hiding doctrine controls", () => {
+  it("ignores unnamed positions without hiding doctrine controls", () => {
     const unknownKey = String(UNKNOWN_SLOT_POSITION);
     const report = analyzeSave({ ...sampleSave, [unknownKey]: true });
 
     expect(report.canEditDoctrines).toBe(true);
-    expect(report.unknownTopLevelKeys).toEqual([unknownKey]);
-    expect(report.warnings).toEqual([
-      "This save contains one game-data entry that the editor cannot identify. It will be left unchanged.",
-    ]);
+    expect(report.warnings).toEqual([]);
   });
 });
 

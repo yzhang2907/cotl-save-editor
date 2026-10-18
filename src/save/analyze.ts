@@ -11,8 +11,6 @@ function numericArrayLength(value: unknown): number | null {
 }
 
 export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
-  const keys = Object.keys(data);
-  const unknownTopLevelKeys = keys.filter((key) => /^\d+$/.test(key));
   const doctrineUnlockCount = numericArrayLength(
     data.DoctrineUnlockedUpgrades,
   );
@@ -28,16 +26,6 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
     : null;
   const warnings: string[] = [];
 
-  if (unknownTopLevelKeys.length > 0) {
-    const subject =
-      unknownTopLevelKeys.length === 1
-        ? "one game-data entry"
-        : `${unknownTopLevelKeys.length} game-data entries`;
-    const pronoun = unknownTopLevelKeys.length === 1 ? "It" : "They";
-    warnings.push(
-      `This save contains ${subject} that the editor cannot identify. ${pronoun} will be left unchanged.`,
-    );
-  }
   if (doctrineUnlockCount === null) {
     warnings.push("DoctrineUnlockedUpgrades is missing or is not a number array.");
   }
@@ -59,7 +47,6 @@ export function analyzeSave(data: SaveRecord): SaveCompatibilityReport {
       doctrineUnlockCount,
       unlockedUpgradeCount,
     },
-    unknownTopLevelKeys,
     warnings,
   };
 }
