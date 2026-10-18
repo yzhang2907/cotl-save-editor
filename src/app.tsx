@@ -21,6 +21,7 @@ import { SaveReport } from "./ui/save-report";
 import { SaveReader } from "./ui/save-reader";
 
 const FILE_LOADING_DELAY_MS = 400;
+const SAMPLE_SAVE_NAME = "sample_slot_0.mp";
 
 interface OpenedSave {
   bytes: ArrayBuffer;
@@ -105,6 +106,24 @@ export function App() {
     },
     [showToast],
   );
+
+  const openSampleSave = useCallback(async (): Promise<void> => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.BASE_URL}samples/${SAMPLE_SAVE_NAME}`,
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const blob = await response.blob();
+      await inspectFile(new File([blob], SAMPLE_SAVE_NAME));
+    } catch (error) {
+      showToast(
+        `The sample save could not be loaded: ${errorMessage(error)}`,
+        "error",
+      );
+    }
+  }, [inspectFile, showToast]);
 
   /*
    * Persisting the bytes rather than a file handle is deliberate: the save
@@ -198,6 +217,7 @@ export function App() {
           loadedFileName={openedSave?.file.name ?? null}
           onFile={(file) => void inspectFile(file)}
           onRemove={removeSave}
+          onSample={() => void openSampleSave()}
           saveId={openedSave?.id ?? null}
         />
 

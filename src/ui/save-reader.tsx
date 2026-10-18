@@ -13,6 +13,7 @@ interface SaveReaderProps {
   loadedFileName: string | null;
   onFile: (file: File) => void;
   onRemove: () => void;
+  onSample: () => void;
   saveId: number | null;
 }
 
@@ -24,6 +25,7 @@ export function SaveReader({
   loadedFileName,
   onFile,
   onRemove,
+  onSample,
   saveId,
 }: SaveReaderProps) {
   const [dragging, setDragging] = useState(false);
@@ -131,6 +133,19 @@ export function SaveReader({
           <strong>Choose a save</strong>
           <span>or drop it into the circle</span>
         </label>
+      )}
+
+      {loaded ? null : (
+        <div className="sample-save">
+          <span>No save handy?</span>
+          <button
+            className="chip-button ghost-button"
+            onClick={onSample}
+            type="button"
+          >
+            Try a sample save
+          </button>
+        </div>
       )}
 
       <div className="save-rules" aria-label="File handling details">

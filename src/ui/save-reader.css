@@ -143,6 +143,18 @@
   gap: 0.6rem;
 }
 
+.sample-save {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.3rem;
+  color: var(--bone-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .save-rules {
   display: flex;
   flex-wrap: wrap;

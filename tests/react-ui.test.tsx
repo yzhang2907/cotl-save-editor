@@ -209,6 +209,7 @@ describe("SaveReader", () => {
         loadedFileName={null}
         onFile={onFile}
         onRemove={() => undefined}
+        onSample={() => undefined}
         saveId={null}
       />,
     );
@@ -222,6 +223,24 @@ describe("SaveReader", () => {
 
     expect(onFile).toHaveBeenCalledOnce();
     expect(onFile).toHaveBeenCalledWith(file);
+  });
+
+  it("asks the application for the sample save", async () => {
+    const user = userEvent.setup();
+    const onSample = vi.fn<() => void>();
+    render(
+      <SaveReader
+        loadedFileName={null}
+        onFile={() => undefined}
+        onRemove={() => undefined}
+        onSample={onSample}
+        saveId={null}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Try a sample save" }));
+
+    expect(onSample).toHaveBeenCalledOnce();
   });
 });
 
@@ -238,6 +257,7 @@ describe("step headers", () => {
           loadedFileName={null}
           onFile={() => undefined}
           onRemove={() => undefined}
+          onSample={() => undefined}
           saveId={null}
         />
         <SaveReport
