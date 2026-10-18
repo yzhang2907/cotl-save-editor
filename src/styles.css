@@ -56,6 +56,10 @@
 }
 
 html {
+  /* Decorations such as the rotated hero stars are allowed to overhang the
+     edge of the page; clipping keeps them from adding a sideways scroll on
+     narrow screens without creating a scroll container. */
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 
